@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "+eykgoxGtTs=",
+  "success": true,
+  "projectFilePath": "C:\\AdIns Academy Batch 2 2026\\Projects\\kelompok-3\\BackEnd\\BackEnd.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Adicipta\\.nuget\\packages\\microsoft.aspnetcore.openapi\\11.0.0\\microsoft.aspnetcore.openapi.11.0.0.nupkg.sha512",
+    "C:\\Users\\Adicipta\\.nuget\\packages\\microsoft.openapi\\3.11.0\\microsoft.openapi.3.11.0.nupkg.sha512"
+  ],
+  "logs": []
+}
