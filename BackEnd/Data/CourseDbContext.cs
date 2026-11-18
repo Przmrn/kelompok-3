@@ -1,6 +1,5 @@
 ﻿using BackEnd.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Text.RegularExpressions;
 
 namespace BackEnd.Data
 {
@@ -43,6 +42,10 @@ namespace BackEnd.Data
             modelBuilder.Entity<Registration>()
                 .HasIndex(r => r.RegistrationNumber)
                 .IsUnique();
+
+            modelBuilder.Entity<User>()
+                .Property(u => u.Role)
+                .HasConversion<string>();
 
             modelBuilder.Entity<Registration>()
                 .Property(r => r.RegistrationStatus)
