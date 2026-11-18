@@ -1,41 +1,14 @@
 <section class="py-5">
   <div class="container" style="max-width: 860px;">
-    <!-- Top Switcher: Profil & Aktivitas Student vs Register vs Login -->
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4">
-      <h1 class="h2 fw-bold mb-0">Profil &amp; Akun</h1>
-
-      <div class="d-flex gap-2">
-        @if (svc.isStudent()) {
-          <button
-            type="button"
-            class="k-chip"
-            [class.active]="activeView() === 'PROFILE'"
-            (click)="activeView.set('PROFILE')"
-          >
-            Profil &amp; Aktivitas
-          </button>
-        }
-        <button
-          type="button"
-          class="k-chip"
-          [class.active]="activeView() === 'REGISTER'"
-          (click)="activeView.set('REGISTER')"
-        >
-          Register Student
-        </button>
-        <button
-          type="button"
-          class="k-chip"
-          [class.active]="activeView() === 'LOGIN'"
-          (click)="activeView.set('LOGIN')"
-        >
-          Login
-        </button>
+    @if (svc.currentUser(); as user) {
+      <div class="mb-4 anim-fade-up">
+        <span class="k-pill k-pill-green mb-2">Role: {{ user.role }} · Profil &amp; Aktivitas</span>
+        <h1 class="h2 fw-bold mb-1">Profil &amp; Ringkasan Aktivitas</h1>
+        <p class="text-secondary small mb-0">
+          Pantau ringkasan pendaftaran kelas dan kelola kelengkapan data diri Anda.
+        </p>
       </div>
-    </div>
 
-    <!-- VIEW 1: RINGKASAN AKTIVITAS (DASHBOARD STUDENT) & PROFIL DATA DIRI -->
-    @if (activeView() === 'PROFILE' && svc.currentUser(); as user) {
       <!-- A. RINGKASAN AKTIVITAS & PENDAFTARAN (DASHBOARD STUDENT DI DALAM PROFIL) -->
       <div class="row g-3 mb-4 anim-fade-up">
         <div class="col-md-4">
@@ -103,7 +76,7 @@
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 pb-3 border-bottom">
           <div>
             <h2 class="h4 fw-bold mb-1">Data Diri Student ({{ user.fullName }})</h2>
-            <div class="small text-secondary">{{ user.email }} · Role: {{ user.role }}</div>
+            <div class="small text-secondary">{{ user.email }}</div>
           </div>
 
           @if (isProfileComplete()) {
@@ -223,133 +196,37 @@
           }
         </div>
       </div>
-    }
-
-    <!-- VIEW 2: REGISTER AKUN STUDENT BARU -->
-    @if (activeView() === 'REGISTER') {
-      <div class="k-card p-4 p-md-5">
-        <h2 class="h4 fw-bold mb-1">Register Akun Student Baru</h2>
+    } @else {
+      <!-- Belum Login -->
+      <div class="k-card p-5 text-center anim-fade-up">
+        <div
+          class="brand-mark mx-auto mb-3"
+          style="width: 48px; height: 48px; font-size: 1.25rem;"
+        >
+          <i class="bi bi-box-arrow-in-right"></i>
+        </div>
+        <h2 class="h4 fw-bold mb-2">Anda Belum Sign In</h2>
         <p class="text-secondary small mb-4">
-          Membuat akun pada tabel <code>Users</code> dan profil awal pada tabel <code>Students</code>. Email wajib unik.
+          Silakan Sign In atau Register melalui pop-up untuk mengakses profil dan riwayat pendaftaran Anda.
         </p>
-
-        @if (authAlert(); as alert) {
-          <div
-            class="p-3 rounded-4 mb-3 small"
-            [style.background-color]="alert.success ? 'var(--brand-forest-light)' : '#FFE4E0'"
-            [style.color]="alert.success ? 'var(--brand-forest)' : '#C22A12'"
+        <div class="d-flex justify-content-center gap-2">
+          <button
+            type="button"
+            class="btn-k-primary"
+            (click)="svc.openAuthModal('LOGIN')"
           >
-            {{ alert.message }}
-          </div>
-        }
-
-        <div class="row g-3 mb-4">
-          <div class="col-12">
-            <label class="k-label">FullName</label>
-            <input
-              type="text"
-              class="form-control k-input"
-              placeholder="Contoh: Bima Arya Saputra"
-              [ngModel]="regName()"
-              (ngModelChange)="regName.set($event)"
-            />
-          </div>
-          <div class="col-md-6">
-            <label class="k-label">Email (Unique)</label>
-            <input
-              type="email"
-              class="form-control k-input"
-              placeholder="nama@email.com"
-              [ngModel]="regEmail()"
-              (ngModelChange)="regEmail.set($event)"
-            />
-          </div>
-          <div class="col-md-6">
-            <label class="k-label">PhoneNumber</label>
-            <input
-              type="tel"
-              class="form-control k-input"
-              placeholder="0812xxxxxxxx"
-              [ngModel]="regPhone()"
-              (ngModelChange)="regPhone.set($event)"
-            />
-          </div>
-          <div class="col-12">
-            <label class="k-label">Password</label>
-            <input
-              type="password"
-              class="form-control k-input"
-              placeholder="Minimal 6 karakter"
-              [ngModel]="regPassword()"
-              (ngModelChange)="regPassword.set($event)"
-            />
-          </div>
-        </div>
-
-        <div class="d-flex flex-wrap gap-2">
-          <button type="button" class="btn-k-coral" (click)="handleRegister()">
-            Register Sekarang
+            <i class="bi bi-box-arrow-in-right"></i>
+            <span>Buka Pop-Up Sign In</span>
           </button>
-          <button type="button" class="btn-k-light" (click)="testDuplicateEmail()">
-            Uji Email Terdaftar (Duplikat)
-          </button>
-        </div>
-      </div>
-    }
-
-    <!-- VIEW 3: LOGIN KE SISTEM -->
-    @if (activeView() === 'LOGIN') {
-      <div class="k-card p-4 p-md-5">
-        <h2 class="h4 fw-bold mb-1">Login ke Sistem</h2>
-        <p class="text-secondary small mb-4">
-          Masuk menggunakan email dan password untuk Admin, Student, atau Instructor.
-        </p>
-
-        @if (authAlert(); as alert) {
-          <div
-            class="p-3 rounded-4 mb-3 small"
-            [style.background-color]="alert.success ? 'var(--brand-forest-light)' : '#FFE4E0'"
-            [style.color]="alert.success ? 'var(--brand-forest)' : '#C22A12'"
+          <button
+            type="button"
+            class="btn-k-light"
+            (click)="svc.openAuthModal('REGISTER')"
           >
-            {{ alert.message }}
-          </div>
-        }
-
-        <div class="mb-3">
-          <label class="k-label">Email</label>
-          <input
-            type="email"
-            class="form-control k-input"
-            [ngModel]="loginEmail()"
-            (ngModelChange)="loginEmail.set($event)"
-          />
-        </div>
-
-        <div class="mb-4">
-          <label class="k-label">Password</label>
-          <input
-            type="password"
-            class="form-control k-input"
-            [ngModel]="loginPassword()"
-            (ngModelChange)="loginPassword.set($event)"
-          />
-        </div>
-
-        <div class="d-flex flex-wrap gap-2 mb-3">
-          <button type="button" class="btn-k-light btn-sm" (click)="loginEmail.set('raka.wijaya@karsa.id')">
-            Akun Student
-          </button>
-          <button type="button" class="btn-k-light btn-sm" (click)="loginEmail.set('bagas.adi@karsa.id')">
-            Akun Instructor
-          </button>
-          <button type="button" class="btn-k-light btn-sm" (click)="loginEmail.set('admin@karsa.id')">
-            Akun Admin
+            <i class="bi bi-person-plus"></i>
+            <span>Register Akun Baru</span>
           </button>
         </div>
-
-        <button type="button" class="btn-k-primary" (click)="handleLogin()">
-          Login Sekarang
-        </button>
       </div>
     }
   </div>

@@ -1,12 +1,13 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CourseSystemService } from './services/course-system.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, FormsModule, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
@@ -15,11 +16,78 @@ export class AppComponent {
   private readonly router = inject(Router);
   readonly mobileMenuOpen = signal(false);
 
+  // State Form di dalam Pop-Up Modal Login & Register
+  readonly loginEmail = signal('raka.wijaya@karsa.id');
+  readonly loginPassword = signal('karsa123');
+
+  readonly regName = signal('');
+  readonly regEmail = signal('');
+  readonly regPhone = signal('');
+  readonly regPassword = signal('');
+
+  readonly modalError = signal<string | null>(null);
+
   readonly userRegCount = computed(() => {
     const student = this.svc.currentStudentProfile();
     if (!student) return 0;
     return this.svc.registrations().filter((r) => r.studentId === student.id).length;
   });
+
+  openSignInModal(): void {
+    this.modalError.set(null);
+    this.svc.openAuthModal('LOGIN');
+    this.closeMobileMenu();
+  }
+
+  switchModalMode(mode: 'LOGIN' | 'REGISTER'): void {
+    this.modalError.set(null);
+    this.svc.openAuthModal(mode);
+  }
+
+  handleModalLogin(): void {
+    this.modalError.set(null);
+    const res = this.svc.loginUser(this.loginEmail(), this.loginPassword());
+    if (!res.success) {
+      this.modalError.set(res.message);
+      return;
+    }
+
+    this.svc.closeAuthModal();
+    if (res.user?.role === 'Instructor') {
+      this.router.navigate(['/teaching-schedule']);
+    } else if (res.user?.role === 'Admin') {
+      this.router.navigate(['/admin/dashboard']);
+    } else {
+      this.router.navigate(['/courses']);
+    }
+  }
+
+  handleModalRegister(): void {
+    this.modalError.set(null);
+    if (!this.regName().trim() || !this.regEmail().trim() || !this.regPhone().trim()) {
+      this.modalError.set('Mohon lengkapi Nama Lengkap, Email, Nomor Telepon, dan Password.');
+      return;
+    }
+
+    const res = this.svc.registerUser({
+      fullName: this.regName(),
+      email: this.regEmail(),
+      phoneNumber: this.regPhone(),
+      password: this.regPassword() || '123456',
+    });
+
+    if (!res.success) {
+      this.modalError.set(res.message);
+      return;
+    }
+
+    this.regName.set('');
+    this.regEmail.set('');
+    this.regPhone.set('');
+    this.regPassword.set('');
+    this.svc.closeAuthModal();
+    this.router.navigate(['/profile']);
+  }
 
   switchAccount(userId: number): void {
     const switchedUser = this.svc.switchDemoUser(userId);
@@ -32,6 +100,11 @@ export class AppComponent {
     } else {
       this.router.navigate(['/courses']);
     }
+  }
+
+  handleSignOut(): void {
+    this.svc.logoutUser();
+    this.router.navigate(['/courses']);
   }
 
   toggleMobileMenu(): void {

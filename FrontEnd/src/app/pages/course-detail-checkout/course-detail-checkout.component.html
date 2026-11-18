@@ -138,30 +138,41 @@
                   </div>
                 </div>
 
-                @if (!svc.isStudent()) {
-                  <div class="small text-danger mb-2">
-                    * Gunakan akun dengan role <strong>Student</strong> untuk mendaftar course.
-                  </div>
-                } @else if (!isProfileComplete()) {
-                  <div class="small text-danger mb-2">
-                    * Lengkapi profil Anda di halaman <a routerLink="/profile" class="fw-bold text-danger">Profil</a> sebelum mendaftar.
-                  </div>
-                }
-
-                <button
-                  type="button"
-                  class="btn-k-coral w-100 py-2"
-                  [disabled]="!canProceedToCheckout()"
-                  (click)="goToCheckout()"
-                >
-                  @if (activeBatch.status === 'Full') {
-                    Batch Full (30/30)
-                  } @else if (isAlreadyRegisteredInBatch()) {
-                    Sudah Terdaftar di Batch Ini
-                  } @else {
-                    Lanjut ke Checkout / Payment <i class="bi bi-arrow-right"></i>
+                @if (!svc.currentUser()) {
+                  <button
+                    type="button"
+                    class="btn-k-primary w-100 py-2"
+                    (click)="svc.openAuthModal('LOGIN')"
+                  >
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Sign In untuk Mendaftar Kelas</span>
+                  </button>
+                } @else {
+                  @if (!svc.isStudent()) {
+                    <div class="small text-danger mb-2">
+                      * Gunakan akun dengan role <strong>Student</strong> untuk mendaftar course.
+                    </div>
+                  } @else if (!isProfileComplete()) {
+                    <div class="small text-danger mb-2">
+                      * Lengkapi profil Anda di halaman <a routerLink="/profile" class="fw-bold text-danger">Profil</a> sebelum mendaftar.
+                    </div>
                   }
-                </button>
+
+                  <button
+                    type="button"
+                    class="btn-k-coral w-100 py-2"
+                    [disabled]="!canProceedToCheckout()"
+                    (click)="goToCheckout()"
+                  >
+                    @if (activeBatch.status === 'Full') {
+                      Batch Full (30/30)
+                    } @else if (isAlreadyRegisteredInBatch()) {
+                      Sudah Terdaftar di Batch Ini
+                    } @else {
+                      Lanjut ke Checkout / Payment <i class="bi bi-arrow-right"></i>
+                    }
+                  </button>
+                }
               }
             }
           </div>

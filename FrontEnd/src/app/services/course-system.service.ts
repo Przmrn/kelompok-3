@@ -100,10 +100,16 @@ export class CourseSystemService {
     },
   ]);
 
-  readonly currentUserId = signal<number>(1);
+  // Saat pertama kali membuka website, user belum login (null)
+  readonly currentUserId = signal<number | null>(null);
+
+  // State Pop-Up Modal Sign In / Register
+  readonly authModalOpen = signal<boolean>(false);
+  readonly authModalMode = signal<'LOGIN' | 'REGISTER'>('LOGIN');
 
   readonly currentUser = computed<User | null>(() => {
     const id = this.currentUserId();
+    if (id === null) return null;
     return this.users().find((u) => u.id === id) ?? null;
   });
 
@@ -461,6 +467,24 @@ export class CourseSystemService {
 
   dismissNotification(): void {
     this.notification.set(null);
+  }
+
+  openAuthModal(mode: 'LOGIN' | 'REGISTER' = 'LOGIN'): void {
+    this.authModalMode.set(mode);
+    this.authModalOpen.set(true);
+  }
+
+  closeAuthModal(): void {
+    this.authModalOpen.set(false);
+  }
+
+  logoutUser(): void {
+    this.currentUserId.set(null);
+    this.showNotification(
+      'info',
+      'Berhasil Sign Out',
+      'Anda telah keluar dari akun. Klik tombol Sign In di kanan atas untuk masuk kembali.'
+    );
   }
 
   getCategoryById(categoryId: number): CourseCategory | undefined {

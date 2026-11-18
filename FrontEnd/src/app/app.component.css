@@ -1,5 +1,5 @@
 /* ==========================================================================
-   HEADER NAVBAR & FOOTER STYLING
+   HEADER NAVBAR, SIGN IN BUTTON, MODAL POP-UP & FOOTER STYLING
    ========================================================================== */
 
 .k-header {
@@ -73,6 +73,31 @@
   color: var(--brand-lime) !important;
   background-color: var(--brand-forest);
   box-shadow: 0 3px 10px rgba(13, 33, 30, 0.14);
+}
+
+/* Sign In Button in Navbar */
+.k-signin-btn {
+  height: 40px;
+  padding: 0 1.15rem;
+  border-radius: 999px;
+  background-color: var(--brand-forest);
+  color: var(--brand-lime);
+  border: 1.5px solid var(--brand-forest);
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+  transition: all 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.k-signin-btn:hover {
+  background-color: var(--brand-lime);
+  color: var(--brand-forest);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(13, 33, 30, 0.15);
 }
 
 /* Right Actions: User Pill & Cart Button (Matched 40px Height) */
@@ -158,6 +183,30 @@
   align-items: center;
   justify-content: center;
   border: 2px solid #FFFFFF;
+}
+
+/* Pop-Up Modal Login & Register */
+.k-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(13, 33, 30, 0.55);
+  backdrop-filter: blur(6px);
+  z-index: 1090;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.k-modal-dialog {
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-light);
+  border-radius: 24px;
+  width: 100%;
+  max-width: 440px;
+  padding: 2rem;
+  position: relative;
+  box-shadow: 0 24px 48px rgba(13, 33, 30, 0.22);
 }
 
 /* Footer */
