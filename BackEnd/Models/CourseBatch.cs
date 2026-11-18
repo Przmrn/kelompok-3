@@ -23,7 +23,7 @@ namespace BackEnd.Models
 
         public int MaxSeats { get; set; } = 30;
 
-        public CourseStatus CourseStatus { get; set; } = CourseStatus.OPEN;
+        public CourseBatchStatus CourseStatus { get; set; } = CourseBatchStatus.OPEN;
 
         public Location Location { get; set; } = null!;
 

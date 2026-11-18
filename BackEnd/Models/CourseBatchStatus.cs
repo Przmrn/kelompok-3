@@ -1,6 +1,6 @@
 ﻿namespace BackEnd.Models
 {
-    public enum CourseStatus
+    public enum CourseBatchStatus
     {
         OPEN,
         FULL

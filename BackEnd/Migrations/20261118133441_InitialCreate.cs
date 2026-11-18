@@ -77,7 +77,7 @@ namespace BackEnd.Migrations
                         column: x => x.CategoryId,
                         principalTable: "CourseCategories",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -101,7 +101,7 @@ namespace BackEnd.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -128,7 +128,7 @@ namespace BackEnd.Migrations
                         column: x => x.UserId,
                         principalTable: "Users",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -145,7 +145,7 @@ namespace BackEnd.Migrations
                     StartTime = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
                     EndTime = table.Column<TimeOnly>(type: "time without time zone", nullable: false),
                     MaxSeats = table.Column<int>(type: "integer", nullable: false),
-                    CourseStatus = table.Column<int>(type: "integer", nullable: false)
+                    CourseStatus = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -155,13 +155,13 @@ namespace BackEnd.Migrations
                         column: x => x.CourseId,
                         principalTable: "Courses",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_CourseBatches_Locations_LocationId",
                         column: x => x.LocationId,
                         principalTable: "Locations",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -181,13 +181,13 @@ namespace BackEnd.Migrations
                         column: x => x.BatchId,
                         principalTable: "CourseBatches",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_BatchInstructors_Instructors_InstructorId",
                         column: x => x.InstructorId,
                         principalTable: "Instructors",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -208,8 +208,8 @@ namespace BackEnd.Migrations
                     TotalAmount = table.Column<decimal>(type: "numeric(15,2)", nullable: false),
                     PaymentMethod = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     InstallmentTenor = table.Column<int>(type: "integer", nullable: true),
-                    PaymentStatus = table.Column<int>(type: "integer", nullable: false),
-                    RegistrationStatus = table.Column<int>(type: "integer", maxLength: 30, nullable: false)
+                    PaymentStatus = table.Column<string>(type: "text", nullable: false),
+                    RegistrationStatus = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -219,13 +219,13 @@ namespace BackEnd.Migrations
                         column: x => x.BatchId,
                         principalTable: "CourseBatches",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_Registrations_Students_StudentId",
                         column: x => x.StudentId,
                         principalTable: "Students",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -240,7 +240,7 @@ namespace BackEnd.Migrations
                     Amount = table.Column<decimal>(type: "numeric(15,2)", nullable: false),
                     PaidAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     PaidAmount = table.Column<decimal>(type: "numeric(15,2)", nullable: false),
-                    InstallmentStatus = table.Column<int>(type: "integer", maxLength: 30, nullable: false)
+                    InstallmentStatus = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -250,13 +250,14 @@ namespace BackEnd.Migrations
                         column: x => x.RegistrationId,
                         principalTable: "Registrations",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateIndex(
-                name: "IX_BatchInstructors_BatchId",
+                name: "IX_BatchInstructors_BatchId_InstructorId",
                 table: "BatchInstructors",
-                column: "BatchId");
+                columns: new[] { "BatchId", "InstructorId" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_BatchInstructors_InstructorId",
@@ -279,9 +280,10 @@ namespace BackEnd.Migrations
                 column: "CategoryId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_InstallmentSchedules_RegistrationId",
+                name: "IX_InstallmentSchedules_RegistrationId_InstallmentNumber",
                 table: "InstallmentSchedules",
-                column: "RegistrationId");
+                columns: new[] { "RegistrationId", "InstallmentNumber" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Instructors_UserId",
@@ -290,14 +292,21 @@ namespace BackEnd.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Registrations_BatchId",
+                name: "IX_Registrations_BatchId_QueueNumber",
                 table: "Registrations",
-                column: "BatchId");
+                columns: new[] { "BatchId", "QueueNumber" },
+                unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_Registrations_StudentId",
+                name: "IX_Registrations_RegistrationNumber",
                 table: "Registrations",
-                column: "StudentId");
+                column: "RegistrationNumber",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Registrations_StudentId_BatchId",
+                table: "Registrations",
+                columns: new[] { "StudentId", "BatchId" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Students_UserId",

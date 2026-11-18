@@ -38,9 +38,10 @@ namespace BackEnd.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BatchId");
-
                     b.HasIndex("InstructorId");
+
+                    b.HasIndex("BatchId", "InstructorId")
+                        .IsUnique();
 
                     b.ToTable("BatchInstructors");
                 });
@@ -89,8 +90,9 @@ namespace BackEnd.Migrations
                     b.Property<long>("CourseId")
                         .HasColumnType("bigint");
 
-                    b.Property<int>("CourseStatus")
-                        .HasColumnType("integer");
+                    b.Property<string>("CourseStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<DateOnly>("EndDate")
                         .HasColumnType("date");
@@ -158,9 +160,10 @@ namespace BackEnd.Migrations
                     b.Property<int>("InstallmentNumber")
                         .HasColumnType("integer");
 
-                    b.Property<int>("InstallmentStatus")
+                    b.Property<string>("InstallmentStatus")
+                        .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("integer");
+                        .HasColumnType("character varying(30)");
 
                     b.Property<decimal>("PaidAmount")
                         .HasColumnType("decimal(15,2)");
@@ -173,7 +176,8 @@ namespace BackEnd.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("RegistrationId");
+                    b.HasIndex("RegistrationId", "InstallmentNumber")
+                        .IsUnique();
 
                     b.ToTable("InstallmentSchedules");
                 });
@@ -278,8 +282,9 @@ namespace BackEnd.Migrations
                         .HasMaxLength(30)
                         .HasColumnType("character varying(30)");
 
-                    b.Property<int>("PaymentStatus")
-                        .HasColumnType("integer");
+                    b.Property<string>("PaymentStatus")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.Property<int>("QueueNumber")
                         .HasColumnType("integer");
@@ -292,9 +297,10 @@ namespace BackEnd.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("character varying(50)");
 
-                    b.Property<int>("RegistrationStatus")
+                    b.Property<string>("RegistrationStatus")
+                        .IsRequired()
                         .HasMaxLength(30)
-                        .HasColumnType("integer");
+                        .HasColumnType("character varying(30)");
 
                     b.Property<long>("StudentId")
                         .HasColumnType("bigint");
@@ -310,9 +316,13 @@ namespace BackEnd.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("BatchId");
+                    b.HasIndex("RegistrationNumber")
+                        .IsUnique();
 
-                    b.HasIndex("StudentId");
+                    b.HasIndex("BatchId", "QueueNumber")
+                        .IsUnique();
+
+                    b.HasIndex("StudentId", "BatchId");
 
                     b.ToTable("Registrations");
                 });
@@ -413,13 +423,13 @@ namespace BackEnd.Migrations
                     b.HasOne("BackEnd.Models.CourseBatch", "CourseBatch")
                         .WithMany("BatchInstructors")
                         .HasForeignKey("BatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BackEnd.Models.Instructor", "Instructor")
                         .WithMany("BatchInstructors")
                         .HasForeignKey("InstructorId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CourseBatch");
@@ -432,7 +442,7 @@ namespace BackEnd.Migrations
                     b.HasOne("BackEnd.Models.CourseCategory", "CourseCategory")
                         .WithMany("Courses")
                         .HasForeignKey("CategoryId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CourseCategory");
@@ -443,13 +453,13 @@ namespace BackEnd.Migrations
                     b.HasOne("BackEnd.Models.Course", "Course")
                         .WithMany("CourseBatches")
                         .HasForeignKey("CourseId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BackEnd.Models.Location", "Location")
                         .WithMany("CourseBatches")
                         .HasForeignKey("LocationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Course");
@@ -462,7 +472,7 @@ namespace BackEnd.Migrations
                     b.HasOne("BackEnd.Models.Registration", "Registration")
                         .WithMany("InstallmentSchedules")
                         .HasForeignKey("RegistrationId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("Registration");
@@ -473,7 +483,7 @@ namespace BackEnd.Migrations
                     b.HasOne("BackEnd.Models.User", "User")
                         .WithOne("Instructor")
                         .HasForeignKey("BackEnd.Models.Instructor", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
@@ -484,13 +494,13 @@ namespace BackEnd.Migrations
                     b.HasOne("BackEnd.Models.CourseBatch", "CourseBatch")
                         .WithMany("Registrations")
                         .HasForeignKey("BatchId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("BackEnd.Models.Student", "Student")
                         .WithMany("Registrations")
                         .HasForeignKey("StudentId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("CourseBatch");
@@ -503,7 +513,7 @@ namespace BackEnd.Migrations
                     b.HasOne("BackEnd.Models.User", "User")
                         .WithOne("Student")
                         .HasForeignKey("BackEnd.Models.Student", "UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("User");
