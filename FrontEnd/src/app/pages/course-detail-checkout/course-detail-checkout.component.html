@@ -1,0 +1,172 @@
+@if (course(); as crs) {
+  <section class="py-4 py-lg-5">
+    <div class="container" style="max-width: 960px;">
+      <!-- Back Link -->
+      <div class="mb-4 anim-fade-up">
+        <a routerLink="/courses" class="btn-k-light btn-sm">
+          <i class="bi bi-arrow-left"></i> Kembali ke Course Catalog
+        </a>
+      </div>
+
+      <div class="row g-4">
+        <!-- LEFT COLUMN: Detail Course, Pilihan Batch, Jadwal, Lokasi, dan Instructor -->
+        <div class="col-lg-7 anim-fade-up delay-1">
+          <span class="k-pill k-pill-green mb-2">
+            Course Detail · {{ crs.durationHours }} Jam Belajar
+          </span>
+          <h1 class="h2 fw-bold mb-2">{{ crs.title }}</h1>
+          <p class="text-secondary mb-4">{{ crs.description }}</p>
+
+          <!-- 1. PILIHAN BATCH, JADWAL & LOKASI -->
+          <h2 class="h5 fw-bold mb-3">Pilihan Batch, Jadwal &amp; Lokasi</h2>
+
+          <div class="row g-3 mb-4">
+            @for (b of courseBatches(); track b.id; let idx = $index) {
+              <div class="col-12">
+                <div
+                  class="k-card k-card-hover p-3 px-4"
+                  style="cursor: pointer;"
+                  [style.animation-delay.ms]="idx * 60"
+                  [style.border]="
+                    selectedBatchId() === b.id
+                      ? '2px solid var(--brand-forest)'
+                      : '1.5px solid var(--border-light)'
+                  "
+                  [style.background-color]="
+                    selectedBatchId() === b.id ? 'var(--brand-lime-soft)' : 'var(--bg-card)'
+                  "
+                  [style.opacity]="b.status === 'Full' ? '0.6' : '1'"
+                  (click)="selectBatch(b.id)"
+                >
+                  <div class="d-flex justify-content-between align-items-center mb-1">
+                    <span class="fw-bold">{{ b.batchName }}</span>
+
+                    @if (b.status === 'Full') {
+                      <span class="k-pill k-pill-red">Full ({{ b.maxSeats }}/{{ b.maxSeats }})</span>
+                    } @else {
+                      <span class="k-pill k-pill-green">
+                        Open · Sisa {{ svc.getRemainingSeatsForBatch(b.id) }} dari {{ b.maxSeats }} seat
+                      </span>
+                    }
+                  </div>
+
+                  <div class="small text-secondary">
+                    <i class="bi bi-calendar3 me-1"></i>
+                    {{ b.startDate }} s/d {{ b.endDate }} · Jam {{ b.startTime }} – {{ b.endTime }} WIB
+                  </div>
+                  <div class="small text-secondary mt-1">
+                    <i class="bi bi-geo-alt me-1"></i>
+                    {{ getLocationLabel(b.locationId) }}
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+
+          <!-- 2. INSTRUCTOR & SYLLABUS -->
+          <div class="k-card p-4">
+            <h3 class="h6 fw-bold mb-3">Instructor pada Batch Ini</h3>
+            <div class="d-flex flex-wrap gap-3 mb-4">
+              @for (item of batchInstructors(); track item.assignment.id) {
+                <div class="d-flex align-items-center gap-2 anim-pop">
+                  <div
+                    class="rounded-circle d-flex align-items-center justify-content-center text-white small fw-bold"
+                    style="width: 38px; height: 38px; background-color: var(--brand-forest);"
+                  >
+                    {{ svc.getInitials(item.instructor.fullName) }}
+                  </div>
+                  <div>
+                    <div class="small fw-bold">{{ item.instructor.fullName }}</div>
+                    <div class="text-muted" style="font-size: 0.75rem;">
+                      {{ item.instructor.expertise }}
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+
+            <h3 class="h6 fw-bold mb-2 pt-3 border-top">Syllabus</h3>
+            <ul class="small text-secondary ps-3 mb-0">
+              @for (line of svc.getSyllabusList(crs.syllabus); track line) {
+                <li class="mb-1">{{ line }}</li>
+              }
+            </ul>
+          </div>
+        </div>
+
+        <!-- RIGHT COLUMN: RINGKASAN BATCH & TOMBOL LANJUT KE CHECKOUT / PAYMENT -->
+        <div class="col-lg-5 anim-fade-up delay-2">
+          <div class="k-card p-4 position-sticky" style="top: 96px;">
+            <h2 class="h5 fw-bold mb-3">Ringkasan Batch Dipilih</h2>
+
+            @if (selectedBatch(); as activeBatch) {
+              @if (priceBreakdown(); as calc) {
+                <div class="k-surface-soft p-3 mb-3 small">
+                  <div class="d-flex justify-content-between py-1">
+                    <span class="text-secondary">Batch</span>
+                    <strong>{{ activeBatch.batchName.split('—')[0] }} ({{ activeBatch.status }})</strong>
+                  </div>
+                  <div class="d-flex justify-content-between py-1">
+                    <span class="text-secondary">Seat Terpakai / MaxSeats</span>
+                    <strong>{{ svc.getUsedSeatsForBatch(activeBatch.id) }} / {{ activeBatch.maxSeats }}</strong>
+                  </div>
+                  <div class="d-flex justify-content-between py-1">
+                    <span class="text-secondary">QueueNumber Berikutnya</span>
+                    <span class="k-pill k-pill-green">#{{ calc.queueNumber }} · {{ calc.discountTier }}</span>
+                  </div>
+
+                  <div class="d-flex justify-content-between py-1 mt-2 pt-2 border-top">
+                    <span class="text-secondary">BasePrice</span>
+                    <span class="font-mono">Rp{{ calc.basePrice | number: '1.0-0' }}</span>
+                  </div>
+
+                  <div class="d-flex justify-content-between py-1 text-success fw-semibold">
+                    <span>EarlyBirdDiscount ({{ calc.discountPercentage }}%)</span>
+                    <span class="font-mono">-Rp{{ calc.earlyBirdDiscount | number: '1.0-0' }}</span>
+                  </div>
+
+                  <div class="d-flex justify-content-between py-1">
+                    <span class="text-secondary">TaxAmount ({{ calc.taxRate }}%)</span>
+                    <span class="font-mono">+Rp{{ calc.taxAmount | number: '1.0-0' }}</span>
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-baseline pt-2 mt-2 border-top">
+                    <span class="fw-bold">TotalAmount</span>
+                    <span class="fs-5 fw-bold font-mono" style="color: var(--brand-forest);">
+                      Rp{{ calc.totalAmount | number: '1.0-0' }}
+                    </span>
+                  </div>
+                </div>
+
+                @if (!svc.isStudent()) {
+                  <div class="small text-danger mb-2">
+                    * Gunakan akun dengan role <strong>Student</strong> untuk mendaftar course.
+                  </div>
+                } @else if (!isProfileComplete()) {
+                  <div class="small text-danger mb-2">
+                    * Lengkapi profil Anda di halaman <a routerLink="/profile" class="fw-bold text-danger">Profil</a> sebelum mendaftar.
+                  </div>
+                }
+
+                <button
+                  type="button"
+                  class="btn-k-coral w-100 py-2"
+                  [disabled]="!canProceedToCheckout()"
+                  (click)="goToCheckout()"
+                >
+                  @if (activeBatch.status === 'Full') {
+                    Batch Full (30/30)
+                  } @else if (isAlreadyRegisteredInBatch()) {
+                    Sudah Terdaftar di Batch Ini
+                  } @else {
+                    Lanjut ke Checkout / Payment <i class="bi bi-arrow-right"></i>
+                  }
+                </button>
+              }
+            }
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+}

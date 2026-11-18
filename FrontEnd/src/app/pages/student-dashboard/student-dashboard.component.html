@@ -1,0 +1,107 @@
+<section class="py-5">
+  <div class="container" style="max-width: 920px;">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
+      <div>
+        <span class="k-pill k-pill-green mb-2">Role: Student · Dashboard</span>
+        <h1 class="h2 fw-bold mb-1">Halo, {{ currentUser()?.fullName }}</h1>
+        <p class="text-secondary small mb-0">
+          Ringkasan aktivitas dan pendaftaran course Anda.
+        </p>
+      </div>
+      <div class="d-flex gap-2">
+        <a routerLink="/courses" class="btn-k-primary btn-sm">Course Catalog</a>
+        <a routerLink="/my-registrations" class="btn-k-light btn-sm">My Registrations</a>
+      </div>
+    </div>
+
+    <!-- Warning if Profile Incomplete -->
+    @if (!isProfileComplete()) {
+      <div class="k-card p-3 px-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: var(--brand-amber-light);">
+        <span class="small" style="color: #92400E;">
+          <strong>Perhatian:</strong> Profil pada tabel <code>Students</code> belum lengkap. Student wajib melengkapi profil sebelum mendaftar course.
+        </span>
+        <a routerLink="/profile" class="btn-k-primary btn-sm">Lengkapi Profil</a>
+      </div>
+    }
+
+    <!-- 3 Summary Cards -->
+    <div class="row g-3 mb-4">
+      <div class="col-md-4">
+        <div class="k-card p-4 h-100">
+          <div class="small text-secondary mb-1">Course Terdaftar</div>
+          <div class="display-6 fw-bold">{{ myRegistrations().length }}</div>
+          <div class="small text-success mt-1">{{ confirmedCount() }} Confirmed</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="k-card p-4 h-100">
+          <div class="small text-secondary mb-1">Total Paid</div>
+          <div class="h4 fw-bold mt-2 mb-1" style="color: var(--brand-forest);">
+            Rp{{ totalPaid() | number: '1.0-0' }}
+          </div>
+          <div class="small text-muted">Termasuk TaxRate 11%</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="k-card p-4 h-100">
+          <div class="small text-secondary mb-1">Sisa Kewajiban Cicilan</div>
+          <div class="h4 fw-bold mt-2 mb-1" style="color: var(--brand-coral);">
+            Rp{{ totalRemaining() | number: '1.0-0' }}
+          </div>
+          <div class="small text-muted">Skema Arrear Bunga 0%</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pendaftaran Aktif & Pintasan ke Payment Detail -->
+    <div class="k-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 fw-bold mb-0">Aktivitas &amp; Pendaftaran Terbaru</h2>
+        <a routerLink="/my-registrations" class="small text-decoration-none fw-bold" style="color: var(--brand-forest);">
+          Lihat Semua →
+        </a>
+      </div>
+
+      <div class="d-flex flex-column gap-3">
+        @for (reg of myRegistrations(); track reg.id) {
+          <div class="p-3 rounded-4 k-surface-soft d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <div class="small text-muted">
+                {{ reg.registrationNumber }} · QueueNumber #{{ reg.queueNumber }} ({{ svc.getTierNameFromQueue(reg.queueNumber) }})
+              </div>
+              @if (svc.getBatchById(reg.batchId); as b) {
+                <div class="fw-bold">
+                  {{ svc.getCourseById(b.courseId)?.title }}
+                </div>
+                <div class="small text-secondary">
+                  {{ b.batchName }} · Mulai {{ b.startDate }} ·
+                  Status: <strong>{{ reg.registrationStatus }}</strong> ({{ reg.paymentStatus }})
+                </div>
+              }
+            </div>
+
+            <div class="d-flex gap-2">
+              <a
+                [routerLink]="['/payments', reg.id]"
+                class="btn-k-primary btn-sm py-1 px-3"
+              >
+                Payment Detail
+              </a>
+              <a
+                routerLink="/my-registrations"
+                class="btn-k-light btn-sm py-1 px-3"
+              >
+                My Registrations
+              </a>
+            </div>
+          </div>
+        } @empty {
+          <div class="text-center py-4 text-secondary small">
+            Anda belum memiliki pendaftaran course. Silakan buka <a routerLink="/courses" class="fw-bold text-dark">Course Catalog</a>.
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

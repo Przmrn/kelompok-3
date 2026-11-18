@@ -1,0 +1,181 @@
+/* ==========================================================================
+   HEADER NAVBAR & FOOTER STYLING
+   ========================================================================== */
+
+.k-header {
+  background: rgba(252, 253, 251, 0.92);
+  backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--border-light);
+  z-index: 1030;
+}
+
+/* Brand */
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  background-color: var(--brand-forest);
+  color: var(--brand-lime);
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1rem;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.navbar-brand:hover .brand-mark {
+  transform: rotate(-6deg) scale(1.05);
+}
+
+/* Center Navigation Track */
+.k-nav-track {
+  background-color: var(--bg-page);
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  padding: 4px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+@media (max-width: 991.98px) {
+  .k-nav-track {
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    width: 100%;
+  }
+}
+
+.k-nav-pill {
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-secondary) !important;
+  padding: 0.44rem 1.15rem !important;
+  border-radius: 999px;
+  white-space: nowrap;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.k-nav-pill:hover {
+  color: var(--text-main) !important;
+  background-color: rgba(13, 33, 30, 0.05);
+}
+
+.k-nav-pill.active {
+  color: var(--brand-lime) !important;
+  background-color: var(--brand-forest);
+  box-shadow: 0 3px 10px rgba(13, 33, 30, 0.14);
+}
+
+/* Right Actions: User Pill & Cart Button (Matched 40px Height) */
+.k-user-btn {
+  height: 40px;
+  padding: 0 0.95rem 0 0.5rem;
+  border-radius: 999px;
+  background-color: #FFFFFF;
+  color: var(--text-main);
+  border: 1.5px solid var(--border-light);
+  font-family: var(--font-main);
+  font-size: 0.88rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.k-user-btn:hover,
+.k-user-btn:focus {
+  border-color: var(--brand-forest);
+  background-color: var(--bg-page);
+}
+
+.k-user-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background-color: var(--brand-forest);
+  color: var(--brand-lime);
+  font-size: 0.76rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.k-cart-btn {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: #FFFFFF;
+  color: var(--brand-forest);
+  border: 1.5px solid var(--border-light);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  flex-shrink: 0;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.k-cart-btn:hover {
+  border-color: var(--brand-forest);
+  background-color: var(--brand-lime-soft);
+  color: var(--brand-forest);
+  transform: translateY(-1px);
+}
+
+.k-cart-btn.active {
+  background-color: var(--brand-forest);
+  border-color: var(--brand-forest);
+  color: var(--brand-lime);
+  box-shadow: 0 4px 12px rgba(13, 33, 30, 0.18);
+}
+
+.k-cart-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 19px;
+  height: 19px;
+  background-color: var(--brand-coral);
+  color: #FFFFFF;
+  font-family: var(--font-main);
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0 5px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #FFFFFF;
+}
+
+/* Footer */
+.k-footer {
+  background-color: #FFFFFF;
+  border-top: 1px solid var(--border-light);
+}
+
+.k-footer-link {
+  color: var(--text-secondary);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: color 0.18s ease;
+}
+
+.k-footer-link:hover,
+.k-footer-link.active {
+  color: var(--brand-forest);
+  font-weight: 600;
+}

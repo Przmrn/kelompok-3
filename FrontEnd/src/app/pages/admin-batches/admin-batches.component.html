@@ -1,0 +1,144 @@
+<section class="py-5">
+  <div class="container" style="max-width: 960px;">
+    <!-- Header -->
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
+      <div>
+        <span class="k-pill k-pill-green mb-2">Role: Admin · Batches</span>
+        <h1 class="h2 fw-bold mb-1">Kelola Data CourseBatches</h1>
+        <p class="text-secondary small mb-0">
+          Mengelola batch, jadwal (StartDate, EndDate, StartTime, EndTime), lokasi, MaxSeats (30), dan Status (Open/Full).
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn-k-primary btn-sm"
+        (click)="openNewBatchForm()"
+      >
+        {{ showForm() ? 'Tutup Form' : '+ Tambah Batch' }}
+      </button>
+    </div>
+
+    <!-- Form Tambah / Ubah Batch -->
+    @if (showForm()) {
+      <div class="k-card p-4 mb-4 anim-pop">
+        <h2 class="h5 fw-bold mb-3">
+          {{ editingBatchId() ? 'Ubah Data CourseBatches' : 'Tambah CourseBatches Baru' }}
+        </h2>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-4">
+            <label class="k-label">CourseId</label>
+            <select class="form-select k-select" [(ngModel)]="form.courseId">
+              @for (c of svc.courses(); track c.id) {
+                <option [ngValue]="c.id">{{ c.title }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="k-label">LocationId</label>
+            <select class="form-select k-select" [(ngModel)]="form.locationId">
+              @for (l of svc.locations(); track l.id) {
+                <option [ngValue]="l.id">{{ l.name }} ({{ l.city }})</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-4">
+            <label class="k-label">BatchName</label>
+            <input type="text" class="form-control k-input" [(ngModel)]="form.batchName" placeholder="BCH-BE-04 — Batch 4 Reguler" />
+          </div>
+
+          <div class="col-md-3">
+            <label class="k-label">StartDate</label>
+            <input type="date" class="form-control k-input" [(ngModel)]="form.startDate" />
+          </div>
+          <div class="col-md-3">
+            <label class="k-label">EndDate</label>
+            <input type="date" class="form-control k-input" [(ngModel)]="form.endDate" />
+          </div>
+          <div class="col-md-2">
+            <label class="k-label">StartTime</label>
+            <input type="time" class="form-control k-input" [(ngModel)]="form.startTime" />
+          </div>
+          <div class="col-md-2">
+            <label class="k-label">EndTime</label>
+            <input type="time" class="form-control k-input" [(ngModel)]="form.endTime" />
+          </div>
+          <div class="col-md-2">
+            <label class="k-label">Status</label>
+            <select class="form-select k-select" [(ngModel)]="form.status">
+              <option value="Open">Open</option>
+              <option value="Full">Full</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="button" class="btn-k-coral btn-sm" (click)="saveBatch()">
+            {{ editingBatchId() ? 'Simpan Perubahan' : 'Simpan Batch Baru' }}
+          </button>
+          <button type="button" class="btn-k-light btn-sm" (click)="showForm.set(false)">
+            Batal
+          </button>
+        </div>
+      </div>
+    }
+
+    <!-- Daftar Batches -->
+    <div class="row g-3">
+      @for (b of svc.batches(); track b.id) {
+        <div class="col-md-6">
+          <div class="k-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="k-pill k-pill-neutral">ID #{{ b.id }} · MaxSeats: {{ b.maxSeats }}</span>
+                <span
+                  class="k-pill"
+                  [ngClass]="b.status === 'Open' ? 'k-pill-green' : 'k-pill-red'"
+                >
+                  Status: {{ b.status }} ({{ svc.getUsedSeatsForBatch(b.id) }}/{{ b.maxSeats }})
+                </span>
+              </div>
+
+              <h3 class="h5 fw-bold mb-1">{{ svc.getCourseById(b.courseId)?.title }}</h3>
+              <div class="small fw-semibold text-secondary mb-2">{{ b.batchName }}</div>
+
+              <div class="small text-secondary">
+                <div>
+                  <i class="bi bi-calendar3 me-1"></i>
+                  {{ b.startDate }} s/d {{ b.endDate }} · Jam {{ b.startTime }} – {{ b.endTime }} WIB
+                </div>
+                <div class="mt-1">
+                  <i class="bi bi-geo-alt me-1"></i>
+                  {{ svc.getLocationById(b.locationId)?.name }} ({{ svc.getLocationById(b.locationId)?.roomName }}, {{ svc.getLocationById(b.locationId)?.city }})
+                </div>
+              </div>
+            </div>
+
+            <div class="pt-3 mt-3 border-top d-flex justify-content-between align-items-center">
+              <span class="small text-muted">
+                Sisa {{ svc.getRemainingSeatsForBatch(b.id) }} seat · QueueNumber #{{ svc.getNextQueueNumberForBatch(b.id) }}
+              </span>
+
+              <div class="d-flex gap-2">
+                <button
+                  type="button"
+                  class="btn-k-light btn-sm py-1 px-3"
+                  (click)="editBatch(b)"
+                >
+                  Ubah
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                  (click)="svc.deleteBatchByAdmin(b.id)"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

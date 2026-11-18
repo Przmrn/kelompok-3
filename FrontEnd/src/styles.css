@@ -1,1 +1,366 @@
-/* You can add global styles to this file, and also import other style files */
+/* ==========================================================================
+   KARSA — Clean Typography + Unique Color & Smooth Animations
+   Palette: Midnight Cypress (#0D211E) · Acid Matcha (#C8F550) · Persimmon (#FF5429)
+   Font: Plus Jakarta Sans (Standard, Clean & Legible)
+   ========================================================================== */
+
+:root {
+  --bg-page: #EFF3EC;
+  --bg-subtle: #E2E9DD;
+  --bg-card: #FCFDFB;
+  --bg-dark: #0D211E;
+
+  --text-main: #0D211E;
+  --text-secondary: #435752;
+  --text-muted: #768B85;
+
+  --border-light: #CFD9C8;
+  --border-strong: #0D211E;
+
+  /* Signature Unique Accents */
+  --brand-forest: #0D211E;
+  --brand-forest-light: #DFF2E6;
+  --brand-lime: #C8F550;
+  --brand-lime-soft: #ECFCCB;
+  --brand-coral: #FF5429;
+  --brand-coral-hover: #E03F16;
+  --brand-amber: #F59E0B;
+  --brand-amber-light: #FEF3C7;
+
+  /* Standard Clean Font Stack */
+  --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-serif: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-page);
+  background-image:
+    radial-gradient(at 12% 10%, rgba(200, 245, 80, 0.25) 0px, transparent 42%),
+    radial-gradient(at 88% 15%, rgba(255, 84, 41, 0.12) 0px, transparent 38%),
+    radial-gradient(at 50% 90%, rgba(13, 33, 30, 0.05) 0px, transparent 50%);
+  background-attachment: fixed;
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.font-serif-italic {
+  font-family: var(--font-main);
+  font-weight: 800;
+}
+
+.font-mono {
+  font-family: var(--font-main);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ==========================================================================
+   KEYFRAME ANIMATIONS
+   ========================================================================== */
+
+@keyframes springUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(255, 84, 41, 0.6);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 8px rgba(255, 84, 41, 0);
+  }
+}
+
+.anim-fade-up {
+  animation: springUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.anim-pop {
+  animation: popIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.anim-float {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.delay-1 { animation-delay: 0.06s; }
+.delay-2 { animation-delay: 0.12s; }
+.delay-3 { animation-delay: 0.18s; }
+.delay-4 { animation-delay: 0.24s; }
+
+/* Live Pulse Indicator */
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--brand-coral);
+  display: inline-block;
+  animation: pulseDot 2s infinite;
+}
+
+/* ==========================================================================
+   CARDS WITH KINETIC HOVER
+   ========================================================================== */
+
+.k-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-light);
+  border-radius: 20px;
+  position: relative;
+  overflow: hidden;
+  animation: springUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition:
+    transform 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s ease,
+    box-shadow 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.k-card-hover:hover {
+  transform: translateY(-6px);
+  border-color: var(--brand-forest);
+  box-shadow: 0 16px 32px -12px rgba(13, 33, 30, 0.14), 0 4px 0px var(--brand-lime);
+}
+
+.k-card-hover .arrow-move {
+  display: inline-block;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.k-card-hover:hover .arrow-move {
+  transform: translateX(4px);
+}
+
+.k-surface-soft {
+  background: var(--bg-subtle);
+  border-radius: 14px;
+  transition: background-color 0.2s ease;
+}
+
+/* ==========================================================================
+   BUTTONS WITH SPRING MICRO-INTERACTIONS
+   ========================================================================== */
+
+.btn-k-primary {
+  background-color: var(--brand-forest);
+  color: var(--brand-lime);
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.92rem;
+  border: 1.5px solid var(--brand-forest);
+  border-radius: 999px;
+  padding: 0.65rem 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-k-primary:hover:not(:disabled) {
+  background-color: var(--brand-lime);
+  color: var(--brand-forest);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(13, 33, 30, 0.15);
+}
+
+.btn-k-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-k-primary:disabled {
+  background-color: #CED6C9;
+  border-color: #CED6C9;
+  color: #7D8982;
+  cursor: not-allowed;
+}
+
+.btn-k-coral {
+  background-color: var(--brand-coral);
+  color: #FFFFFF;
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.92rem;
+  border: 1.5px solid var(--brand-coral);
+  border-radius: 999px;
+  padding: 0.65rem 1.4rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-k-coral:hover:not(:disabled) {
+  background-color: var(--brand-coral-hover);
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(255, 84, 41, 0.3);
+}
+
+.btn-k-coral:disabled {
+  background-color: #CED6C9;
+  border-color: #CED6C9;
+  color: #7D8982;
+  cursor: not-allowed;
+}
+
+.btn-k-light {
+  background-color: #FFFFFF;
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1.5px solid var(--border-light);
+  border-radius: 999px;
+  padding: 0.55rem 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-k-light:hover:not(:disabled) {
+  border-color: var(--brand-forest);
+  background-color: var(--brand-lime-soft);
+  color: var(--text-main);
+  transform: translateY(-2px);
+}
+
+/* ==========================================================================
+   PILLS & CHIPS
+   ========================================================================== */
+
+.k-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-main);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.26rem 0.75rem;
+  border-radius: 999px;
+}
+
+.k-pill-green {
+  background-color: var(--brand-lime);
+  color: var(--brand-forest);
+}
+
+.k-pill-amber {
+  background-color: var(--brand-amber-light);
+  color: #92400E;
+}
+
+.k-pill-red {
+  background-color: #FFE4E0;
+  color: #C22A12;
+}
+
+.k-pill-neutral {
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+.k-chip {
+  border: 1.5px solid var(--border-light);
+  background: #FFFFFF;
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 0.46rem 1.15rem;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.k-chip:hover {
+  border-color: var(--brand-forest);
+  color: var(--text-main);
+  transform: translateY(-2px);
+}
+
+.k-chip.active {
+  background: var(--brand-forest);
+  border-color: var(--brand-forest);
+  color: var(--brand-lime);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(13, 33, 30, 0.14);
+}
+
+/* Form Inputs */
+.k-input,
+.k-select {
+  border: 1.5px solid var(--border-light);
+  border-radius: 12px;
+  background-color: #FFFFFF;
+  color: var(--text-main);
+  padding: 0.65rem 0.95rem;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.k-input:focus,
+.k-select:focus {
+  outline: none;
+  border-color: var(--brand-forest);
+  box-shadow: 0 0 0 4px rgba(200, 245, 80, 0.45);
+}
+
+.k-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+  display: block;
+}

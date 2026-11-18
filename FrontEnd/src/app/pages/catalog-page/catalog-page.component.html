@@ -1,0 +1,164 @@
+<!-- ATTRACTIVE STUDENT HERO SHOWCASE -->
+<section class="pt-5 pb-4">
+  <div class="container">
+    <div class="mx-auto text-center anim-fade-up" style="max-width: 720px;">
+      <div class="d-inline-flex align-items-center gap-2 k-pill k-pill-green mb-3 anim-float">
+        <span class="pulse-dot"></span>
+        <span>Promo Early Bird: Diskon 10% untuk 3 pendaftar pertama tiap kelas!</span>
+      </div>
+
+      <h1 class="display-5 fw-bold mb-3" style="line-height: 1.15;">
+        Kuasai skill teknologi langsung di studio,
+        <span style="color: var(--brand-coral);">
+          dibimbing praktisi industri.
+        </span>
+      </h1>
+
+      <p class="text-secondary fs-5 mb-4">
+        Bukan sekadar tontonan video. Belajar tatap muka secara intensif di Jakarta &amp; Bandung dalam kelas eksklusif maksimal 30 kursi dengan opsi <strong>cicilan 0%</strong>.
+      </p>
+
+      <!-- 3 Trust & Benefit Pills -->
+      <div class="d-flex flex-wrap justify-content-center gap-3 small text-secondary mb-4">
+        <span class="d-inline-flex align-items-center gap-1">
+          <i class="bi bi-check-circle-fill text-success"></i> Kelas Kecil (Maks. 30 Kursi)
+        </span>
+        <span class="d-inline-flex align-items-center gap-1">
+          <i class="bi bi-check-circle-fill text-success"></i> Potongan Early Bird s/d Rp150.000
+        </span>
+        <span class="d-inline-flex align-items-center gap-1">
+          <i class="bi bi-check-circle-fill text-success"></i> Cicilan 0% (3, 6, atau 12 Bulan)
+        </span>
+      </div>
+
+      <!-- Category Filter Pills -->
+      <div class="d-flex flex-wrap justify-content-center gap-2 pt-2">
+        <button
+          type="button"
+          class="k-chip"
+          [class.active]="selectedCategoryId() === 0"
+          (click)="selectedCategoryId.set(0)"
+        >
+          Semua Kelas
+        </button>
+        @for (cat of svc.categories(); track cat.id) {
+          <button
+            type="button"
+            class="k-chip"
+            [class.active]="selectedCategoryId() === cat.id"
+            (click)="selectedCategoryId.set(cat.id)"
+          >
+            {{ cat.name }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ATTRACTIVE COURSE CARDS -->
+<section class="py-4">
+  <div class="container">
+    <div class="row g-4">
+      @for (course of filteredCourses(); track course.id; let idx = $index) {
+        <div class="col-md-6 col-lg-3">
+          <a
+            [routerLink]="['/courses', course.id]"
+            class="k-card k-card-hover p-4 h-100 d-flex flex-column justify-content-between text-decoration-none text-dark"
+            [style.animation-delay.ms]="idx * 75"
+          >
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <span class="k-pill k-pill-neutral">
+                  {{ getCategoryName(course.categoryId) }}
+                </span>
+                @if (getEarlyBirdBadge(course.id); as badgeText) {
+                  <span class="k-pill k-pill-green">{{ badgeText }}</span>
+                }
+              </div>
+
+              <h2 class="h5 fw-bold mb-2" style="line-height: 1.32;">
+                {{ course.title }}
+              </h2>
+
+              <p class="small text-secondary mb-3" style="display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+                {{ course.description }}
+              </p>
+
+              <div class="d-flex align-items-center gap-3 small text-muted mb-3">
+                <span><i class="bi bi-clock me-1"></i>{{ course.durationHours }} Jam</span>
+                <span><i class="bi bi-calendar2-check me-1"></i>{{ getOpenBatchCount(course.id) }} Batch Dibuka</span>
+              </div>
+            </div>
+
+            <div class="pt-3 border-top">
+              <div class="d-flex justify-content-between align-items-end">
+                <div>
+                  <div class="small text-muted" style="font-size: 0.72rem;">Mulai dari</div>
+                  <div class="fs-5 fw-bold font-mono" style="color: var(--brand-forest);">
+                    Rp{{ course.basePrice | number: '1.0-0' }}
+                  </div>
+                  <div class="text-secondary" style="font-size: 0.72rem;">
+                    Cicilan 0% ~Rp{{ getLowestMonthly(course.basePrice) | number: '1.0-0' }}/bln
+                  </div>
+                </div>
+
+                <span class="btn-k-coral btn-sm py-1 px-3" style="font-size: 0.8rem;">
+                  Daftar <i class="bi bi-arrow-right arrow-move"></i>
+                </span>
+              </div>
+            </div>
+          </a>
+        </div>
+      }
+    </div>
+  </div>
+</section>
+
+<!-- WHY LEARN AT KARSA STUDIO (VALUE HIGHLIGHTS FOR STUDENTS) -->
+<section class="py-4">
+  <div class="container">
+    <div class="k-card p-4 p-md-5" style="background-color: var(--brand-forest); color: #FFFFFF;">
+      <div class="row g-4 align-items-center">
+        <div class="col-lg-4">
+          <span class="k-pill k-pill-green mb-2">Pengalaman Belajar Terbaik</span>
+          <h2 class="h3 fw-bold text-white mb-2">
+            Kenapa memilih kelas tatap muka Karsa?
+          </h2>
+          <p class="small mb-0" style="color: rgba(255,255,255,0.75);">
+            Dirancang khusus agar kamu benar-benar paham lewat praktik langsung, bukan sekadar mengoleksi sertifikat.
+          </p>
+        </div>
+
+        <div class="col-lg-8">
+          <div class="row g-3">
+            <div class="col-md-4">
+              <div class="p-3 rounded-4 h-100" style="background: rgba(255,255,255,0.07);">
+                <div class="fw-bold mb-1" style="color: var(--brand-lime);">1. Praktik 100% di Lab</div>
+                <p class="small mb-0" style="color: rgba(255,255,255,0.8);">
+                  Diskusi dan bedah kode secara langsung bersama pengajar berpengalaman di studio.
+                </p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="p-3 rounded-4 h-100" style="background: rgba(255,255,255,0.07);">
+                <div class="fw-bold mb-1" style="color: var(--brand-lime);">2. Diskon Pendaftar Awal</div>
+                <p class="small mb-0" style="color: rgba(255,255,255,0.8);">
+                  Daftar lebih cepat di urutan #1–#7 dan nikmati potongan langsung hingga Rp150.000.
+                </p>
+              </div>
+            </div>
+            <div class="col-md-4">
+              <div class="p-3 rounded-4 h-100" style="background: rgba(255,255,255,0.07);">
+                <div class="fw-bold mb-1" style="color: var(--brand-lime);">3. Garansi Refund Jelas</div>
+                <p class="small mb-0" style="color: rgba(255,255,255,0.8);">
+                  Jadwal mendadak berubah? Ajukan pembatalan sebelum kelas mulai dengan kebijakan refund transparan.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
