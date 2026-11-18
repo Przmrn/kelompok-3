@@ -1,12 +1,11 @@
 {
   "version": 2,
-  "dgSpecHash": "653jaUSEKXs=",
+  "dgSpecHash": "iHtWTO8w6xM=",
   "success": true,
   "projectFilePath": "C:\\Users\\USER\\Downloads\\Matkul AdIns\\11. Mini Projek\\kelompok-3\\BackEnd\\BackEnd.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\USER\\.nuget\\packages\\aspire.npgsql.entityframeworkcore.postgresql\\13.6.5\\aspire.npgsql.entityframeworkcore.postgresql.13.6.5.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
-    "C:\\Users\\USER\\.nuget\\packages\\microsoft.aspnetcore.openapi\\11.0.0\\microsoft.aspnetcore.openapi.11.0.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.build.framework\\18.0.2\\microsoft.build.framework.18.0.2.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.codeanalysis.analyzers\\3.11.0\\microsoft.codeanalysis.analyzers.3.11.0.nupkg.sha512",
     "C:\\Users\\USER\\.nuget\\packages\\microsoft.codeanalysis.common\\5.0.0\\microsoft.codeanalysis.common.5.0.0.nupkg.sha512",

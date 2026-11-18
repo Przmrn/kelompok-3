@@ -1,4 +1,3 @@
-
 # Build output
 bin/
 obj/
@@ -13,32 +12,25 @@ obj/
 # Visual Studio Code
 .vscode/
 
-# Rider / JetBrains
+# JetBrains Rider
 .idea/
 *.sln.iml
 
-# Logs
-logs/
-*.log
+# User-specific files
+*.rsuser
 
 # Environment variables and secrets
 .env
 .env.*
 !.env.example
 
-# Local application settings
-appsettings.Development.json
+# Local configuration
 appsettings.Local.json
+appsettings.*.Local.json
 
-# Database files
-*.db
-*.sqlite
-*.sqlite3
-
-# Temporary files
-*.tmp
-*.temp
-*.bak
+# Logs
+*.log
+logs/
 
 # OS generated files
 .DS_Store
@@ -47,3 +39,11 @@ desktop.ini
 
 # Test results
 TestResults/
+
+# Publish output
+publish/
+artifacts/
+
+# Temporary files
+*.tmp
+*.bak
