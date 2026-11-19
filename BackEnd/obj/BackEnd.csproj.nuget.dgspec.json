@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\GL503\\OneDrive\\Documents\\adins\\11. Mini project\\kelompok-3\\BackEnd\\BackEnd.csproj": {}
+    "E:\\Projects\\kelompok-3\\BackEnd\\BackEnd.csproj": {}
   },
   "projects": {
-    "C:\\Users\\GL503\\OneDrive\\Documents\\adins\\11. Mini project\\kelompok-3\\BackEnd\\BackEnd.csproj": {
+    "E:\\Projects\\kelompok-3\\BackEnd\\BackEnd.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\GL503\\OneDrive\\Documents\\adins\\11. Mini project\\kelompok-3\\BackEnd\\BackEnd.csproj",
+        "projectUniqueName": "E:\\Projects\\kelompok-3\\BackEnd\\BackEnd.csproj",
         "projectName": "BackEnd",
-        "projectPath": "C:\\Users\\GL503\\OneDrive\\Documents\\adins\\11. Mini project\\kelompok-3\\BackEnd\\BackEnd.csproj",
-        "packagesPath": "C:\\Users\\GL503\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\GL503\\OneDrive\\Documents\\adins\\11. Mini project\\kelompok-3\\BackEnd\\obj\\",
+        "projectPath": "E:\\Projects\\kelompok-3\\BackEnd\\BackEnd.csproj",
+        "packagesPath": "C:\\Users\\amarn\\.nuget\\packages\\",
+        "outputPath": "E:\\Projects\\kelompok-3\\BackEnd\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\GL503\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\amarn\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -65,6 +65,14 @@
               "suppressParent": "All",
               "target": "Package",
               "version": "[10.0.15, )"
+            },
+            "Swashbuckle.AspNetCore": {
+              "target": "Package",
+              "version": "[10.3.1, )"
+            },
+            "Swashbuckle.AspNetCore.Swagger": {
+              "target": "Package",
+              "version": "[10.3.1, )"
             }
           },
           "imports": [

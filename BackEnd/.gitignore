@@ -25,6 +25,8 @@ obj/
 !.env.example
 
 # Local configuration
+appsettings.json
+appsettings.Development.json
 appsettings.Local.json
 appsettings.*.Local.json
 
@@ -47,3 +49,5 @@ artifacts/
 # Temporary files
 *.tmp
 *.bak
+
+Diskusi Kelompok 3.md

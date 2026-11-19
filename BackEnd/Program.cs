@@ -1,4 +1,6 @@
 using BackEnd.Data;
+using BackEnd.Middlewares;
+using BackEnd.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,32 +13,26 @@ var connStr = builder.Configuration.GetConnectionString("Course");
 builder.Services.AddDbContext<CourseDbContext>(options =>
     options.UseNpgsql(connStr));
 
+builder.Services.AddControllers();
+builder.Services.AddSwaggerGen();
+
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IInstructorService, InstructorService>();
+
 var app = builder.Build();
 
+app.UseMiddleware<ExceptionMiddleware>();
+//app.UseCors("AllowAngular");
 app.UseHttpsRedirection();
 
-var summaries = new[]
+if (app.Environment.IsDevelopment())
 {
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
 
-app.MapGet("/weatherforecast", () =>
-{
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
-})
-.WithName("GetWeatherForecast");
+app.MapControllers();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
