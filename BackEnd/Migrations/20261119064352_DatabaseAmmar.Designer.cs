@@ -302,8 +302,7 @@ namespace BackEnd.Migrations
 
                     b.Property<string>("RegistrationStatus")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
+                        .HasColumnType("text");
 
                     b.Property<long>("StudentId")
                         .HasColumnType("bigint");
@@ -494,7 +493,7 @@ namespace BackEnd.Migrations
 
             modelBuilder.Entity("BackEnd.Models.Registration", b =>
                 {
-                    b.HasOne("BackEnd.Models.CourseBatch", "CourseBatch")
+                    b.HasOne("BackEnd.Models.CourseBatch", "Batch")
                         .WithMany("Registrations")
                         .HasForeignKey("BatchId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -506,7 +505,7 @@ namespace BackEnd.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("CourseBatch");
+                    b.Navigation("Batch");
 
                     b.Navigation("Student");
                 });

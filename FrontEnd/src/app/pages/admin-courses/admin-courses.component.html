@@ -1,0 +1,114 @@
+<section class="py-5">
+  <div class="container" style="max-width: 960px;">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
+      <div>
+        <span class="k-pill k-pill-green mb-2">Admin</span>
+        <h1 class="h2 fw-bold mb-1">Kelola kelas</h1>
+        <p class="text-secondary small mb-0">
+          Atur nama kelas, harga, durasi, dan materi yang akan dipelajari.
+        </p>
+      </div>
+      <button
+        type="button"
+        class="btn-k-primary btn-sm"
+        (click)="openNewCourseForm()"
+      >
+        {{ showForm() ? 'Tutup formulir' : '+ Tambah kelas' }}
+      </button>
+    </div>
+
+    @if (showForm()) {
+      <div class="k-card p-4 mb-4 anim-pop">
+        <h2 class="h5 fw-bold mb-3">
+          {{ editingCourseId() ? 'Ubah kelas' : 'Tambah kelas' }}
+        </h2>
+
+        <div class="row g-3 mb-3">
+          <div class="col-md-5">
+            <label class="k-label">Nama kelas</label>
+            <input type="text" class="form-control k-input" [(ngModel)]="form.title" placeholder="Nama kelas" />
+          </div>
+          <div class="col-md-3">
+            <label class="k-label">Kategori kelas</label>
+            <select class="form-select k-select" [(ngModel)]="form.categoryId">
+              @for (cat of svc.categories(); track cat.id) {
+                <option [ngValue]="cat.id">{{ cat.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="col-md-2">
+            <label class="k-label">Durasi (jam)</label>
+            <input type="number" class="form-control k-input" [(ngModel)]="form.durationHours" />
+          </div>
+          <div class="col-md-2">
+            <label class="k-label">Harga kelas (Rp)</label>
+            <input type="number" step="50000" class="form-control k-input" [(ngModel)]="form.basePrice" />
+          </div>
+
+          <div class="col-md-6">
+            <label class="k-label">Deskripsi</label>
+            <textarea rows="3" class="form-control k-input" [(ngModel)]="form.description" placeholder="Deskripsi kelas"></textarea>
+          </div>
+          <div class="col-md-6">
+            <label class="k-label">Materi kelas (Satu baris per topik)</label>
+            <textarea rows="3" class="form-control k-input" [(ngModel)]="form.syllabus" placeholder="1. Konsep Inti&#10;2. Praktikum Studio"></textarea>
+          </div>
+        </div>
+
+        <div class="d-flex gap-2">
+          <button type="button" class="btn-k-coral btn-sm" (click)="saveCourse()">
+            {{ editingCourseId() ? 'Simpan Perubahan' : 'Simpan kelas' }}
+          </button>
+          <button type="button" class="btn-k-light btn-sm" (click)="showForm.set(false)">
+            Batal
+          </button>
+        </div>
+      </div>
+    }
+
+    <div class="row g-3">
+      @for (course of svc.courses(); track course.id) {
+        <div class="col-md-6">
+          <div class="k-card p-4 h-100 d-flex flex-column justify-content-between">
+            <div>
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="k-pill k-pill-neutral">
+                  {{ svc.getCategoryById(course.categoryId)?.name }}
+                </span>
+                <span class="small text-muted">
+                  {{ course.durationHours }} Jam Belajar
+                </span>
+              </div>
+
+              <h3 class="h5 fw-bold mb-1">{{ course.title }}</h3>
+              <p class="small text-secondary mb-3">{{ course.description }}</p>
+            </div>
+
+            <div class="pt-3 border-top d-flex justify-content-between align-items-center">
+              <div class="fs-5 fw-bold" style="color: var(--brand-forest);">
+                Rp{{ course.basePrice | number: '1.0-0' }}
+              </div>
+
+              <div class="d-flex gap-2">
+                <button
+                  type="button"
+                  class="btn-k-light btn-sm py-1 px-3"
+                  (click)="editCourse(course)"
+                >
+                  Ubah
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                  (click)="svc.deleteCourseByAdmin(course.id)"
+                >
+                  Hapus
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

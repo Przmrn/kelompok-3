@@ -1,0 +1,127 @@
+.studio-hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: var(--bg-dark);
+  color: white;
+}
+.hero-photo, .studio-hero::after {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+}
+.hero-photo { object-fit: cover; object-position: 68% 43%; }
+.studio-hero::after {
+  content: "";
+  background: linear-gradient(90deg, rgba(29,19,49,.99), rgba(39,26,64,.91) 33%, rgba(40,26,66,.46) 61%, rgba(36,24,54,.13));
+}
+.hero-inner { padding-block: clamp(64px, 7vw, 108px); }
+.studio-location {
+  display: flex;
+  align-items: center;
+  gap: .55rem;
+  margin: 0 0 1.25rem;
+  font-size: .77rem;
+  font-weight: 700;
+  letter-spacing: .11em;
+  text-transform: uppercase;
+}
+.studio-location i, .studio-hero h1 span { color: var(--mint); }
+.studio-hero h1 {
+  margin: 0;
+  font-size: clamp(2.65rem, 5.4vw, 5.35rem);
+  line-height: 1.08;
+  letter-spacing: -.048em;
+  font-weight: 700;
+  color: white;
+}
+.studio-hero h1 span { font-weight: 600; font-style: italic; }
+.hero-description { max-width: 29rem; color: #f1ecfa; margin: 1.25rem 0 1.85rem; font-size: 1.05rem; }
+.hero-actions, .hero-cta, .hero-secondary { display: flex; align-items: center; gap: .6rem; }
+.hero-actions { gap: 1.6rem; flex-wrap: wrap; }
+.hero-cta, .hero-secondary { min-height: 44px; font-weight: 700; font-size: .92rem; text-decoration: none; }
+.hero-cta { padding: .82rem 1.25rem; background: var(--lavender); color: var(--bg-dark); border-radius: 6px; }
+.hero-cta:hover { background: #f1eaff; }
+.hero-secondary { color: white; }
+.hero-secondary:hover { color: var(--mint); }
+.studio-facts { background: var(--mint-soft); border-bottom: 1px solid #c9e8dd; }
+.facts-inner { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding-block: 1.1rem; }
+.facts-inner span { display: flex; align-items: center; gap: .7rem; font-weight: 650; font-size: .9rem; }
+.facts-inner i { color: var(--teal); font-size: 1.2rem; }
+.program-section, .study-section { scroll-margin-top: 5rem; }
+.program-section { padding-block: clamp(2.8rem, 5vw, 5rem); }
+.program-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 1rem; }
+.program-heading h2, .study-section h2 { font-size: clamp(2rem, 3.4vw, 3.4rem); font-weight: 700; letter-spacing: -.04em; margin: 0; }
+.program-heading h2 span, .study-section h2 span { color: var(--iris); }
+.program-heading > span { color: var(--text-secondary); font-size: .85rem; }
+.category-list { display: flex; flex-wrap: wrap; gap: .55rem; margin: 1.35rem 0 1.5rem; }
+.category-list .k-chip { min-height: 40px; }
+.program-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 1rem; }
+.program-card {
+  display: flex;
+  flex-direction: column;
+  color: var(--text-main);
+  background: white;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  overflow: hidden;
+  text-decoration: none;
+  transition: border-color .2s, box-shadow .2s;
+}
+.program-card:hover { border-color: var(--iris); box-shadow: 0 8px 24px #37285418; }
+.course-cover {
+  --cover: #36345f;
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  isolation: isolate;
+  overflow: hidden;
+  padding: 1rem;
+  min-height: 88px;
+  background-color: var(--cover);
+  background-image: repeating-linear-gradient(135deg, transparent 0 13px, #ffffff0c 13px 14px);
+  color: white;
+}
+.course-cover[data-category="2"] { --cover: #614078; }
+.course-cover[data-category="3"] { --cover: #225952; }
+.course-cover[data-category="4"] { --cover: #693d61; }
+.course-cover span { font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 750; max-width: 72%; }
+.cover-icon { position: absolute; right: .65rem; top: -.8rem; font-size: 5rem; line-height: 1.35; opacity: .34; transform: rotate(-10deg); z-index: -1; }
+.course-content { flex: 1; display: flex; flex-direction: column; padding: 1.15rem; }
+.course-meta { display: flex; gap: .8rem; flex-wrap: wrap; font-size: .73rem; color: var(--text-secondary); }
+.course-content h3 { margin: .75rem 0 .55rem; font-size: 1.35rem; line-height: 1.2; letter-spacing: -.025em; }
+.course-content p { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: .85rem; color: var(--text-secondary); }
+.course-price { display: flex; align-items: center; justify-content: space-between; gap: .3rem; margin-top: auto; padding: .9rem 0; border-top: 1px solid var(--border-light); }
+.course-price strong, .course-price small, .price-label { display: block; }
+.price-label, .course-price small { font-size: .7rem; color: var(--text-secondary); }
+.offer { border-radius: 4px; padding: .2rem .4rem; background: var(--mint-soft); color: var(--teal); font-size: .68rem; font-weight: 700; white-space: nowrap; }
+.course-link { display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--iris); font-size: .85rem; }
+.study-section { background: var(--lavender-soft); padding-block: 3rem; }
+.study-section h2 { font-size: clamp(1.7rem, 3vw, 2.5rem); }
+.study-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 2rem; margin-top: 1.8rem; }
+.study-grid > div { border-top: 1px solid var(--border-light); padding-top: 1rem; }
+.study-grid i { color: var(--iris); font-size: 1.5rem; }
+.study-grid h3 { font-size: 1.05rem; margin: .6rem 0 .4rem; }
+.study-grid p { font-size: .9rem; color: var(--text-secondary); margin: 0; }
+@media (max-width: 1199px) {
+  .program-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 767px) {
+  .studio-hero::after { background: linear-gradient(0deg,var(--bg-dark) 12%,rgba(36,27,56,.95) 44%,rgba(36,27,56,.46) 73%,rgba(36,27,56,.14)); }
+  .hero-photo { object-position: 76% 30%; height: 77%; }
+  .hero-inner { padding-top: 10.5rem; padding-bottom: 2.25rem; }
+  .studio-hero h1 span { font-weight: 600; font-style: italic; }
+.hero-description { font-size: .95rem; }
+  .facts-inner { gap: .5rem 1rem; justify-content: flex-start; }
+  .facts-inner span { font-size: .78rem; gap: .35rem; }
+  .study-grid { grid-template-columns: 1fr; gap: 1rem; }
+  .category-list .k-chip { padding-inline: .8rem; font-size: .8rem; }
+}
+@media (max-width: 575px) {
+  .program-grid { grid-template-columns: 1fr; }
+  .program-heading { flex-wrap: wrap; gap: .3rem 1rem; }
+  .studio-location { letter-spacing: .06em; }
+  .container { padding-inline: 1.25rem; }
+}

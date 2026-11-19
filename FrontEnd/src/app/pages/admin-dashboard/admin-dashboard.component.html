@@ -1,0 +1,103 @@
+<section class="py-5">
+  <div class="container" style="max-width: 980px;">
+    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
+      <div>
+        <span class="k-pill k-pill-green mb-2">Admin</span>
+        <h1 class="h2 fw-bold mb-1">Ringkasan Operasional</h1>
+        <p class="text-secondary small mb-0">
+          Ringkasan jumlah kelas, jadwal, pendaftaran, dan informasi operasional.
+        </p>
+      </div>
+      <div class="d-flex gap-2">
+        <a routerLink="/admin/courses" class="btn-k-light btn-sm">Kelola Kelas</a>
+        <a routerLink="/admin/batches" class="btn-k-light btn-sm">Kelola jadwal kelas</a>
+        <a routerLink="/admin/instructors" class="btn-k-primary btn-sm">Kelola Pengajar</a>
+      </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <div class="k-card p-4 h-100">
+          <div class="small text-secondary mb-1">Total Kelas</div>
+          <div class="display-6 fw-bold">{{ svc.courses().length }}</div>
+          <div class="small text-muted mt-1">{{ svc.categories().length }} kategori kelas</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="k-card p-4 h-100">
+          <div class="small text-secondary mb-1">Total jadwal kelas</div>
+          <div class="display-6 fw-bold">{{ svc.batches().length }}</div>
+          <div class="small text-success mt-1">{{ openBatchCount() }} Dibuka · {{ fullBatchCount() }} Penuh</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="k-card p-4 h-100">
+          <div class="small text-secondary mb-1">Total pendaftaran</div>
+          <div class="display-6 fw-bold">{{ svc.registrations().length }}</div>
+          <div class="small text-muted mt-1">{{ confirmedRegCount() }} dikonfirmasi</div>
+        </div>
+      </div>
+      <div class="col-6 col-md-3">
+        <div class="k-card p-4 h-100">
+          <div class="small text-secondary mb-1">Total Dana Masuk</div>
+          <div class="h4 fw-bold mt-2 mb-1" style="color: var(--brand-forest);">
+            Rp{{ totalRevenuePaid() | number: '1.0-0' }}
+          </div>
+          <div class="small text-muted">{{ svc.instructors().length }} Pengajar aktif</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="k-card p-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h2 class="h5 fw-bold mb-0">Informasi Operasional &amp; Pendaftaran Peserta</h2>
+        <span class="k-pill k-pill-neutral">{{ svc.registrations().length }} pendaftaran</span>
+      </div>
+
+      <div class="d-flex flex-column gap-3">
+        @for (reg of svc.registrations(); track reg.id) {
+          <div class="p-3 rounded-4 k-surface-soft d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+              <div class="small text-muted">
+                {{ reg.registrationNumber }} · Pendaftar ke-{{ reg.queueNumber }}
+              </div>
+              @if (svc.getBatchById(reg.batchId); as b) {
+                <div class="fw-bold">
+                  {{ svc.getStudentById(reg.studentId)?.fullName }} — {{ svc.getCourseById(b.courseId)?.title }}
+                </div>
+                <div class="small text-secondary">
+                  {{ b.batchName }} ·
+                  Cara bayar: {{ labels.method[reg.paymentMethod] }}{{ reg.installmentTenor ? ' (' + reg.installmentTenor + ' Bulan)' : '' }} ·
+                  Sudah dibayar: <strong>Rp{{ svc.getTotalPaidForRegistration(reg) | number: '1.0-0' }}</strong> / Rp{{ reg.totalAmount | number: '1.0-0' }}
+                </div>
+              }
+            </div>
+
+            <div class="d-flex gap-2">
+              <span
+                class="k-pill"
+                [ngClass]="{
+                  'k-pill-green': reg.registrationStatus === 'Confirmed' || reg.registrationStatus === 'Completed',
+                  'k-pill-amber': reg.registrationStatus === 'Pending',
+                  'k-pill-red': reg.registrationStatus === 'Cancelled'
+                }"
+              >
+                {{ labels.registration[reg.registrationStatus] }}
+              </span>
+              <span
+                class="k-pill"
+                [ngClass]="{
+                  'k-pill-green': reg.paymentStatus === 'Paid',
+                  'k-pill-amber': reg.paymentStatus === 'PartiallyPaid' || reg.paymentStatus === 'Pending',
+                  'k-pill-red': reg.paymentStatus === 'Failed' || reg.paymentStatus === 'Overdue'
+                }"
+              >
+                {{ labels.payment[reg.paymentStatus] }}
+              </span>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</section>

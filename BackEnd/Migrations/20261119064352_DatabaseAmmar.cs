@@ -209,7 +209,7 @@ namespace BackEnd.Migrations
                     PaymentMethod = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false),
                     InstallmentTenor = table.Column<int>(type: "integer", nullable: true),
                     PaymentStatus = table.Column<string>(type: "text", nullable: false),
-                    RegistrationStatus = table.Column<string>(type: "character varying(30)", maxLength: 30, nullable: false)
+                    RegistrationStatus = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {

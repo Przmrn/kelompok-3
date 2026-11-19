@@ -1,4 +1,4 @@
-﻿using BackEnd.DTOs.Location;
+using BackEnd.DTOs.Location;
 using BackEnd.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -24,7 +24,10 @@ namespace BackEnd.Controllers
         [HttpGet("{id:long}")]
         [AllowAnonymous]
         public async Task<ActionResult<LocationResponseDto>> GetById(long id)
-            => Ok(await _service.GetByIdAsync(id));
+        {
+            var location = await _service.GetByIdAsync(id);
+            return location == null ? NotFound() : Ok(location);
+        }
 
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
@@ -37,7 +40,10 @@ namespace BackEnd.Controllers
         [HttpPut("{id:long}")]
         [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<LocationResponseDto>> Update(long id, LocationUpdateDto dto)
-            => Ok(await _service.UpdateAsync(id, dto));
+        {
+            var location = await _service.UpdateAsync(id, dto);
+            return location == null ? NotFound() : Ok(location);
+        }
 
         [HttpDelete("{id:long}")]
         [Authorize(Roles = "ADMIN")]

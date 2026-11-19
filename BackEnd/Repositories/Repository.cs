@@ -21,7 +21,8 @@ namespace BackEnd.Repositories
             return await _dbSet.ToListAsync();
         }
 
-        public async Task<IEnumerable<T>> GetAllAsync(string includeProperties)
+        public async Task<IEnumerable<T>> GetAllAsync(
+            string includeProperties)
         {
             IQueryable<T> query = _dbSet;
 
@@ -103,6 +104,12 @@ namespace BackEnd.Repositories
         public void DeleteRange(IEnumerable<T> entities)
         {
             _dbSet.RemoveRange(entities);
+        }
+
+        // SAVE CHANGES
+        public async Task<int> SaveChangesAsync()
+        {
+            return await _context.SaveChangesAsync();
         }
     }
 }
