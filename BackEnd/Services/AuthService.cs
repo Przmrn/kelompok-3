@@ -2,7 +2,6 @@ using BackEnd.Data;
 using BackEnd.DTOs.Auth;
 using BackEnd.Models;
 using BackEnd.Repositories;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -16,7 +15,6 @@ namespace BackEnd.Services
         private readonly IRepository<Student> _studentRepository;
         private readonly CourseDbContext _context;
         private readonly IConfiguration _configuration;
-        private readonly PasswordHasher<User> _passwordHasher = new();
 
         public AuthService(
             IRepository<User> userRepository,
@@ -40,7 +38,7 @@ namespace BackEnd.Services
             {
                 FullName = dto.FullName.Trim(),
                 Email = email,
-                Password = _passwordHasher.HashPassword(null!, dto.Password),
+                Password = dto.Password,
                 Role = Role.STUDENT
             };
 
@@ -68,8 +66,7 @@ namespace BackEnd.Services
             if (user == null)
                 return null;
 
-            var passwordVerification = _passwordHasher.VerifyHashedPassword(user, user.Password, dto.Password);
-            if (passwordVerification == PasswordVerificationResult.Failed)
+            if (user.Password != dto.Password)
                 return null;
 
             var expiresAt = DateTime.UtcNow.AddMinutes(GetExpiresMinutes());
