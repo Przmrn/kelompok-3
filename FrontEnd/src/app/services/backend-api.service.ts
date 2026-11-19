@@ -1,17 +1,25 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+<<<<<<< HEAD
 import { forkJoin, map } from 'rxjs';
+=======
+import { catchError, forkJoin, map, of, throwError } from 'rxjs';
+>>>>>>> rafie
 import { BatchInstructor, Course, CourseBatch, CourseCategory, InstallmentSchedule, Instructor, Location, PaymentStatus, Registration, Student } from '../models/course-system.models';
 
 interface CourseRow extends Omit<Course, 'title' | 'description'> { categoryName: string }
 interface BatchRow extends Omit<CourseBatch, 'status'> { courseStatus: number }
 interface AssignmentRow extends BatchInstructor { instructor: Omit<Instructor, 'phoneNumber' | 'email'> }
+<<<<<<< HEAD
 export type StudentProfileFields = Omit<Student, 'id' | 'userId'>;
 type StudentResponse = Omit<Student, 'educationLevel'> & { educationalLevel: string };
 
 function toStudent({ educationalLevel, ...student }: StudentResponse): Student {
   return { ...student, educationLevel: educationalLevel };
 }
+=======
+type StudentRow = Omit<Student, 'educationLevel'> & { educationalLevel: string };
+>>>>>>> rafie
 interface RegistrationRow extends Omit<Registration, 'paymentMethod' | 'registrationStatus' | 'paymentStatus'> {
   paymentMethod: 'UPFRONT' | 'INSTALLMENT';
   registrationStatus: number;
@@ -46,6 +54,7 @@ export class BackendApiService {
 
   instructors() { return this.http.get<Instructor[]>('/api/instructors'); }
 
+<<<<<<< HEAD
   students() {
     return this.http.get<StudentResponse[]>('/api/students').pipe(map(rows => rows.map(toStudent)));
   }
@@ -90,5 +99,49 @@ export class BackendApiService {
     return id === undefined ? this.http.post(url, body) : this.http.put(url + '/' + id, body);
   }
 
+=======
+  students(admin: boolean) {
+    const rows = admin ? this.http.get<StudentRow[]>('/api/students') :
+      this.http.get<StudentRow>('/api/students/me').pipe(map(row => [row]), catchError((error: HttpErrorResponse) =>
+        error.status === 404 ? of([] as StudentRow[]) : throwError(() => error)));
+    return rows.pipe(map(list => list.map(({ educationalLevel, ...student }) => ({ ...student, educationLevel: educationalLevel }))));
+  }
+
+  saveProfile(profile: Omit<Student, 'id' | 'userId'>, exists: boolean) {
+    const { educationLevel, ...rest } = profile;
+    return this.http.request(exists ? 'PUT' : 'POST', '/api/students/me', { body: { ...rest, educationalLevel: educationLevel } });
+  }
+
+  registrations(admin: boolean) {
+    return this.http.get<RegistrationRow[]>(admin ? '/api/Registration' : '/api/Registration/me').pipe(map(rows => ({
+      registrations: rows.map(({ installmentSchedules, ...row }): Registration => ({
+        ...row, registrationStatus: registrationStatuses[row.registrationStatus], paymentStatus: paymentStatuses[row.paymentStatus],
+        paymentMethod: row.paymentMethod === 'UPFRONT' ? 'Upfront' : 'Installment',
+      })),
+      schedules: rows.flatMap(row => row.installmentSchedules.map((item): InstallmentSchedule => ({
+        ...item, status: installmentStatuses[item.installmentStatus],
+      }))),
+    })));
+  }
+
+  createRegistration(batchId: number, paymentMethod: Registration['paymentMethod'], installmentTenor: number | null) {
+    return this.http.post<{ id: number }>('/api/Registration', { batchId, paymentMethod: paymentMethod.toUpperCase(), installmentTenor });
+  }
+
+  cancelRegistration(id: number) { return this.http.delete('/api/Registration/' + id); }
+  confirmUpfront(id: number) { return this.http.post('/api/Registration/' + id + '/confirm-upfront', {}); }
+  confirmInstallment(id: number) { return this.http.post('/api/Registration/installments/' + id + '/confirm', {}); }
+  processOverdue() { return this.http.post('/api/Registration/process-overdue', {}); }
+
+  assignment(batchId: number, instructorId: number, remove: boolean) {
+    return this.http.request(remove ? 'DELETE' : 'POST', '/api/BatchInstructor', { params: { batchId, instructorId } });
+  }
+
+  save(resource: Resource, id: number | undefined, body: object) {
+    const url = '/api/' + resource;
+    return id === undefined ? this.http.post(url, body) : this.http.put(url + '/' + id, body);
+  }
+
+>>>>>>> rafie
   remove(resource: Resource, id: number) { return this.http.delete('/api/' + resource + '/' + id); }
 }

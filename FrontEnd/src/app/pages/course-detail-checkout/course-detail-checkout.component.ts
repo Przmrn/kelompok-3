@@ -15,7 +15,11 @@ export class CourseDetailCheckoutComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
+<<<<<<< HEAD
   readonly courseId = signal<number>(0);
+=======
+  readonly courseId = signal<number>(1);
+>>>>>>> rafie
   readonly selectedBatchId = signal<number | null>(null);
 
   readonly currentUser = this.svc.currentUser;

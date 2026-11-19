@@ -11,6 +11,10 @@ import { CourseSystemService } from '../../services/course-system.service';
 })
 export class CartPageComponent {
   readonly svc = inject(CourseSystemService);
+<<<<<<< HEAD
+=======
+
+>>>>>>> rafie
 
 
   readonly unpaidRegistrations = this.svc.unpaidCartRegistrations;

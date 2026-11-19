@@ -19,20 +19,17 @@ export class AdminBatchesComponent {
   readonly showForm = signal(false);
   readonly editingBatchId = signal<number | undefined>(undefined);
 
-  form = this.newBatch();
-
-  private newBatch() {
-    return {
-      courseId: this.svc.courses()[0]?.id ?? 0,
-      locationId: this.svc.locations()[0]?.id ?? 0,
-      batchName: '',
-      startDate: '',
-      endDate: '',
-      startTime: '09:00',
-      endTime: '16:00',
-      maxSeats: 30,
-    };
-  }
+  form = {
+    courseId: 1,
+    locationId: 1,
+    batchName: 'BCH-BE-04 — Batch 4 Reguler Januari',
+    startDate: '2027-01-16',
+    endDate: '2027-02-14',
+    startTime: '09:00',
+    endTime: '16:00',
+    maxSeats: 30,
+    status: 'Open' as 'Open' | 'Full',
+  };
 
   openNewBatchForm(): void {
     if (this.showForm()) {
@@ -40,7 +37,17 @@ export class AdminBatchesComponent {
       return;
     }
     this.editingBatchId.set(undefined);
-    this.form = this.newBatch();
+    this.form = {
+      courseId: 1,
+      locationId: 1,
+      batchName: `BCH-NEW-0${this.svc.batches().length + 1} — Batch Reguler`,
+      startDate: '2027-01-16',
+      endDate: '2027-02-14',
+      startTime: '09:00',
+      endTime: '16:00',
+      maxSeats: 30,
+      status: 'Open',
+    };
     this.showForm.set(true);
   }
 

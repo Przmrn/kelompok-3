@@ -37,10 +37,13 @@ export class AppComponent {
   private readonly router = inject(Router);
   readonly mobileMenuOpen = signal(false);
 
+<<<<<<< HEAD
   private get isProfilePage(): boolean {
     return this.router.isActive('/profile', { paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' });
   }
 
+=======
+>>>>>>> rafie
   private get needsAccountData(): boolean {
     return !this.router.isActive('/courses', {
       paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored',
@@ -48,12 +51,18 @@ export class AppComponent {
   }
 
   get pageLoadError(): string {
+<<<<<<< HEAD
     if (this.isProfilePage) return '';
+=======
+>>>>>>> rafie
     return this.svc.loadError() || (this.needsAccountData ? this.svc.accountError() : '');
   }
 
   get pageLoading(): boolean {
+<<<<<<< HEAD
     if (this.isProfilePage) return false;
+=======
+>>>>>>> rafie
     return this.svc.loading() || (this.needsAccountData && this.svc.accountLoading());
   }
 
