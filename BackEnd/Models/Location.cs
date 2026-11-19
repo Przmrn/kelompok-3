@@ -18,5 +18,7 @@ namespace BackEnd.Models
 
         [MaxLength(100)]
         public string RoomName { get; set; } = string.Empty;
+
+        public ICollection<CourseBatch> CourseBatches { get; set; } = new List<CourseBatch>();
     }
 }

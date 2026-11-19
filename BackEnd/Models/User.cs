@@ -21,8 +21,10 @@ namespace BackEnd.Models
         public string Password { get; set; } = string.Empty;
 
         [MaxLength(30)]
-        public string Role { get; set; } = string.Empty;
+        public Role Role { get; set; } 
 
+        public Student? Student { get; set; }
 
+        public Instructor? Instructor { get; set; }
     }
 }

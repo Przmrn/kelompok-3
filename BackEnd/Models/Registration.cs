@@ -7,7 +7,11 @@ namespace BackEnd.Models
     {
         [Key]
         public long Id { get; set; }
+
+        [ForeignKey(nameof(Student))]
         public long StudentId { get; set; }
+
+        [ForeignKey(nameof(CourseBatch))]
         public long BatchId { get; set; }
 
         [MaxLength(50)]
@@ -34,13 +38,14 @@ namespace BackEnd.Models
         public string PaymentMethod { get; set; } = string.Empty;
         public int? InstallmentTenor { get; set; }
 
-        [MaxLength(30)]
-        public string PaymentStatus { get; set; } = "Pending";
+        public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.PENDING;
         
         [MaxLength(30)]
-        public string RegistrationStatus { get; set; } = "Pending";
+        public RegistrationStatus RegistrationStatus { get; set; } = RegistrationStatus.PENDING;
         public Student Student { get; set; } = null!;
 
-        public CourseBatch Batch { get; set; } = null!;
+        public CourseBatch CourseBatch { get; set; } = null!;
+
+        public ICollection<InstallmentSchedule> InstallmentSchedules { get; set; } = new List<InstallmentSchedule>();
     }
 }

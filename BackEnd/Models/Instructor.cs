@@ -1,5 +1,5 @@
-﻿using Microsoft.AspNetCore.SignalR.Protocol;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BackEnd.Models
 {
@@ -7,6 +7,8 @@ namespace BackEnd.Models
     {
         [Key]
         public long Id { get; set; }
+
+        [ForeignKey(nameof(User))]
         public long UserId { get; set; }
 
         [MaxLength(255)]
@@ -19,5 +21,9 @@ namespace BackEnd.Models
 
         [MaxLength(20)]
         public string PhoneNumber { get; set; } = string.Empty;
+
+        public User User { get; set; } = null!;
+
+        public ICollection<BatchInstructor> BatchInstructors { get; set; } = new List<BatchInstructor>();
     }
 }
