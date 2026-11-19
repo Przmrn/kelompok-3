@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace BackEnd.Models
@@ -11,12 +12,14 @@ namespace BackEnd.Models
         [ForeignKey(nameof(Student))]
         public long StudentId { get; set; }
 
-        [ForeignKey(nameof(CourseBatch))]
+        [ForeignKey(nameof(Batch))]
         public long BatchId { get; set; }
 
         [MaxLength(50)]
         public string RegistrationNumber { get; set; } = string.Empty;
+
         public DateTime RegistrationDate { get; set; }
+
         public int QueueNumber { get; set; }
 
         [Column(TypeName = "decimal(15,2)")]
@@ -36,16 +39,25 @@ namespace BackEnd.Models
 
         [MaxLength(30)]
         public string PaymentMethod { get; set; } = string.Empty;
+
         public int? InstallmentTenor { get; set; }
 
-        public PaymentStatus PaymentStatus { get; set; } = PaymentStatus.PENDING;
-        
-        [MaxLength(30)]
-        public RegistrationStatus RegistrationStatus { get; set; } = RegistrationStatus.PENDING;
+        public PaymentStatus PaymentStatus { get; set; }
+            = PaymentStatus.PENDING;
+
+        public RegistrationStatus RegistrationStatus { get; set; }
+            = RegistrationStatus.PENDING;
+
         public Student Student { get; set; } = null!;
 
-        public CourseBatch CourseBatch { get; set; } = null!;
+        public CourseBatch Batch { get; set; } = null!;
 
-        public ICollection<InstallmentSchedule> InstallmentSchedules { get; set; } = new List<InstallmentSchedule>();
+        [Column(TypeName = "decimal(15,2)")]
+        public decimal PaidAmount { get; set; } = 0;
+
+        public DateTime? PaidAt { get; set; }
+
+        public ICollection<InstallmentSchedule> InstallmentSchedules
+        { get; set; } = new List<InstallmentSchedule>();
     }
 }

@@ -11,7 +11,6 @@ namespace BackEnd.Repositories
             string includeProperties
         );
 
-
         Task<T?> GetByIdAsync(long id);
 
         Task<IEnumerable<T>> FindAsync(
@@ -31,16 +30,17 @@ namespace BackEnd.Repositories
 
         Task AddRangeAsync(IEnumerable<T> entities);
 
-
         // UPDATE
         void Update(T entity);
 
         void UpdateRange(IEnumerable<T> entities);
 
-
         // DELETE
         void Delete(T entity);
 
         void DeleteRange(IEnumerable<T> entities);
+
+        // SAVE CHANGES
+        Task<int> SaveChangesAsync();
     }
 }
