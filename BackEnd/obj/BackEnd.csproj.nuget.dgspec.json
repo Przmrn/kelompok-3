@@ -1,23 +1,23 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\USER\\Downloads\\Matkul AdIns\\11. Mini Projek\\kelompok-3\\BackEnd\\BackEnd.csproj": {}
+    "E:\\Projects\\kelompok-3\\BackEnd\\BackEnd.csproj": {}
   },
   "projects": {
-    "C:\\Users\\USER\\Downloads\\Matkul AdIns\\11. Mini Projek\\kelompok-3\\BackEnd\\BackEnd.csproj": {
+    "E:\\Projects\\kelompok-3\\BackEnd\\BackEnd.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\USER\\Downloads\\Matkul AdIns\\11. Mini Projek\\kelompok-3\\BackEnd\\BackEnd.csproj",
+        "projectUniqueName": "E:\\Projects\\kelompok-3\\BackEnd\\BackEnd.csproj",
         "projectName": "BackEnd",
-        "projectPath": "C:\\Users\\USER\\Downloads\\Matkul AdIns\\11. Mini Projek\\kelompok-3\\BackEnd\\BackEnd.csproj",
-        "packagesPath": "C:\\Users\\USER\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\USER\\Downloads\\Matkul AdIns\\11. Mini Projek\\kelompok-3\\BackEnd\\obj\\",
+        "projectPath": "E:\\Projects\\kelompok-3\\BackEnd\\BackEnd.csproj",
+        "packagesPath": "C:\\Users\\amarn\\.nuget\\packages\\",
+        "outputPath": "E:\\Projects\\kelompok-3\\BackEnd\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
         ],
         "configFilePaths": [
-          "C:\\Users\\USER\\AppData\\Roaming\\NuGet\\NuGet.Config",
+          "C:\\Users\\amarn\\AppData\\Roaming\\NuGet\\NuGet.Config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
           "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
         ],
@@ -26,7 +26,6 @@
         ],
         "sources": {
           "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-          "C:\\Program Files\\dotnet\\library-packs": {},
           "https://api.nuget.org/v3/index.json": {}
         },
         "frameworks": {
@@ -85,7 +84,11 @@
             },
             "Swashbuckle.AspNetCore": {
               "target": "Package",
-              "version": "[10.0.1, )"
+              "version": "[10.3.1, )"
+            },
+            "Swashbuckle.AspNetCore.Swagger": {
+              "target": "Package",
+              "version": "[10.3.1, )"
             }
           },
           "imports": [
