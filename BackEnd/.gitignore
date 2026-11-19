@@ -41,3 +41,16 @@ TestResults/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Test results
+TestResults/
+
+# Publish output
+publish/
+artifacts/
+
+# Temporary files
+*.tmp
+*.bak
+
+**/appsettings*.json
