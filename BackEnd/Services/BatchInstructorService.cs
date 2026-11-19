@@ -54,14 +54,14 @@ namespace BackEnd.Services
             var courseBatch = await _courseBatchRepository.GetByIdAsync(batchId);
 
             if (courseBatch == null)
-                throw new Exception("Batch tidak ditemukan.");
+                throw new BackEnd.Exceptions.AppException("Batch tidak ditemukan.");
 
             // 2. Pastikan instruktur tersedia
             var instructorExists = await _instructorRepository.ExistsAsync(
                 i => i.Id == instructorId);
 
             if (!instructorExists)
-                throw new Exception("Instruktur tidak ditemukan.");
+                throw new BackEnd.Exceptions.AppException("Instruktur tidak ditemukan.");
 
             // 3. Periksa apakah instruktur sudah ditugaskan ke batch ini
             var alreadyAssigned = await _batchInstructorRepository.ExistsAsync(
@@ -69,7 +69,7 @@ namespace BackEnd.Services
                       bi.InstructorId == instructorId);
 
             if (alreadyAssigned)
-                throw new Exception("Instruktur sudah ditugaskan ke batch ini.");
+                throw new BackEnd.Exceptions.AppException("Instruktur sudah ditugaskan ke batch ini.");
 
             // 4. Ambil seluruh batch yang diajar instruktur tersebut
             var assignments = await _batchInstructorRepository.GetAllAsync(
@@ -95,7 +95,7 @@ namespace BackEnd.Services
 
                 if (dateOverlap && timeOverlap)
                 {
-                    throw new Exception(
+                    throw new BackEnd.Exceptions.AppException(
                         "Instruktur sudah memiliki jadwal mengajar yang bentrok.");
                 }
             }
@@ -108,6 +108,7 @@ namespace BackEnd.Services
             };
 
             await _batchInstructorRepository.AddAsync(batchInstructor);
+            await _batchInstructorRepository.SaveChangesAsync();
 
             return batchInstructor;
         }
@@ -127,6 +128,7 @@ namespace BackEnd.Services
                 return false;
 
             _batchInstructorRepository.Delete(existingAssignment);
+            await _batchInstructorRepository.SaveChangesAsync();
 
             return true;
         }

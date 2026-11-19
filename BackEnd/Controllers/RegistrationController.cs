@@ -3,6 +3,8 @@ using BackEnd.DTOs;
 using BackEnd.DTOs.Registration;
 using BackEnd.Models;
 using BackEnd.Services;
+using BackEnd.Repositories;
+using BackEnd.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -16,15 +18,18 @@ namespace BackEnd.Controllers
     {
         private readonly IRegistrationService _registrationService;
 
+        private readonly IRepository<Student> _students;
+
         public RegistrationController(
-            IRegistrationService registrationService)
+            IRegistrationService registrationService, IRepository<Student> students)
         {
             _registrationService = registrationService;
+            _students = students;
         }
 
         // Mengambil seluruh pendaftaran
         [HttpGet]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<IEnumerable<Registration>>> GetAll()
         {
             var registrations = await _registrationService.GetAllAsync();
@@ -34,16 +39,13 @@ namespace BackEnd.Controllers
 
         // Mengambil pendaftaran milik student yang sedang login
         [HttpGet("me")]
-        [Authorize(Roles = "Student")]
+        [Authorize(Roles = "STUDENT")]
         public async Task<ActionResult<IEnumerable<Registration>>> GetMyRegistrations()
         {
-            var studentId = GetStudentIdFromClaims();
+            var studentId = await GetCurrentStudentIdAsync();
 
             if (studentId == null)
-                return Unauthorized(new
-                {
-                    message = "Identitas student tidak ditemukan."
-                });
+                return Ok(Array.Empty<Registration>());
 
             var registrations =
                 await _registrationService.GetByStudentIdAsync(studentId.Value);
@@ -53,6 +55,7 @@ namespace BackEnd.Controllers
 
         // Mengambil detail pendaftaran berdasarkan ID
         [HttpGet("{id:long}")]
+        [Authorize(Roles = "STUDENT,ADMIN")]
         public async Task<ActionResult<Registration>> GetById(long id)
         {
             var registration = await _registrationService.GetByIdAsync(id);
@@ -63,9 +66,9 @@ namespace BackEnd.Controllers
                     message = "Pendaftaran tidak ditemukan."
                 });
 
-            if (User.IsInRole("Student"))
+            if (User.IsInRole("STUDENT"))
             {
-                var studentId = GetStudentIdFromClaims();
+                var studentId = await GetCurrentStudentIdAsync();
 
                 if (studentId == null)
                     return Unauthorized();
@@ -79,11 +82,11 @@ namespace BackEnd.Controllers
 
         // Membuat pendaftaran kursus
         [HttpPost]
-        [Authorize(Roles = "Student")]
+        [Authorize(Roles = "STUDENT")]
         public async Task<ActionResult<Registration>> Create(
             [FromBody] RegistrationCreateDto request)
         {
-            var studentId = GetStudentIdFromClaims();
+            var studentId = await GetCurrentStudentIdAsync();
 
             if (studentId == null)
                 return Unauthorized(new
@@ -107,7 +110,7 @@ namespace BackEnd.Controllers
 
         // Mengonfirmasi pembayaran Upfront
         [HttpPost("{id:long}/confirm-upfront")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> ConfirmUpfrontPayment(long id)
         {
             var result =
@@ -127,7 +130,7 @@ namespace BackEnd.Controllers
 
         // Mengonfirmasi pembayaran cicilan
         [HttpPost("installments/{scheduleId:long}/confirm")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> ConfirmInstallmentPayment(
             long scheduleId)
         {
@@ -150,7 +153,7 @@ namespace BackEnd.Controllers
 
         // Membatalkan pendaftaran
         [HttpDelete("{id:long}")]
-        [Authorize(Roles = "Student,Admin")]
+        [Authorize(Roles = "STUDENT,ADMIN")]
         public async Task<IActionResult> Cancel(long id)
         {
             var registration = await _registrationService.GetByIdAsync(id);
@@ -161,9 +164,9 @@ namespace BackEnd.Controllers
                     message = "Pendaftaran tidak ditemukan."
                 });
 
-            if (User.IsInRole("Student"))
+            if (User.IsInRole("STUDENT"))
             {
-                var studentId = GetStudentIdFromClaims();
+                var studentId = await GetCurrentStudentIdAsync();
 
                 if (studentId == null)
                     return Unauthorized();
@@ -188,7 +191,7 @@ namespace BackEnd.Controllers
 
         // Memproses pendaftaran dengan cicilan yang terlambat
         [HttpPost("process-overdue")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> ProcessOverdueRegistrations()
         {
             await _registrationService.ProcessOverdueRegistrationsAsync();
@@ -199,14 +202,16 @@ namespace BackEnd.Controllers
             });
         }
 
-        private long? GetStudentIdFromClaims()
+        private async Task<long?> GetCurrentStudentIdAsync()
         {
             var studentIdClaim = User.FindFirst("StudentId")?.Value;
 
             if (long.TryParse(studentIdClaim, out var studentId))
                 return studentId;
 
-            return null;
+            var userId = User.GetUserId();
+            var student = (await _students.FindAsync(s => s.UserId == userId)).FirstOrDefault();
+            return student?.Id;
         }
     }
 }

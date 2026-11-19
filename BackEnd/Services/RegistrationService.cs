@@ -60,23 +60,23 @@ namespace BackEnd.Services
             );
 
             if (!studentExists)
-                throw new Exception("Student tidak ditemukan.");
+                throw new BackEnd.Exceptions.AppException("Student tidak ditemukan.");
 
             var batches = await _batchRepository.GetAllAsync("Course");
 
             var batch = batches.FirstOrDefault(b => b.Id == batchId);
 
             if (batch == null)
-                throw new Exception("Batch tidak ditemukan.");
+                throw new BackEnd.Exceptions.AppException("Batch tidak ditemukan.");
 
             if (batch.Course == null)
-                throw new Exception("Data course pada batch tidak ditemukan.");
+                throw new BackEnd.Exceptions.AppException("Data course pada batch tidak ditemukan.");
 
             if (batch.MaxSeats <= 0)
-                throw new Exception("Kapasitas batch tidak valid.");
+                throw new BackEnd.Exceptions.AppException("Kapasitas batch tidak valid.");
 
             if (string.IsNullOrWhiteSpace(paymentMethod))
-                throw new Exception("Payment method wajib diisi.");
+                throw new BackEnd.Exceptions.AppException("Payment method wajib diisi.");
 
             var normalizedPaymentMethod =
                 paymentMethod.Trim().ToUpperInvariant();
@@ -85,7 +85,7 @@ namespace BackEnd.Services
             {
                 if (installmentTenor.HasValue)
                 {
-                    throw new Exception(
+                    throw new BackEnd.Exceptions.AppException(
                         "Upfront Payment tidak menggunakan tenor cicilan."
                     );
                 }
@@ -96,14 +96,14 @@ namespace BackEnd.Services
                     installmentTenor != 6 &&
                     installmentTenor != 12)
                 {
-                    throw new Exception(
+                    throw new BackEnd.Exceptions.AppException(
                         "Tenor cicilan hanya tersedia untuk 3, 6, atau 12 bulan."
                     );
                 }
             }
             else
             {
-                throw new Exception("Metode pembayaran tidak valid.");
+                throw new BackEnd.Exceptions.AppException("Metode pembayaran tidak valid.");
             }
 
             var registrations = (await _registrationRepository.GetAllAsync())
@@ -121,7 +121,7 @@ namespace BackEnd.Services
 
             if (activeRegistrations.Count >= batch.MaxSeats)
             {
-                throw new Exception("Kapasitas batch sudah penuh.");
+                throw new BackEnd.Exceptions.AppException("Kapasitas batch sudah penuh.");
             }
 
             bool duplicateRegistration = activeRegistrations.Any(
@@ -130,7 +130,7 @@ namespace BackEnd.Services
 
             if (duplicateRegistration)
             {
-                throw new Exception(
+                throw new BackEnd.Exceptions.AppException(
                     "Student sudah memiliki pendaftaran aktif pada batch ini."
                 );
             }
@@ -158,7 +158,7 @@ namespace BackEnd.Services
             decimal basePrice = batch.Course.BasePrice;
 
             if (basePrice <= 0)
-                throw new Exception("Harga course tidak valid.");
+                throw new BackEnd.Exceptions.AppException("Harga course tidak valid.");
 
             decimal earlyBirdDiscount = Math.Min(
                 basePrice * discountPercentage,
@@ -262,7 +262,7 @@ namespace BackEnd.Services
 
             if (registration.PaymentMethod != PaymentMethods.UPFRONT)
             {
-                throw new Exception(
+                throw new BackEnd.Exceptions.AppException(
                     "Pendaftaran ini tidak menggunakan pembayaran Upfront."
                 );
             }
@@ -307,7 +307,7 @@ namespace BackEnd.Services
 
             if (registration.PaymentMethod != PaymentMethods.INSTALLMENT)
             {
-                throw new Exception(
+                throw new BackEnd.Exceptions.AppException(
                     "Pendaftaran ini tidak menggunakan pembayaran cicilan."
                 );
             }
@@ -333,7 +333,7 @@ namespace BackEnd.Services
 
             if (previousInstallmentUnpaid)
             {
-                throw new Exception(
+                throw new BackEnd.Exceptions.AppException(
                     "Cicilan sebelumnya harus dibayar terlebih dahulu."
                 );
             }
@@ -342,13 +342,14 @@ namespace BackEnd.Services
 
             if (today > schedule.DueDate.AddDays(14))
             {
-                throw new Exception(
+                throw new BackEnd.Exceptions.AppException(
                     "Batas pembayaran cicilan telah terlewati."
                 );
             }
 
             schedule.PaidAmount = schedule.Amount;
             schedule.PaidAt = DateTime.UtcNow;
+            registration.PaidAt = schedule.PaidAt;
             schedule.InstallmentStatus = InstallmentStatus.PAID;
 
             // Menghitung ulang total pembayaran berdasarkan seluruh jadwal cicilan.
@@ -357,7 +358,7 @@ namespace BackEnd.Services
 
             if (registration.PaidAmount > registration.TotalAmount)
             {
-                throw new Exception(
+                throw new BackEnd.Exceptions.AppException(
                     "Total pembayaran melebihi tagihan pendaftaran."
                 );
             }
@@ -372,13 +373,10 @@ namespace BackEnd.Services
 
             if (registration.PaidAmount == registration.TotalAmount)
             {
-                registration.PaidAt = DateTime.UtcNow;
                 registration.PaymentStatus = PaymentStatus.PAID;
             }
             else
             {
-                registration.PaidAt = null;
-
                 registration.PaymentStatus = hasOverdueInstallment
                     ? PaymentStatus.OVERDUE
                     : PaymentStatus.PARTIALLY_PAID;

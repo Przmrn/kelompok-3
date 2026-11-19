@@ -1,6 +1,8 @@
 ﻿
 using BackEnd.Models;
 using BackEnd.Services;
+using BackEnd.DTOs.CourseBatch;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace BackEnd.Controllers
@@ -36,11 +38,12 @@ namespace BackEnd.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<CourseBatch>> Create(
-            [FromBody] CourseBatch courseBatch)
+            [FromBody] CourseBatchCreateDto request)
         {
             var createdCourseBatch =
-                await _courseBatchService.CreateAsync(courseBatch);
+                await _courseBatchService.CreateAsync(request.ToBatch());
 
             return CreatedAtAction(
                 nameof(GetById),
@@ -50,12 +53,13 @@ namespace BackEnd.Controllers
         }
 
         [HttpPut("{id:long}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<CourseBatch>> Update(
             long id,
-            [FromBody] CourseBatch courseBatch)
+            [FromBody] CourseBatchCreateDto request)
         {
             var updatedCourseBatch =
-                await _courseBatchService.UpdateAsync(id, courseBatch);
+                await _courseBatchService.UpdateAsync(id, request.ToBatch());
 
             if (updatedCourseBatch == null)
                 return NotFound(new { message = "Batch kursus tidak ditemukan." });
@@ -64,6 +68,7 @@ namespace BackEnd.Controllers
         }
 
         [HttpDelete("{id:long}")]
+        [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(long id)
         {
             var isDeleted = await _courseBatchService.DeleteAsync(id);

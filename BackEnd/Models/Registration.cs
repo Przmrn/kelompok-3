@@ -48,8 +48,10 @@ namespace BackEnd.Models
         public RegistrationStatus RegistrationStatus { get; set; }
             = RegistrationStatus.PENDING;
 
+        [System.Text.Json.Serialization.JsonIgnore]
         public Student Student { get; set; } = null!;
 
+        [System.Text.Json.Serialization.JsonIgnore]
         public CourseBatch Batch { get; set; } = null!;
 
         [Column(TypeName = "decimal(15,2)")]

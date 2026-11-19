@@ -24,6 +24,9 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<ICourseService, CourseService>();
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IInstructorService, InstructorService>();
+builder.Services.AddScoped<ICourseBatchService, CourseBatchService>();
+builder.Services.AddScoped<IBatchInstructorService, BatchInstructorService>();
+builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 
 builder.Services.AddCors(options =>
 {
@@ -57,7 +60,9 @@ builder.Services.AddAuthorization();
 var app = builder.Build();
 
 app.UseMiddleware<ExceptionMiddleware>();
-app.UseHttpsRedirection();
+app.UseWhen(context => !app.Environment.IsDevelopment()
+    || context.Connection.RemoteIpAddress is not { } remoteAddress
+    || !System.Net.IPAddress.IsLoopback(remoteAddress), branch => branch.UseHttpsRedirection());
 app.UseCors("AngularDevelopment");
 app.UseAuthentication();
 app.UseAuthorization();

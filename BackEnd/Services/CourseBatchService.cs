@@ -23,13 +23,13 @@ namespace BackEnd.Services
         public async Task<IEnumerable<CourseBatch>> GetAllAsync()
         {
             return await _batchRepository.GetAllAsync(
-                "Course,Location");
+                "Registrations");
         }
 
         public async Task<CourseBatch?> GetByIdAsync(long id)
         {
             var courseBatch = await _batchRepository.GetAllAsync(
-                "Course,Location");
+                "Registrations");
 
             return courseBatch.FirstOrDefault(cb => cb.Id == id);
         }
@@ -41,31 +41,32 @@ namespace BackEnd.Services
                 c => c.Id == courseBatch.CourseId);
 
             if (!courseExists)
-                throw new Exception("Course tidak ditemukan.");
+                throw new BackEnd.Exceptions.AppException("Course tidak ditemukan.");
 
             // Validasi Location
             var locationExists = await _locationRepository.ExistsAsync(
                 l => l.Id == courseBatch.LocationId);
 
             if (!locationExists)
-                throw new Exception("Location tidak ditemukan.");
+                throw new BackEnd.Exceptions.AppException("Location tidak ditemukan.");
 
             // Validasi tanggal
             if (courseBatch.StartDate > courseBatch.EndDate)
-                throw new Exception("Tanggal mulai tidak boleh melebihi tanggal selesai.");
+                throw new BackEnd.Exceptions.AppException("Tanggal mulai tidak boleh melebihi tanggal selesai.");
 
             // Validasi waktu
             if (courseBatch.StartTime >= courseBatch.EndTime)
-                throw new Exception("Waktu mulai harus lebih awal dari waktu selesai.");
+                throw new BackEnd.Exceptions.AppException("Waktu mulai harus lebih awal dari waktu selesai.");
 
             // Validasi kapasitas
             if (courseBatch.MaxSeats <= 0 || courseBatch.MaxSeats > 30)
-                throw new Exception("Kapasitas batch harus antara 1 sampai 30.");
+                throw new BackEnd.Exceptions.AppException("Kapasitas batch harus antara 1 sampai 30.");
 
             // Status awal batch
             courseBatch.CourseStatus = CourseBatchStatus.OPEN;
 
             await _batchRepository.AddAsync(courseBatch);
+            await _batchRepository.SaveChangesAsync();
 
             return courseBatch;
         }
@@ -74,7 +75,7 @@ namespace BackEnd.Services
             long id,
             CourseBatch courseBatch)
         {
-            var existingBatch = await _batchRepository.GetByIdAsync(id);
+            var existingBatch = await GetByIdAsync(id);
 
             if (existingBatch == null)
                 return null;
@@ -84,23 +85,23 @@ namespace BackEnd.Services
                 c => c.Id == courseBatch.CourseId);
 
             if (!courseExists)
-                throw new Exception("Course tidak ditemukan.");
+                throw new BackEnd.Exceptions.AppException("Course tidak ditemukan.");
 
             // Validasi Location
             var locationExists = await _locationRepository.ExistsAsync(
                 l => l.Id == courseBatch.LocationId);
 
             if (!locationExists)
-                throw new Exception("Location tidak ditemukan.");
+                throw new BackEnd.Exceptions.AppException("Location tidak ditemukan.");
 
             if (courseBatch.StartDate > courseBatch.EndDate)
-                throw new Exception("Tanggal mulai tidak valid.");
+                throw new BackEnd.Exceptions.AppException("Tanggal mulai tidak valid.");
 
             if (courseBatch.StartTime >= courseBatch.EndTime)
-                throw new Exception("Waktu mulai tidak valid.");
+                throw new BackEnd.Exceptions.AppException("Waktu mulai tidak valid.");
 
             if (courseBatch.MaxSeats <= 0 || courseBatch.MaxSeats > 30)
-                throw new Exception("Kapasitas batch harus antara 1 sampai 30.");
+                throw new BackEnd.Exceptions.AppException("Kapasitas batch harus antara 1 sampai 30.");
 
             existingBatch.CourseId = courseBatch.CourseId;
             existingBatch.LocationId = courseBatch.LocationId;
@@ -111,19 +112,26 @@ namespace BackEnd.Services
             existingBatch.EndTime = courseBatch.EndTime;
             existingBatch.MaxSeats = courseBatch.MaxSeats;
 
+            if (existingBatch.MaxSeats < existingBatch.UsedSeats)
+                throw new BackEnd.Exceptions.AppException("Kapasitas kurang dari jumlah peserta terdaftar.");
+            existingBatch.CourseStatus = existingBatch.UsedSeats >= existingBatch.MaxSeats ? CourseBatchStatus.FULL : CourseBatchStatus.OPEN;
             _batchRepository.Update(existingBatch);
+            await _batchRepository.SaveChangesAsync();
 
             return existingBatch;
         }
 
         public async Task<bool> DeleteAsync(long id)
         {
-            var courseBatch = await _batchRepository.GetByIdAsync(id);
+            var courseBatch = await GetByIdAsync(id);
 
             if (courseBatch == null)
                 return false;
 
+            if (courseBatch.Registrations.Count > 0)
+                throw new BackEnd.Exceptions.AppException("Jadwal yang memiliki pendaftaran tidak dapat dihapus.", 409);
             _batchRepository.Delete(courseBatch);
+            await _batchRepository.SaveChangesAsync();
 
             return true;
         }

@@ -31,6 +31,7 @@ namespace BackEnd.Services
                     Id = c.Id,
                     CategoryId = c.CategoryId,
                     CategoryName = c.CourseCategory.Name,
+                    Syllabus = c.Syllabus,
                     DurationHours = c.DurationHours,
                     BasePrice = c.BasePrice
                 })

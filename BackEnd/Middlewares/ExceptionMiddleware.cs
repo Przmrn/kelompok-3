@@ -23,6 +23,10 @@ namespace BackEnd.Middlewares
             }
             catch (AppException ex)
             {
+                await WriteResponse(context, ex.StatusCode, ex.Message);
+            }
+            catch (Exception ex)
+            {
                 _logger.LogError(ex, "Unhandled exception pada {Method} {path}",
                     context.Request.Method, context.Request.Path);
                 await WriteResponse(context, StatusCodes.Status500InternalServerError,
