@@ -1,3 +1,4 @@
+import { courseLabels } from '../../models/course-labels';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -10,6 +11,7 @@ import { CourseSystemService } from '../../services/course-system.service';
   templateUrl: './payment-detail.component.html',
 })
 export class PaymentDetailPageComponent implements OnInit {
+  readonly labels = courseLabels;
   readonly svc = inject(CourseSystemService);
   private readonly route = inject(ActivatedRoute);
 

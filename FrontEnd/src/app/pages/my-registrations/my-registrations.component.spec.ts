@@ -15,7 +15,7 @@ describe('My Courses child routes', () => {
     const harness = await RouterTestingHarness.create('/my-registrations');
     const router = TestBed.inject(Router);
     expect(router.url).toBe('/my-courses/jadwal');
-    expect(harness.routeNativeElement!.textContent).toContain('Jadwal Pelaksanaan Batch');
+    expect(harness.routeNativeElement!.textContent).toContain('Jadwal kelas');
     const refundLink = harness.routeNativeElement!.querySelector<HTMLAnchorElement>('a[href$="/refund"]')!;
     await harness.navigateByUrl(refundLink.pathname);
     expect(harness.routeNativeElement!.textContent).toContain('16 hari sebelum kelas');
@@ -29,7 +29,7 @@ describe('My Courses child routes', () => {
     await navigation;
     harness.detectChanges();
     expect(router.url).toBe('/my-courses/jadwal');
-    expect(harness.routeNativeElement!.textContent).toContain('Refund 50%');
+    expect(harness.routeNativeElement!.textContent).toContain('Pengembalian dana 50%');
   });
 
   it('excludes unpaid registrations from direct refund links', async () => {

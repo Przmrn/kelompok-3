@@ -37,7 +37,7 @@ export const instructorScheduleGuard: CanActivateFn = () => {
   svc.showNotification(
     'warning',
     'Akses Ditolak',
-    'Halaman My Teaching Schedule khusus untuk akun Instructor.'
+    'Jadwal mengajar hanya tersedia untuk akun pengajar.'
   );
   return router.createUrlTree(['/courses']);
 };

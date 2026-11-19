@@ -8,9 +8,9 @@
         >
           <i class="bi bi-journal-bookmark-fill"></i>
         </div>
-        <h1 class="h4 fw-bold mb-2">My Course (Kursus yang Sudah Dibayar)</h1>
+        <h1 class="h4 fw-bold mb-2">Kelas saya</h1>
         <p class="text-secondary small mb-4">
-          Silakan Sign In terlebih dahulu untuk mengecek daftar kursus yang sudah Anda bayar beserta jadwal dan lokasinya.
+          Silakan masuk terlebih dahulu untuk mengecek daftar kursus yang sudah Anda bayar beserta jadwal dan lokasinya.
         </p>
         <button
           type="button"
@@ -18,14 +18,14 @@
           (click)="svc.openAuthModal('LOGIN')"
         >
           <i class="bi bi-box-arrow-in-right"></i>
-          <span>Sign In Sekarang</span>
+          <span>Masuk</span>
         </button>
       </div>
     } @else {
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 anim-fade-up">
         <div>
-          <span class="k-pill k-pill-green mb-2">Role: Student · My Course (Sudah Dibayar)</span>
-          <h1 class="h2 fw-bold mb-1">My Course ({{ paidCourses().length }})</h1>
+          <span class="k-pill k-pill-green mb-2">Kelas yang sudah dibayar</span>
+          <h1 class="h2 fw-bold mb-1">Kelas saya ({{ paidCourses().length }})</h1>
           <p class="text-secondary small mb-0">
             Daftar kursus yang sudah dibayar/terkonfirmasi beserta jadwal pelaksanaan, lokasi kelas, dan rincian cicilan.
           </p>
@@ -48,7 +48,7 @@
         <router-outlet></router-outlet>
       } @else {
         <div class="k-card p-5 text-center">
-          <p class="text-secondary mb-3">Belum ada course yang selesai dibayar.</p>
+          <p class="text-secondary mb-3">Belum ada kelas yang selesai dibayar.</p>
           <div class="d-flex justify-content-center gap-2">
             @if (unpaidCount() > 0) {
               <a routerLink="/cart" class="btn-k-coral btn-sm">

@@ -167,7 +167,7 @@ export class CourseSystemService {
       description:
         'Kursus intensif tatap muka untuk menguasai rekayasa Backend menggunakan ASP.NET Core dan SQL Server/PostgreSQL. Membahas desain 10 tabel relasional, transaksi database ACID, dan Service Layer.',
       syllabus:
-        '1. Pemodelan Database Relasional 10 Tabel & Unique Constraint\n2. ASP.NET Core Service Layer & Transaksi Reservasi Seat\n3. Autentikasi PasswordHash & Role-Based Authorization\n4. Pengujian API, Perhitungan Pajak 11% & Jadwal Cicilan Arrear',
+        '1. Pemodelan Database Relasional 10 Tabel & Unique Constraint\n2. ASP.NET Core Service Layer & Transaksi pemesanan kursi\n3. Keamanan kata sandi dan hak akses pengguna\n4. Pengujian API, Perhitungan Pajak 11% & Jadwal cicilan akhir bulan',
       durationHours: 48,
       basePrice: 1000000,
     },
@@ -454,8 +454,8 @@ export class CourseSystemService {
     this.currentUserId.set(null);
     this.showNotification(
       'info',
-      'Berhasil Sign Out',
-      'Anda telah keluar dari akun. Klik tombol Sign In di kanan atas untuk masuk kembali.'
+      'Anda sudah keluar',
+      'Pilih Masuk untuk menggunakan akun Anda kembali.'
     );
   }
 
@@ -723,7 +723,7 @@ export class CourseSystemService {
     if (exists) {
       return {
         success: false,
-        message: 'Email sudah terdaftar pada tabel Users. Gunakan email lain atau silakan Login.',
+        message: 'Email ini sudah terdaftar. Silakan masuk atau gunakan email lain.',
       };
     }
 
@@ -756,7 +756,7 @@ export class CourseSystemService {
     this.showNotification(
       'success',
       'Registrasi Berhasil',
-      `Selamat datang, ${newUser.fullName}! Silakan lengkapi profil Student Anda sebelum mendaftar course.`
+      `Selamat datang, ${newUser.fullName}! Lengkapi profil Anda sebelum mendaftar kelas.`
     );
     return { success: true, message: 'Registrasi berhasil.' };
   }
@@ -773,10 +773,10 @@ export class CourseSystemService {
     this.currentUserId.set(found.id);
     this.showNotification(
       'info',
-      `Login Berhasil (${found.role})`,
+      `Berhasil masuk`,
       `Selamat datang kembali, ${found.fullName}.`
     );
-    return { success: true, message: 'Login berhasil.', user: found };
+    return { success: true, message: 'Berhasil masuk.', user: found };
   }
 
   switchDemoUser(userId: number): User | null {
@@ -785,7 +785,7 @@ export class CourseSystemService {
       this.currentUserId.set(found.id);
       this.showNotification(
         'info',
-        `Beralih ke Role: ${found.role}`,
+        `Akun berhasil diganti`,
         `Aktif sebagai ${found.fullName}.`
       );
     }
@@ -830,10 +830,10 @@ export class CourseSystemService {
     const complete = this.isStudentProfileComplete(userId);
     this.showNotification(
       complete ? 'success' : 'warning',
-      complete ? 'Profil Student Lengkap' : 'Profil Disimpan Sebagian',
+      complete ? 'Profil lengkap' : 'Profil Disimpan Sebagian',
       complete
-        ? 'Seluruh kolom profil pada tabel Students telah lengkap. Anda siap mendaftar course.'
-        : 'Mohon lengkapi seluruh kolom profil (Address, City, Province, Country, EducationLevel, Occupation).'
+        ? 'Profil Anda lengkap. Anda sudah bisa mendaftar kelas.'
+        : 'Lengkapi kolom profil yang masih kosong sebelum mendaftar kelas.'
     );
 
     return {
@@ -864,39 +864,39 @@ export class CourseSystemService {
     if (!user || !student || user.role !== 'Student') {
       return {
         success: false,
-        message: 'Hanya akun dengan role Student yang dapat melakukan pendaftaran course.',
+        message: 'Gunakan akun peserta untuk mendaftar kelas.',
       };
     }
 
     if (!this.isStudentProfileComplete(user.id)) {
       return {
         success: false,
-        message: 'Student wajib melengkapi profil pada tabel Students sebelum mendaftar course.',
+        message: 'Lengkapi profil Anda sebelum mendaftar kelas.',
       };
     }
 
     const batch = this.getBatchById(payload.batchId);
     if (!batch) {
-      return { success: false, message: 'Batch tidak ditemukan.' };
+      return { success: false, message: 'Jadwal kelas tidak ditemukan.' };
     }
 
     const course = this.getCourseById(batch.courseId);
     if (!course) {
-      return { success: false, message: 'Course tidak ditemukan.' };
+      return { success: false, message: 'Kelas tidak ditemukan.' };
     }
 
     const usedSeats = this.getUsedSeatsForBatch(batch.id);
     if (usedSeats >= batch.maxSeats || batch.status === 'Full') {
       return {
         success: false,
-        message: `Batch ${batch.batchName} sudah berstatus Full (${batch.maxSeats}/${batch.maxSeats}).`,
+        message: `Kursi untuk ${batch.batchName} sudah penuh. Pilih jadwal lain.`,
       };
     }
 
     if (this.hasActiveRegistrationInBatch(student.id, batch.id)) {
       return {
         success: false,
-        message: 'Student tidak diperbolehkan memiliki lebih dari satu pendaftaran aktif pada batch yang sama.',
+        message: 'Anda sudah terdaftar pada jadwal ini.',
       };
     }
 
@@ -909,7 +909,7 @@ export class CourseSystemService {
       ) {
         return {
           success: false,
-          message: 'InstallmentTenor harus bernilai 3, 6, atau 12.',
+          message: 'Pilih lama cicilan 3, 6, atau 12 bulan.',
         };
       }
       validatedTenor = payload.installmentTenor;
@@ -982,7 +982,7 @@ export class CourseSystemService {
     this.showNotification(
       'success',
       `Pendaftaran ${regNo} Berhasil`,
-      `QueueNumber: #${queueNo} (${calc.discountTier}) · TotalAmount: Rp${calc.totalAmount.toLocaleString('id-ID')}.`
+      `Anda pendaftar ke-${queueNo}. Total biaya kelas Rp${calc.totalAmount.toLocaleString('id-ID')}.`
     );
 
     return {
@@ -1048,8 +1048,8 @@ export class CourseSystemService {
     );
     this.showNotification(
       'success',
-      'Pembayaran Upfront Dikonfirmasi',
-      'PaymentStatus berubah menjadi Paid dan RegistrationStatus menjadi Confirmed.'
+      'Pembayaran berhasil',
+      'Biaya kelas sudah lunas.'
     );
   }
 
@@ -1093,8 +1093,8 @@ export class CourseSystemService {
 
     this.showNotification(
       'success',
-      'Cicilan Dikonfirmasi',
-      `InstallmentNumber #${target.installmentNumber} sebesar Rp${target.amount.toLocaleString('id-ID')} telah dibayar.`
+      'Pembayaran berhasil',
+      `Cicilan ke-${target.installmentNumber} sebesar Rp${target.amount.toLocaleString('id-ID')} sudah dibayar.`
     );
   }
 
@@ -1149,17 +1149,17 @@ export class CourseSystemService {
     let estimatedRefundAmount = 0;
 
     if (daysDifference >= 14) {
-      tierLabel = '14 hari atau lebih (100% dari Total Paid − Rp25.000)';
+      tierLabel = '14 hari atau lebih (seluruh pembayaran dikurangi biaya administrasi Rp25.000)';
       refundPercentage = 100;
       floorAdminFee = 25000;
       estimatedRefundAmount = Math.max(0, totalPaid - floorAdminFee);
     } else if (daysDifference >= 7 && daysDifference <= 13) {
-      tierLabel = '7–13 hari (50% dari Total Paid)';
+      tierLabel = '7–13 hari (50% dari jumlah yang sudah dibayar)';
       refundPercentage = 50;
       floorAdminFee = 0;
       estimatedRefundAmount = Math.round(totalPaid * 0.5);
     } else if (daysDifference >= 3 && daysDifference <= 6) {
-      tierLabel = '3–6 hari (25% dari Total Paid)';
+      tierLabel = '3–6 hari (25% dari jumlah yang sudah dibayar)';
       refundPercentage = 25;
       floorAdminFee = 0;
       estimatedRefundAmount = Math.round(totalPaid * 0.25);
@@ -1211,7 +1211,7 @@ export class CourseSystemService {
               daysBeforeBatchStart: preview.daysDifference,
               refundPercentage: preview.refundPercentage,
               refundAmount: preview.estimatedRefundAmount,
-              cancellationReason: reason.trim() || 'Dibatalkan oleh Student',
+              cancellationReason: reason.trim() || 'Dibatalkan oleh peserta',
             }
           : r
       )
@@ -1222,7 +1222,7 @@ export class CourseSystemService {
     this.showNotification(
       'warning',
       'Pendaftaran Dibatalkan',
-      `RegistrationStatus berubah menjadi Cancelled. Refund: Rp${preview.estimatedRefundAmount.toLocaleString('id-ID')}.`
+      `Pendaftaran Anda dibatalkan. Pengembalian dana Rp${preview.estimatedRefundAmount.toLocaleString('id-ID')}.`
     );
 
     return { success: true, message: 'Pembatalan berhasil dikonfirmasi.' };
@@ -1237,15 +1237,15 @@ export class CourseSystemService {
     const instructor = this.instructors().find((i) => i.id === payload.instructorId);
 
     if (!targetBatch || !instructor) {
-      return { success: false, message: 'Batch atau Instructor tidak ditemukan.' };
+      return { success: false, message: 'Jadwal kelas atau pengajar tidak ditemukan.' };
     }
 
     const duplicate = this.batchInstructors().some(
       (bi) => bi.batchId === payload.batchId && bi.instructorId === payload.instructorId
     );
     if (duplicate) {
-      const msg = `Penugasan ditolak: Pasangan BatchId (${targetBatch.id}) dan InstructorId (${instructor.id}) sudah ada di tabel BatchInstructors.`;
-      this.showNotification('danger', 'Pasangan Tidak Unik', msg);
+      const msg = `${instructor.fullName} sudah ditugaskan untuk ${targetBatch.batchName}.`;
+      this.showNotification('danger', 'Pengajar sudah ditugaskan', msg);
       return { success: false, message: msg };
     }
 
@@ -1263,7 +1263,7 @@ export class CourseSystemService {
         targetBatch.endTime > existing.startTime;
 
       if (isDateOverlap && isTimeOverlap) {
-        const msg = `Bentrok Jadwal Ditolak! ${instructor.fullName} sudah mengajar di "${existing.batchName}" (${existing.startDate} s/d ${existing.endDate}, jam ${existing.startTime}–${existing.endTime}) yang bertabrakan dengan "${targetBatch.batchName}" (${targetBatch.startDate} s/d ${targetBatch.endDate}, jam ${targetBatch.startTime}–${targetBatch.endTime}).`;
+        const msg = `${instructor.fullName} sudah mengajar di "${existing.batchName}" (${existing.startDate} s/d ${existing.endDate}, jam ${existing.startTime}–${existing.endTime}) yang bertabrakan dengan "${targetBatch.batchName}" (${targetBatch.startDate} s/d ${targetBatch.endDate}, jam ${targetBatch.startTime}–${targetBatch.endTime}).`;
         this.showNotification('danger', 'Bentrok Jadwal Mengajar', msg);
         return { success: false, message: msg };
       }
@@ -1290,7 +1290,7 @@ export class CourseSystemService {
 
   removeInstructorAssignment(assignmentId: number): void {
     this.batchInstructors.update((list) => list.filter((bi) => bi.id !== assignmentId));
-    this.showNotification('info', 'Penugasan Dihapus', 'Relasi BatchInstructors telah dihapus.');
+    this.showNotification('info', 'Penugasan Dihapus', 'Penugasan mengajar telah dihapus.');
   }
 
   addInstructorByAdmin(payload: {
@@ -1328,10 +1328,10 @@ export class CourseSystemService {
     this.instructors.update((list) => [...list, newInstructor]);
     this.showNotification(
       'success',
-      'Instructor Ditambahkan',
-      `${newInstructor.fullName} telah ditambahkan ke tabel Users & Instructors.`
+      'Pengajar ditambahkan',
+      `${newInstructor.fullName} telah ditambahkan sebagai pengajar.`
     );
-    return { success: true, message: 'Instructor berhasil ditambahkan.' };
+    return { success: true, message: 'Pengajar berhasil ditambahkan.' };
   }
 
   updateInstructorByAdmin(
@@ -1358,7 +1358,7 @@ export class CourseSystemService {
           : i
       )
     );
-    this.showNotification('success', 'Instructor Diperbarui', 'Perubahan data Instructor telah disimpan.');
+    this.showNotification('success', 'Profil pengajar diperbarui', 'Perubahan profil pengajar telah disimpan.');
   }
 
   deleteInstructorByAdmin(instructorId: number): void {
@@ -1366,7 +1366,7 @@ export class CourseSystemService {
       list.filter((bi) => bi.instructorId !== instructorId)
     );
     this.instructors.update((list) => list.filter((i) => i.id !== instructorId));
-    this.showNotification('info', 'Instructor Dihapus', 'Data Instructor telah dihapus.');
+    this.showNotification('info', 'Pengajar dihapus', 'Data pengajar telah dihapus.');
   }
 
   saveCourseByAdmin(payload: {
@@ -1394,7 +1394,7 @@ export class CourseSystemService {
             : c
         )
       );
-      this.showNotification('success', 'Course Diperbarui', `Data ${payload.title} berhasil diubah.`);
+      this.showNotification('success', 'Kelas diperbarui', `Data ${payload.title} berhasil diubah.`);
     } else {
       const newCourse: Course = {
         id: Date.now(),
@@ -1406,13 +1406,13 @@ export class CourseSystemService {
         basePrice: Number(payload.basePrice) || 1000000,
       };
       this.courses.update((list) => [...list, newCourse]);
-      this.showNotification('success', 'Course Ditambahkan', `${newCourse.title} berhasil dibuat.`);
+      this.showNotification('success', 'Kelas ditambahkan', `${newCourse.title} berhasil dibuat.`);
     }
   }
 
   deleteCourseByAdmin(courseId: number): void {
     this.courses.update((list) => list.filter((c) => c.id !== courseId));
-    this.showNotification('info', 'Course Dihapus', 'Data course telah dihapus.');
+    this.showNotification('info', 'Kelas dihapus', 'Kelas telah dihapus dari katalog.');
   }
 
   saveBatchByAdmin(payload: {
@@ -1446,7 +1446,7 @@ export class CourseSystemService {
             : b
         )
       );
-      this.showNotification('success', 'Batch Diperbarui', 'Perubahan data CourseBatches telah disimpan.');
+      this.showNotification('success', 'Jadwal diperbarui', 'Perubahan jadwal kelas telah disimpan.');
     } else {
       const newId = Date.now();
       const newBatch: CourseBatch = {
@@ -1466,13 +1466,13 @@ export class CourseSystemService {
         [newId]: { usedSeats: 0, nextQueue: 1 },
       }));
       this.batches.update((list) => [...list, newBatch]);
-      this.showNotification('success', 'Batch Ditambahkan', `${newBatch.batchName} telah dibuka.`);
+      this.showNotification('success', 'Jadwal ditambahkan', `${newBatch.batchName} telah dibuka.`);
     }
   }
 
   deleteBatchByAdmin(batchId: number): void {
     this.batchInstructors.update((list) => list.filter((bi) => bi.batchId !== batchId));
     this.batches.update((list) => list.filter((b) => b.id !== batchId));
-    this.showNotification('info', 'Batch Dihapus', 'Data batch telah dihapus.');
+    this.showNotification('info', 'Jadwal dihapus', 'Jadwal kelas telah dihapus.');
   }
 }

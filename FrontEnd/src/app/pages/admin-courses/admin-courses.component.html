@@ -2,10 +2,10 @@
   <div class="container" style="max-width: 960px;">
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
       <div>
-        <span class="k-pill k-pill-green mb-2">Role: Admin · Courses</span>
-        <h1 class="h2 fw-bold mb-1">Kelola Data Courses</h1>
+        <span class="k-pill k-pill-green mb-2">Admin</span>
+        <h1 class="h2 fw-bold mb-1">Kelola kelas</h1>
         <p class="text-secondary small mb-0">
-          Melihat, menambah, mengubah, dan menghapus data pada tabel <code>Courses</code>.
+          Atur nama kelas, harga, durasi, dan materi yang akan dipelajari.
         </p>
       </div>
       <button
@@ -13,23 +13,23 @@
         class="btn-k-primary btn-sm"
         (click)="openNewCourseForm()"
       >
-        {{ showForm() ? 'Tutup Form' : '+ Tambah Course' }}
+        {{ showForm() ? 'Tutup formulir' : '+ Tambah kelas' }}
       </button>
     </div>
 
     @if (showForm()) {
       <div class="k-card p-4 mb-4 anim-pop">
         <h2 class="h5 fw-bold mb-3">
-          {{ editingCourseId() ? 'Ubah Data Course' : 'Tambah Course Baru' }}
+          {{ editingCourseId() ? 'Ubah kelas' : 'Tambah kelas' }}
         </h2>
 
         <div class="row g-3 mb-3">
           <div class="col-md-5">
-            <label class="k-label">Title</label>
-            <input type="text" class="form-control k-input" [(ngModel)]="form.title" placeholder="Judul course..." />
+            <label class="k-label">Nama kelas</label>
+            <input type="text" class="form-control k-input" [(ngModel)]="form.title" placeholder="Nama kelas" />
           </div>
           <div class="col-md-3">
-            <label class="k-label">CategoryId</label>
+            <label class="k-label">Kategori kelas</label>
             <select class="form-select k-select" [(ngModel)]="form.categoryId">
               @for (cat of svc.categories(); track cat.id) {
                 <option [ngValue]="cat.id">{{ cat.name }}</option>
@@ -37,27 +37,27 @@
             </select>
           </div>
           <div class="col-md-2">
-            <label class="k-label">DurationHours</label>
+            <label class="k-label">Durasi (jam)</label>
             <input type="number" class="form-control k-input" [(ngModel)]="form.durationHours" />
           </div>
           <div class="col-md-2">
-            <label class="k-label">BasePrice (Rp)</label>
+            <label class="k-label">Harga kelas (Rp)</label>
             <input type="number" step="50000" class="form-control k-input" [(ngModel)]="form.basePrice" />
           </div>
 
           <div class="col-md-6">
-            <label class="k-label">Description</label>
-            <textarea rows="3" class="form-control k-input" [(ngModel)]="form.description" placeholder="Deskripsi course..."></textarea>
+            <label class="k-label">Deskripsi</label>
+            <textarea rows="3" class="form-control k-input" [(ngModel)]="form.description" placeholder="Deskripsi kelas"></textarea>
           </div>
           <div class="col-md-6">
-            <label class="k-label">Syllabus (Satu baris per topik)</label>
+            <label class="k-label">Materi kelas (Satu baris per topik)</label>
             <textarea rows="3" class="form-control k-input" [(ngModel)]="form.syllabus" placeholder="1. Konsep Inti&#10;2. Praktikum Studio"></textarea>
           </div>
         </div>
 
         <div class="d-flex gap-2">
           <button type="button" class="btn-k-coral btn-sm" (click)="saveCourse()">
-            {{ editingCourseId() ? 'Simpan Perubahan' : 'Simpan Course Baru' }}
+            {{ editingCourseId() ? 'Simpan Perubahan' : 'Simpan kelas' }}
           </button>
           <button type="button" class="btn-k-light btn-sm" (click)="showForm.set(false)">
             Batal

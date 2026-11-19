@@ -1,3 +1,4 @@
+import { courseLabels } from '../../models/course-labels';
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -11,6 +12,7 @@ import { CourseSystemService } from '../../services/course-system.service';
   templateUrl: './admin-batches.component.html',
 })
 export class AdminBatchesComponent {
+  readonly labels = courseLabels;
   readonly svc = inject(CourseSystemService);
 
   readonly showForm = signal(false);

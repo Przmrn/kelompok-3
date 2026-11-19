@@ -2,7 +2,7 @@
   <div class="container" style="max-width: 860px;">
     @if (svc.currentUser(); as user) {
       <div class="mb-4 anim-fade-up">
-        <span class="k-pill k-pill-green mb-2">Role: {{ user.role }} · Profil &amp; Aktivitas</span>
+        <span class="k-pill k-pill-green mb-2">Akun {{ labels.role[user.role] }}</span>
         <h1 class="h2 fw-bold mb-1">Profil &amp; Ringkasan Aktivitas</h1>
         <p class="text-secondary small mb-0">
           Pantau ringkasan pendaftaran kelas dan kelola kelengkapan data diri Anda.
@@ -12,9 +12,9 @@
       <div class="row g-3 mb-4 anim-fade-up">
         <div class="col-md-4">
           <div class="k-card p-4 h-100">
-            <div class="small text-secondary mb-1">Course Terdaftar</div>
+            <div class="small text-secondary mb-1">Kelas terdaftar</div>
             <div class="display-6 fw-bold">{{ myRegistrations().length }}</div>
-            <div class="small text-success mt-1">{{ confirmedCount() }} Confirmed</div>
+            <div class="small text-success mt-1">{{ confirmedCount() }} dikonfirmasi</div>
           </div>
         </div>
         <div class="col-md-4">
@@ -32,7 +32,7 @@
             <div class="h4 fw-bold mt-2 mb-1" style="color: var(--brand-coral);">
               Rp{{ totalRemaining() | number: '1.0-0' }}
             </div>
-            <div class="small text-muted">Skema Arrear Bunga 0%</div>
+            <div class="small text-muted">Cicilan bulanan tanpa bunga</div>
           </div>
         </div>
       </div>
@@ -50,17 +50,17 @@
             @for (reg of myRegistrations(); track reg.id) {
               <div class="p-3 rounded-4 k-surface-soft d-flex flex-wrap justify-content-between align-items-center gap-2 small">
                 <div>
-                  <span class="text-muted">{{ reg.registrationNumber }} · QueueNumber #{{ reg.queueNumber }}</span>
+                  <span class="text-muted">{{ reg.registrationNumber }} · Pendaftar ke-{{ reg.queueNumber }}</span>
                   @if (svc.getBatchById(reg.batchId); as b) {
                     <div class="fw-bold fs-6">{{ svc.getCourseById(b.courseId)?.title }}</div>
                     <div class="text-secondary">
-                      {{ b.batchName }} · Mulai {{ b.startDate }} · Status: <strong>{{ reg.registrationStatus }}</strong> ({{ reg.paymentStatus }})
+                      {{ b.batchName }} · Mulai {{ b.startDate | date: 'd MMM yyyy' }} · Status: <strong>{{ labels.registration[reg.registrationStatus] }}</strong> ({{ labels.payment[reg.paymentStatus] }})
                     </div>
                   }
                 </div>
                 <div class="d-flex gap-2">
                   <a [routerLink]="['/payments', reg.id]" class="btn-k-primary btn-sm py-1 px-3">
-                    Payment Detail
+                    Rincian pembayaran
                   </a>
                 </div>
               </div>
@@ -73,7 +73,7 @@
         <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="k-card p-4 p-md-5 anim-fade-up delay-2">
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 pb-3 border-bottom">
             <div>
-              <h2 class="h4 fw-bold mb-1">Data Diri Student ({{ user.fullName }})</h2>
+              <h2 class="h4 fw-bold mb-1">Data diri peserta ({{ user.fullName }})</h2>
               <div class="small text-secondary">{{ user.email }}</div>
             </div>
 
@@ -101,18 +101,18 @@
 
           <div class="row g-3">
             <div class="col-md-6">
-              <label class="k-label" for="profile-fullName">FullName</label>
+              <label class="k-label" for="profile-fullName">Nama lengkap</label>
               <input
                 type="text"
                 class="form-control k-input"
                 id="profile-fullName"
                 formControlName="fullName"
-                placeholder="Nama lengkap Student"
+                placeholder="Nama lengkap peserta"
               />
             </div>
 
             <div class="col-md-6">
-              <label class="k-label" for="profile-phoneNumber">PhoneNumber</label>
+              <label class="k-label" for="profile-phoneNumber">Nomor telepon</label>
               <input
                 type="tel"
                 class="form-control k-input"
@@ -132,7 +132,7 @@
             </div>
 
             <div class="col-12">
-              <label class="k-label" for="profile-address">Address</label>
+              <label class="k-label" for="profile-address">Alamat</label>
               <input
                 type="text"
                 class="form-control k-input"
@@ -143,7 +143,7 @@
             </div>
 
             <div class="col-md-4">
-              <label class="k-label" for="profile-city">City</label>
+              <label class="k-label" for="profile-city">Kota</label>
               <input
                 type="text"
                 class="form-control k-input"
@@ -154,7 +154,7 @@
             </div>
 
             <div class="col-md-4">
-              <label class="k-label" for="profile-province">Province</label>
+              <label class="k-label" for="profile-province">Provinsi</label>
               <input
                 type="text"
                 class="form-control k-input"
@@ -165,7 +165,7 @@
             </div>
 
             <div class="col-md-4">
-              <label class="k-label" for="profile-country">Country</label>
+              <label class="k-label" for="profile-country">Negara</label>
               <input
                 type="text"
                 class="form-control k-input"
@@ -176,7 +176,7 @@
             </div>
 
             <div class="col-md-6">
-              <label class="k-label" for="profile-educationLevel">EducationLevel</label>
+              <label class="k-label" for="profile-educationLevel">Pendidikan terakhir</label>
               <input
                 type="text"
                 class="form-control k-input"
@@ -187,7 +187,7 @@
             </div>
 
             <div class="col-md-6">
-              <label class="k-label" for="profile-occupation">Occupation</label>
+              <label class="k-label" for="profile-occupation">Pekerjaan</label>
               <input
                 type="text"
                 class="form-control k-input"
@@ -200,7 +200,7 @@
 
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
             <button type="submit" class="btn-k-primary">
-              Simpan Profil Student
+              Simpan profil
             </button>
 
             @if (isProfileComplete()) {
@@ -219,9 +219,9 @@
         >
           <i class="bi bi-box-arrow-in-right"></i>
         </div>
-        <h2 class="h4 fw-bold mb-2">Anda Belum Sign In</h2>
+        <h2 class="h4 fw-bold mb-2">Anda belum masuk</h2>
         <p class="text-secondary small mb-4">
-          Silakan Sign In atau Register melalui pop-up untuk mengakses profil dan riwayat pendaftaran Anda.
+          Masuk atau buat akun untuk melihat profil dan riwayat pendaftaran Anda.
         </p>
         <div class="d-flex justify-content-center gap-2">
           <button
@@ -230,7 +230,7 @@
             (click)="svc.openAuthModal('LOGIN')"
           >
             <i class="bi bi-box-arrow-in-right"></i>
-            <span>Buka Pop-Up Sign In</span>
+            <span>Masuk</span>
           </button>
           <button
             type="button"
@@ -238,7 +238,7 @@
             (click)="svc.openAuthModal('REGISTER')"
           >
             <i class="bi bi-person-plus"></i>
-            <span>Register Akun Baru</span>
+            <span>Buat akun</span>
           </button>
         </div>
       </div>

@@ -9,10 +9,17 @@ import { CourseSystemService } from '../../services/course-system.service';
   standalone: true,
   imports: [CommonModule, RouterLink],
   templateUrl: './catalog-page.component.html',
+  styleUrl: './catalog-page.component.css',
 })
 export class CatalogPageComponent {
   readonly svc = inject(CourseSystemService);
   readonly selectedCategoryId = signal<number>(0);
+  readonly categoryIcons: Record<number, string> = {
+    1: 'bi-database',
+    2: 'bi-window-sidebar',
+    3: 'bi-bar-chart-line',
+    4: 'bi-bezier2',
+  };
 
   readonly filteredCourses = computed<Course[]>(() => {
     const catId = this.selectedCategoryId();
@@ -20,7 +27,7 @@ export class CatalogPageComponent {
   });
 
   getCategoryName(categoryId: number): string {
-    return this.svc.getCategoryById(categoryId)?.name.split(' ')[0] ?? 'Kelas';
+    return this.svc.getCategoryById(categoryId)?.name ?? 'Kelas';
   }
 
   getOpenBatchCount(courseId: number): number {

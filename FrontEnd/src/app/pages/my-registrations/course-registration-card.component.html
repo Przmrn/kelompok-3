@@ -2,14 +2,14 @@
   <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
     <div>
       <div class="small text-muted mb-1">
-        {{ reg.registrationNumber }} · QueueNumber: <strong>#{{ reg.queueNumber }}</strong> ({{ svc.getTierNameFromQueue(reg.queueNumber) }})
+        {{ reg.registrationNumber }} · Pendaftar ke-<strong>{{ reg.queueNumber }}</strong>
       </div>
       @if (svc.getBatchById(reg.batchId); as batch) {
         <h2 class="h5 fw-bold mb-1">
           {{ svc.getCourseById(batch.courseId)?.title }}
         </h2>
         <div class="small text-secondary">
-          {{ batch.batchName }} · Mulai {{ batch.startDate }}
+          {{ batch.batchName }} · Mulai {{ batch.startDate | date: 'd MMM yyyy' }}
         </div>
       }
     </div>
@@ -23,7 +23,7 @@
           'k-pill-red': reg.registrationStatus === 'Cancelled'
         }"
       >
-        Status: {{ reg.registrationStatus }}
+        {{ labels.registration[reg.registrationStatus] }}
       </span>
 
       <span
@@ -34,16 +34,16 @@
           'k-pill-red': reg.paymentStatus === 'Failed' || reg.paymentStatus === 'Overdue'
         }"
       >
-        Bayar: {{ reg.paymentStatus }}
+        {{ labels.payment[reg.paymentStatus] }}
       </span>
     </div>
   </div>
 
   <div class="small text-secondary pb-3 mb-3 border-bottom d-flex flex-wrap gap-3">
-    <span>Metode: <strong>{{ reg.paymentMethod }}{{ reg.installmentTenor ? ' (' + reg.installmentTenor + ' Bulan)' : '' }}</strong></span>
+    <span>Metode: <strong>{{ labels.method[reg.paymentMethod] }}{{ reg.installmentTenor ? ' (' + reg.installmentTenor + ' Bulan)' : '' }}</strong></span>
     <span>Total Tagihan: <strong>Rp{{ reg.totalAmount | number: '1.0-0' }}</strong></span>
     <span>Sudah Dibayar: <strong class="text-success">Rp{{ svc.getTotalPaidForRegistration(reg) | number: '1.0-0' }}</strong></span>
-    <span>Sisa Cicilan: <strong style="color: var(--brand-coral);">Rp{{ svc.getRemainingObligationForRegistration(reg) | number: '1.0-0' }}</strong></span>
+    <span>Sisa tagihan: <strong style="color: var(--brand-coral);">Rp{{ svc.getRemainingObligationForRegistration(reg) | number: '1.0-0' }}</strong></span>
   </div>
 
   <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
@@ -54,7 +54,7 @@
         routerLinkActive="active"
         ariaCurrentWhenActive="page"
       >
-        Jadwal, Lokasi &amp; Instructor
+        Jadwal, lokasi, dan pengajar
       </a>
       @if (reg.registrationStatus !== 'Cancelled' && reg.registrationStatus !== 'Completed') {
         <a
@@ -63,7 +63,7 @@
           routerLinkActive="active"
           ariaCurrentWhenActive="page"
         >
-          Batalkan Kursus (Refund)
+          Batalkan pendaftaran
         </a>
       }
     </div>
@@ -72,7 +72,7 @@
       [routerLink]="['/payments', reg.id]"
       class="btn-k-primary btn-sm py-1 px-3"
     >
-      Payment Detail &amp; Cicilan <i class="bi bi-arrow-right"></i>
+      Rincian pembayaran <i class="bi bi-arrow-right"></i>
     </a>
   </div>
   <ng-content></ng-content>

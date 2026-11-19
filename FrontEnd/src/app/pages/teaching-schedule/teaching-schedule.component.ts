@@ -1,3 +1,4 @@
+import { courseLabels } from '../../models/course-labels';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { CourseSystemService } from '../../services/course-system.service';
@@ -9,6 +10,7 @@ import { CourseSystemService } from '../../services/course-system.service';
   templateUrl: './teaching-schedule.component.html',
 })
 export class TeachingScheduleComponent {
+  readonly labels = courseLabels;
   readonly svc = inject(CourseSystemService);
 
   readonly instructorProfile = computed(() => this.svc.getLoggedInInstructorProfile());

@@ -1,5 +1,5 @@
 <header class="sticky-top k-header">
-  <nav class="navbar navbar-expand-lg py-2">
+  <nav class="navbar navbar-expand-lg py-3" aria-label="Navigasi utama">
     <div class="container">
       <a
         [routerLink]="
@@ -24,7 +24,7 @@
             routerLink="/cart"
             routerLinkActive="active"
             class="k-cart-btn"
-            title="Keranjang (Course Belum Dibayar)"
+            title="Keranjang pembayaran"
             (click)="closeMobileMenu()"
           >
             <i class="bi bi-cart3 fs-5"></i>
@@ -39,7 +39,7 @@
             (click)="openSignInModal()"
           >
             <i class="bi bi-box-arrow-in-right"></i>
-            <span>Sign In</span>
+            <span>Masuk</span>
           </button>
         }
 
@@ -47,14 +47,16 @@
           class="navbar-toggler border-0 shadow-none p-1"
           type="button"
           aria-label="Menu"
+          aria-controls="main-navigation"
+          [attr.aria-expanded]="mobileMenuOpen()"
           (click)="toggleMobileMenu()"
         >
           <i class="bi fs-3" [class.bi-list]="!mobileMenuOpen()" [class.bi-x-lg]="mobileMenuOpen()"></i>
         </button>
       </div>
 
-      <div class="collapse navbar-collapse" [class.show]="mobileMenuOpen()">
-        <ul class="navbar-nav mx-auto my-3 my-lg-0 k-nav-track">
+      <div id="main-navigation" class="collapse navbar-collapse" [class.show]="mobileMenuOpen()">
+        <ul class="navbar-nav me-auto my-3 my-lg-0 k-nav-track">
           @if (svc.isAdmin()) {
             <li class="nav-item">
               <a
@@ -63,7 +65,7 @@
                 class="nav-link k-nav-pill"
                 (click)="closeMobileMenu()"
               >
-                Dashboard
+                Ringkasan
               </a>
             </li>
             <li class="nav-item">
@@ -73,7 +75,7 @@
                 class="nav-link k-nav-pill"
                 (click)="closeMobileMenu()"
               >
-                Courses
+                Kelas
               </a>
             </li>
             <li class="nav-item">
@@ -83,7 +85,7 @@
                 class="nav-link k-nav-pill"
                 (click)="closeMobileMenu()"
               >
-                Batches
+                Jadwal kelas
               </a>
             </li>
             <li class="nav-item">
@@ -93,7 +95,7 @@
                 class="nav-link k-nav-pill"
                 (click)="closeMobileMenu()"
               >
-                Instructors
+                Pengajar
               </a>
             </li>
           } @else if (svc.isInstructor()) {
@@ -104,7 +106,7 @@
                 class="nav-link k-nav-pill"
                 (click)="closeMobileMenu()"
               >
-                My Teaching Schedule
+                Jadwal mengajar saya
               </a>
             </li>
           } @else {
@@ -115,7 +117,7 @@
                 class="nav-link k-nav-pill"
                 (click)="closeMobileMenu()"
               >
-                Kelas
+                Katalog kelas
               </a>
             </li>
             <li class="nav-item">
@@ -125,7 +127,7 @@
                 class="nav-link k-nav-pill"
                 (click)="closeMobileMenu()"
               >
-                My Course
+                Kelas saya
               </a>
             </li>
             @if (svc.isStudent()) {
@@ -165,7 +167,7 @@
                     'k-pill-green': user.role === 'Admin'
                   }"
                 >
-                  {{ user.role }}
+                  {{ labels.role[user.role] }}
                 </span>
                 @if (user.role === 'Student' && !svc.isStudentProfileComplete(user.id)) {
                   <span class="pulse-dot" title="Profil belum lengkap"></span>
@@ -173,7 +175,7 @@
               </button>
 
               <ul class="dropdown-menu dropdown-menu-end border shadow-sm rounded-4 p-2 mt-2" style="min-width: 265px;">
-                <li class="px-2 py-1 small text-muted fw-semibold">Pilih Role (Admin / Student / Instructor):</li>
+                <li class="px-2 py-1 small text-muted fw-semibold">Pilih akun simulasi</li>
                 @for (u of svc.users(); track u.id) {
                   <li>
                     <button
@@ -197,7 +199,7 @@
                           'k-pill-green': u.role === 'Admin'
                         }"
                       >
-                        {{ u.role }}
+                        {{ labels.role[u.role] }}
                       </span>
                     </button>
                   </li>
@@ -220,7 +222,7 @@
                     class="dropdown-item rounded-3 py-2 small fw-semibold text-danger"
                     (click)="handleSignOut()"
                   >
-                    <i class="bi bi-box-arrow-right me-2"></i>Sign Out / Keluar
+                    <i class="bi bi-box-arrow-right me-2"></i>Keluar
                   </button>
                 </li>
               </ul>
@@ -231,8 +233,8 @@
                 routerLink="/cart"
                 routerLinkActive="active"
                 class="k-cart-btn d-none d-lg-inline-flex"
-                title="Keranjang (Course Belum Dibayar)"
-                aria-label="Keranjang (Course Belum Dibayar)"
+                title="Keranjang pembayaran"
+                aria-label="Keranjang pembayaran"
                 (click)="closeMobileMenu()"
               >
                 <i class="bi bi-cart3 fs-5"></i>
@@ -247,8 +249,10 @@
               class="k-signin-btn d-none d-lg-inline-flex"
               (click)="openSignInModal()"
             >
-              <i class="bi bi-box-arrow-in-right fs-5"></i>
-              <span>Sign In</span>
+              <span>Masuk</span>
+            </button>
+            <button type="button" class="btn-k-primary" (click)="switchModalMode('REGISTER'); closeMobileMenu()">
+              Daftar akun <i class="bi bi-arrow-up-right" aria-hidden="true"></i>
             </button>
           }
         </div>
@@ -275,7 +279,7 @@
           >
             <i class="bi bi-box-arrow-in-right"></i>
           </div>
-          <h2 class="h4 fw-bold mb-1">Sign In ke Karsa</h2>
+          <h2 class="h4 fw-bold mb-1">Masuk ke Karsa</h2>
           <p class="text-secondary small mb-0">
             Masuk untuk mendaftar kelas tatap muka dan memantau jadwal.
           </p>
@@ -299,11 +303,11 @@
         </div>
 
         <div class="mb-3">
-          <label class="k-label">Password</label>
+          <label class="k-label">Kata sandi</label>
           <input
             type="password"
             class="form-control k-input"
-            placeholder="Masukkan password"
+            placeholder="Masukkan kata sandi"
             [ngModel]="loginPassword()"
             (ngModelChange)="loginPassword.set($event)"
           />
@@ -311,7 +315,7 @@
 
         <div class="mb-4">
           <div class="small text-muted mb-1" style="font-size: 0.75rem;">
-            Isi cepat akun simulasi:
+            Pilih akun untuk mencoba aplikasi
           </div>
           <div class="d-flex flex-wrap gap-1">
             <button
@@ -320,7 +324,7 @@
               style="font-size: 0.75rem;"
               (click)="loginEmail.set('raka.wijaya@karsa.id')"
             >
-              Student (Raka)
+              Peserta (Raka)
             </button>
             <button
               type="button"
@@ -328,7 +332,7 @@
               style="font-size: 0.75rem;"
               (click)="loginEmail.set('nadia.putri@student.ac.id')"
             >
-              Student Baru (Nadia)
+              Peserta Baru (Nadia)
             </button>
             <button
               type="button"
@@ -336,7 +340,7 @@
               style="font-size: 0.75rem;"
               (click)="loginEmail.set('bagas.adi@karsa.id')"
             >
-              Instructor
+              Pengajar
             </button>
             <button
               type="button"
@@ -355,12 +359,12 @@
           (click)="handleModalLogin()"
         >
           <i class="bi bi-box-arrow-in-right"></i>
-          <span>Sign In Sekarang</span>
+          <span>Masuk</span>
         </button>
 
         <div class="pt-3 border-top text-center">
           <div class="small text-secondary mb-2">
-            Belum memiliki akun Student?
+            Belum punya akun?
           </div>
           <button
             type="button"
@@ -368,7 +372,7 @@
             (click)="switchModalMode('REGISTER')"
           >
             <i class="bi bi-person-plus"></i>
-            <span>Register Akun Baru</span>
+            <span>Buat akun</span>
           </button>
         </div>
       } @else {
@@ -379,7 +383,7 @@
           >
             <i class="bi bi-person-plus"></i>
           </div>
-          <h2 class="h4 fw-bold mb-1">Register Akun Student</h2>
+          <h2 class="h4 fw-bold mb-1">Buat akun peserta</h2>
           <p class="text-secondary small mb-0">
             Buat akun baru untuk mendaftar kelas tatap muka.
           </p>
@@ -414,7 +418,7 @@
         </div>
 
         <div class="mb-4">
-          <label class="k-label">Password</label>
+          <label class="k-label">Kata sandi</label>
           <input
             type="password"
             class="form-control k-input"
@@ -443,7 +447,7 @@
             (click)="switchModalMode('LOGIN')"
           >
             <i class="bi bi-box-arrow-in-right"></i>
-            <span>Kembali ke Sign In</span>
+            <span>Kembali untuk masuk</span>
           </button>
         </div>
       }
@@ -472,7 +476,7 @@
         <button
           type="button"
           class="btn-close btn-close-white btn-sm"
-          aria-label="Close"
+          aria-label="Tutup"
           (click)="svc.dismissNotification()"
         ></button>
       </div>
@@ -506,17 +510,17 @@
 
       <nav class="d-flex flex-wrap justify-content-center gap-4">
         @if (svc.isAdmin()) {
-          <a routerLink="/admin/dashboard" routerLinkActive="active" class="k-footer-link">Dashboard</a>
-          <a routerLink="/admin/courses" routerLinkActive="active" class="k-footer-link">Courses</a>
-          <a routerLink="/admin/batches" routerLinkActive="active" class="k-footer-link">Batches</a>
-          <a routerLink="/admin/instructors" routerLinkActive="active" class="k-footer-link">Instructors</a>
+          <a routerLink="/admin/dashboard" routerLinkActive="active" class="k-footer-link">Ringkasan</a>
+          <a routerLink="/admin/courses" routerLinkActive="active" class="k-footer-link">Kelas</a>
+          <a routerLink="/admin/batches" routerLinkActive="active" class="k-footer-link">Jadwal kelas</a>
+          <a routerLink="/admin/instructors" routerLinkActive="active" class="k-footer-link">Pengajar</a>
         } @else if (svc.isInstructor()) {
           <a routerLink="/teaching-schedule" routerLinkActive="active" class="k-footer-link">
-            My Teaching Schedule
+            Jadwal mengajar saya
           </a>
         } @else {
           <a routerLink="/courses" routerLinkActive="active" class="k-footer-link">Kelas</a>
-          <a routerLink="/my-courses" routerLinkActive="active" class="k-footer-link">My Course</a>
+          <a routerLink="/my-courses" routerLinkActive="active" class="k-footer-link">Kelas saya</a>
           @if (svc.isStudent()) {
             <a routerLink="/profile" routerLinkActive="active" class="k-footer-link">Profil</a>
             <a routerLink="/cart" routerLinkActive="active" class="k-footer-link d-inline-flex align-items-center gap-1">
@@ -529,7 +533,7 @@
     </div>
 
     <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center pt-3 small text-muted gap-2">
-      <span>&copy; 2026 Karsa Studio — Offline Course Registration System</span>
+      <span>&copy; 2026 Karsa Studio — Pendaftaran kelas tatap muka</span>
       <span>Proyek Kelompok 3</span>
     </div>
   </div>

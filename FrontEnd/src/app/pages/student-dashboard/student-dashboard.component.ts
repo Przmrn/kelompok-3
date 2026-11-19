@@ -1,3 +1,4 @@
+import { courseLabels } from '../../models/course-labels';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
@@ -10,6 +11,7 @@ import { CourseSystemService } from '../../services/course-system.service';
   templateUrl: './student-dashboard.component.html',
 })
 export class StudentDashboardComponent {
+  readonly labels = courseLabels;
   readonly svc = inject(CourseSystemService);
   readonly currentUser = this.svc.currentUser;
 

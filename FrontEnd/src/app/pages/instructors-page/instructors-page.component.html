@@ -2,10 +2,10 @@
   <div class="container" style="max-width: 960px;">
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
       <div>
-        <span class="k-pill k-pill-green mb-2">Role: Admin · Instructors</span>
-        <h1 class="h2 fw-bold mb-1">Kelola Data Instructors &amp; BatchInstructors</h1>
+        <span class="k-pill k-pill-green mb-2">Admin</span>
+        <h1 class="h2 fw-bold mb-1">Pengajar dan jadwal mengajar</h1>
         <p class="text-secondary small mb-0">
-          Mengelola data pada tabel <code>Instructors</code> dan penugasan ke <code>BatchInstructors</code>.
+          Kelola profil pengajar dan tentukan kelas yang mereka ajar.
         </p>
       </div>
       <button
@@ -13,16 +13,16 @@
         class="btn-k-primary btn-sm"
         (click)="openNewInstructorForm()"
       >
-        {{ showForm() ? 'Tutup Form' : '+ Tambah Instructor' }}
+        {{ showForm() ? 'Tutup formulir' : '+ Tambah pengajar' }}
       </button>
     </div>
 
     <div class="k-card p-4 mb-4">
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
-          <h2 class="h5 fw-bold mb-0">Penugasan Instructor ke Batch (BatchInstructors)</h2>
+          <h2 class="h5 fw-bold mb-0">Tugaskan pengajar ke kelas</h2>
           <div class="small text-secondary">
-            Pasangan BatchId &amp; InstructorId harus unik dan jadwal tidak boleh bertabrakan.
+            Pilih pengajar dan jadwal kelas. Setiap pengajar hanya bisa ditugaskan sekali pada jadwal yang sama.
           </div>
         </div>
         <button
@@ -30,7 +30,7 @@
           class="btn-k-light btn-sm"
           (click)="testScheduleConflict()"
         >
-          Uji Simulasi Bentrok Jadwal
+          Coba jadwal yang bentrok
         </button>
       </div>
 
@@ -46,19 +46,19 @@
 
       <div class="row g-3 align-items-end">
         <div class="col-md-5">
-          <label class="k-label">InstructorId</label>
+          <label class="k-label">Pengajar</label>
           <select
             class="form-select k-select"
             [ngModel]="selectedInstructorId()"
             (ngModelChange)="selectedInstructorId.set(Number($event))"
           >
             @for (ins of svc.instructors(); track ins.id) {
-              <option [ngValue]="ins.id">{{ ins.fullName }} (ID #{{ ins.id }})</option>
+              <option [ngValue]="ins.id">{{ ins.fullName }} (No. {{ ins.id }})</option>
             }
           </select>
         </div>
         <div class="col-md-5">
-          <label class="k-label">BatchId</label>
+          <label class="k-label">Jadwal kelas</label>
           <select
             class="form-select k-select"
             [ngModel]="selectedBatchId()"
@@ -66,7 +66,7 @@
           >
             @for (b of svc.batches(); track b.id) {
               <option [ngValue]="b.id">
-                {{ b.batchName }} ({{ b.startDate }} s/d {{ b.endDate }}, {{ b.startTime }}–{{ b.endTime }})
+                {{ b.batchName }} ({{ b.startDate | date: 'd MMM yyyy' }} s/d {{ b.endDate | date: 'd MMM yyyy' }}, {{ b.startTime }}–{{ b.endTime }})
               </option>
             }
           </select>
@@ -82,11 +82,11 @@
     @if (showForm()) {
       <div class="k-card p-4 mb-4 anim-pop">
         <h2 class="h5 fw-bold mb-3">
-          {{ editingInstructorId() ? 'Ubah Data Instructor' : 'Tambah Data Instructor Baru' }}
+          {{ editingInstructorId() ? 'Ubah profil pengajar' : 'Tambah pengajar' }}
         </h2>
         <div class="row g-3 mb-3">
           <div class="col-md-4">
-            <label class="k-label">FullName</label>
+            <label class="k-label">Nama lengkap</label>
             <input type="text" class="form-control k-input" [(ngModel)]="form.fullName" placeholder="Nama lengkap & gelar" />
           </div>
           <div class="col-md-4">
@@ -94,21 +94,21 @@
             <input type="email" class="form-control k-input" [(ngModel)]="form.email" placeholder="nama@karsa.id" />
           </div>
           <div class="col-md-4">
-            <label class="k-label">PhoneNumber</label>
+            <label class="k-label">Nomor telepon</label>
             <input type="tel" class="form-control k-input" [(ngModel)]="form.phoneNumber" placeholder="0812xxxxxxxx" />
           </div>
           <div class="col-md-6">
-            <label class="k-label">Expertise</label>
+            <label class="k-label">Keahlian</label>
             <input type="text" class="form-control k-input" [(ngModel)]="form.expertise" placeholder="ASP.NET Core, SQL, Cloud" />
           </div>
           <div class="col-md-6">
-            <label class="k-label">Bio</label>
-            <input type="text" class="form-control k-input" [(ngModel)]="form.bio" placeholder="Biografi singkat Instructor..." />
+            <label class="k-label">Profil singkat</label>
+            <input type="text" class="form-control k-input" [(ngModel)]="form.bio" placeholder="Profil singkat pengajar" />
           </div>
         </div>
         <div class="d-flex gap-2">
           <button type="button" class="btn-k-primary btn-sm" (click)="saveInstructor()">
-            {{ editingInstructorId() ? 'Simpan Perubahan' : 'Simpan Instructor' }}
+            {{ editingInstructorId() ? 'Simpan Perubahan' : 'Simpan pengajar' }}
           </button>
           <button type="button" class="btn-k-light btn-sm" (click)="showForm.set(false)">
             Batal
@@ -154,13 +154,13 @@
                 </div>
               </div>
 
-              <div class="small fw-semibold mb-1">Expertise: {{ ins.expertise }}</div>
+              <div class="small fw-semibold mb-1">Keahlian: {{ ins.expertise }}</div>
               <p class="small text-secondary mb-3">{{ ins.bio }}</p>
             </div>
 
             <div class="pt-3 border-top">
               <div class="small fw-semibold text-secondary mb-2">
-                Penugasan Batch ({{ svc.getBatchesForInstructor(ins.id).length }}):
+                Jadwal mengajar ({{ svc.getBatchesForInstructor(ins.id).length }}):
               </div>
               <div class="d-flex flex-column gap-2">
                 @for (item of svc.getBatchesForInstructor(ins.id); track item.assignment.id) {
@@ -168,7 +168,7 @@
                     <div>
                       <span class="fw-bold">{{ item.batch.batchName.split('—')[0] }}</span>
                       <span class="text-secondary ms-1">
-                        ({{ item.batch.startDate }} s/d {{ item.batch.endDate }} · {{ item.batch.startTime }}–{{ item.batch.endTime }})
+                        ({{ item.batch.startDate | date: 'd MMM yyyy' }} s/d {{ item.batch.endDate | date: 'd MMM yyyy' }} · {{ item.batch.startTime }}–{{ item.batch.endTime }})
                       </span>
                     </div>
                     <button

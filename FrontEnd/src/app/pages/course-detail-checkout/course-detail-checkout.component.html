@@ -2,20 +2,20 @@
   <section class="py-4 py-lg-5">
     <div class="container" style="max-width: 960px;">
       <div class="mb-4 anim-fade-up">
-        <a routerLink="/courses" class="btn-k-light btn-sm">
-          <i class="bi bi-arrow-left"></i> Kembali ke Course Catalog
+        <a routerLink="/courses" fragment="program" class="btn-k-light btn-sm">
+          <i class="bi bi-arrow-left"></i> Kembali ke katalog kelas
         </a>
       </div>
 
       <div class="row g-4">
         <div class="col-lg-7 anim-fade-up delay-1">
           <span class="k-pill k-pill-green mb-2">
-            Course Detail · {{ crs.durationHours }} Jam Belajar
+            Rincian kelas · {{ crs.durationHours }} Jam Belajar
           </span>
           <h1 class="h2 fw-bold mb-2">{{ crs.title }}</h1>
           <p class="text-secondary mb-4">{{ crs.description }}</p>
 
-          <h2 class="h5 fw-bold mb-3">Pilihan Batch, Jadwal &amp; Lokasi</h2>
+          <h2 class="h5 fw-bold mb-3">Pilihan jadwal dan lokasi</h2>
 
           <div class="row g-3 mb-4">
             @for (b of courseBatches(); track b.id; let idx = $index) {
@@ -39,17 +39,17 @@
                     <span class="fw-bold">{{ b.batchName }}</span>
 
                     @if (b.status === 'Full') {
-                      <span class="k-pill k-pill-red">Full ({{ b.maxSeats }}/{{ b.maxSeats }})</span>
+                      <span class="k-pill k-pill-red">Kelas penuh</span>
                     } @else {
                       <span class="k-pill k-pill-green">
-                        Open · Sisa {{ svc.getRemainingSeatsForBatch(b.id) }} dari {{ b.maxSeats }} seat
+                        Tersisa {{ svc.getRemainingSeatsForBatch(b.id) }} dari {{ b.maxSeats }} kursi
                       </span>
                     }
                   </div>
 
                   <div class="small text-secondary">
                     <i class="bi bi-calendar3 me-1"></i>
-                    {{ b.startDate }} s/d {{ b.endDate }} · Jam {{ b.startTime }} – {{ b.endTime }} WIB
+                    {{ b.startDate | date: 'd MMM yyyy' }} s/d {{ b.endDate | date: 'd MMM yyyy' }} · Jam {{ b.startTime }} – {{ b.endTime }} WIB
                   </div>
                   <div class="small text-secondary mt-1">
                     <i class="bi bi-geo-alt me-1"></i>
@@ -61,7 +61,7 @@
           </div>
 
           <div class="k-card p-4">
-            <h3 class="h6 fw-bold mb-3">Instructor pada Batch Ini</h3>
+            <h3 class="h6 fw-bold mb-3">Pengajar kelas ini</h3>
             <div class="d-flex flex-wrap gap-3 mb-4">
               @for (item of batchInstructors(); track item.assignment.id) {
                 <div class="d-flex align-items-center gap-2 anim-pop">
@@ -81,7 +81,7 @@
               }
             </div>
 
-            <h3 class="h6 fw-bold mb-2 pt-3 border-top">Syllabus</h3>
+            <h3 class="h6 fw-bold mb-2 pt-3 border-top">Materi kelas</h3>
             <ul class="small text-secondary ps-3 mb-0">
               @for (line of svc.getSyllabusList(crs.syllabus); track line) {
                 <li class="mb-1">{{ line }}</li>
@@ -92,64 +92,70 @@
 
         <div class="col-lg-5 anim-fade-up delay-2">
           <div class="k-card p-4 position-sticky" style="top: 96px;">
-            <h2 class="h5 fw-bold mb-3">Ringkasan Batch Dipilih</h2>
+            <h2 class="h5 fw-bold mb-3">Ringkasan pendaftaran</h2>
 
             @if (selectedBatch(); as activeBatch) {
               @if (priceBreakdown(); as calc) {
-                <div class="k-surface-soft p-3 mb-3 small">
-                  <div class="d-flex justify-content-between py-1">
-                    <span class="text-secondary">Batch</span>
-                    <strong>{{ activeBatch.batchName.split('—')[0] }} ({{ activeBatch.status }})</strong>
+                <div class="small mb-3">
+                  <strong class="d-block">{{ activeBatch.batchName }}</strong>
+                  <div class="text-secondary">
+                    {{ activeBatch.startDate | date: 'd MMM yyyy' }} – {{ activeBatch.endDate | date: 'd MMM yyyy' }}
+                    · {{ activeBatch.startTime }}–{{ activeBatch.endTime }} WIB
                   </div>
-                  <div class="d-flex justify-content-between py-1">
-                    <span class="text-secondary">Seat Terpakai / MaxSeats</span>
-                    <strong>{{ svc.getUsedSeatsForBatch(activeBatch.id) }} / {{ activeBatch.maxSeats }}</strong>
-                  </div>
-                  <div class="d-flex justify-content-between py-1">
-                    <span class="text-secondary">QueueNumber Berikutnya</span>
-                    <span class="k-pill k-pill-green">#{{ calc.queueNumber }} · {{ calc.discountTier }}</span>
-                  </div>
+                  @if (selectedBatchFull()) {
+                    <span class="k-pill k-pill-red mt-2">Kelas penuh</span>
+                  } @else {
+                    <span class="k-pill k-pill-green mt-2">Tersisa {{ svc.getRemainingSeatsForBatch(activeBatch.id) }} dari {{ activeBatch.maxSeats }} kursi</span>
+                    <p class="text-secondary mt-1 mb-0">Jika mendaftar sekarang, Anda menjadi pendaftar ke-{{ calc.queueNumber }}.</p>
+                  }
+                </div>
 
-                  <div class="d-flex justify-content-between py-1 mt-2 pt-2 border-top">
-                    <span class="text-secondary">BasePrice</span>
+                <div class="k-surface-soft p-3 mb-3 small">
+                  <h3 class="h6 mb-2">Rincian biaya</h3>
+                  <div class="d-flex justify-content-between gap-2 py-1">
+                    <span>Harga kelas</span>
                     <span class="font-mono">Rp{{ calc.basePrice | number: '1.0-0' }}</span>
                   </div>
-
-                  <div class="d-flex justify-content-between py-1 text-success fw-semibold">
-                    <span>EarlyBirdDiscount ({{ calc.discountPercentage }}%)</span>
-                    <span class="font-mono">-Rp{{ calc.earlyBirdDiscount | number: '1.0-0' }}</span>
+                  @if (calc.earlyBirdDiscount > 0) {
+                    <div class="d-flex justify-content-between gap-2 py-1 text-success">
+                      <span>Diskon pendaftar awal ({{ calc.discountPercentage }}%)</span>
+                      <span class="font-mono">−Rp{{ calc.earlyBirdDiscount | number: '1.0-0' }}</span>
+                    </div>
+                    @if (calc.discountCap !== null && calc.rawDiscountAmount > calc.discountCap) {
+                      <div class="small text-secondary">Potongan maksimal Rp{{ calc.discountCap | number: '1.0-0' }}.</div>
+                    }
+                  }
+                  <div class="d-flex justify-content-between gap-2 py-1">
+                    <span>Pajak (PPN {{ calc.taxRate | number }}%)</span>
+                    <span class="font-mono">Rp{{ calc.taxAmount | number: '1.0-0' }}</span>
                   </div>
-
-                  <div class="d-flex justify-content-between py-1">
-                    <span class="text-secondary">TaxAmount ({{ calc.taxRate }}%)</span>
-                    <span class="font-mono">+Rp{{ calc.taxAmount | number: '1.0-0' }}</span>
-                  </div>
-
-                  <div class="d-flex justify-content-between align-items-baseline pt-2 mt-2 border-top">
-                    <span class="fw-bold">TotalAmount</span>
+                  <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 pt-2 mt-2 border-top">
+                    <span class="fw-bold">Total biaya kelas</span>
                     <span class="fs-5 fw-bold font-mono" style="color: var(--brand-forest);">
                       Rp{{ calc.totalAmount | number: '1.0-0' }}
                     </span>
                   </div>
                 </div>
 
-                @if (!svc.currentUser()) {
+                @if (selectedBatchFull()) {
+                  <p class="small text-secondary mb-0">Pendaftaran untuk jadwal ini sudah ditutup karena semua kursi terisi.</p>
+                } @else if (!svc.currentUser()) {
                   <button
                     type="button"
                     class="btn-k-primary w-100 py-2"
                     (click)="svc.openAuthModal('LOGIN')"
                   >
                     <i class="bi bi-box-arrow-in-right"></i>
-                    <span>Sign In untuk Mendaftar Kelas</span>
+                    <span>Masuk untuk mendaftar</span>
                   </button>
                 } @else {
                   @if (!svc.isStudent()) {
                     <div class="small text-danger mb-2">
-                      * Gunakan akun dengan role <strong>Student</strong> untuk mendaftar course.
+                      Gunakan akun peserta untuk mendaftar kelas.
                     </div>
                   } @else if (!isProfileComplete()) {
                     <div class="small text-danger mb-2">
-                      * Lengkapi profil Anda di halaman <a routerLink="/profile" class="fw-bold text-danger">Profil</a> sebelum mendaftar.
+                      Lengkapi <a routerLink="/profile" class="fw-bold text-danger">profil Anda</a> sebelum mendaftar.
                     </div>
                   }
 
@@ -159,16 +165,16 @@
                     [disabled]="!canProceedToCheckout()"
                     (click)="goToCheckout()"
                   >
-                    @if (activeBatch.status === 'Full') {
-                      Batch Full (30/30)
-                    } @else if (isAlreadyRegisteredInBatch()) {
-                      Sudah Terdaftar di Batch Ini
+                    @if (isAlreadyRegisteredInBatch()) {
+                      Anda sudah terdaftar di jadwal ini
                     } @else {
-                      Lanjut ke Checkout / Payment <i class="bi bi-arrow-right"></i>
+                      Lanjut ke pembayaran <i class="bi bi-arrow-right" aria-hidden="true"></i>
                     }
                   </button>
                 }
               }
+            } @else {
+              <p class="small text-secondary mb-0">Belum ada jadwal untuk kelas ini.</p>
             }
           </div>
         </div>

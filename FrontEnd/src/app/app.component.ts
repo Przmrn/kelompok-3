@@ -1,4 +1,5 @@
-import { CommonModule } from '@angular/common';
+import { courseLabels } from './models/course-labels';
+import { CommonModule, DOCUMENT, ViewportScroller } from '@angular/common';
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
@@ -12,6 +13,12 @@ import { CourseSystemService } from './services/course-system.service';
   styleUrl: './app.component.css',
 })
 export class AppComponent {
+  readonly labels = courseLabels;
+  constructor() {
+    const document = inject(DOCUMENT);
+    inject(ViewportScroller).setOffset(() => [0, document.querySelector('header.k-header')?.clientHeight ?? 0]);
+  }
+
   readonly svc = inject(CourseSystemService);
   private readonly router = inject(Router);
   readonly mobileMenuOpen = signal(false);
@@ -63,7 +70,7 @@ export class AppComponent {
   handleModalRegister(): void {
     this.modalError.set(null);
     if (!this.regName().trim() || !this.regEmail().trim() || !this.regPassword().trim()) {
-      this.modalError.set('Mohon lengkapi Nama Lengkap, Email, dan Password.');
+      this.modalError.set('Isi nama lengkap, email, dan kata sandi.');
       return;
     }
 

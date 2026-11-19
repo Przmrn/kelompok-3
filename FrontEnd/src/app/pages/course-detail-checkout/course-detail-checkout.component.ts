@@ -32,6 +32,11 @@ export class CourseDetailCheckoutComponent implements OnInit {
     return b ? this.svc.getInstructorsForBatch(b.id) : [];
   });
 
+  readonly selectedBatchFull = computed(() => {
+    const batch = this.selectedBatch();
+    return !!batch && (batch.status === 'Full' || this.svc.getRemainingSeatsForBatch(batch.id) === 0);
+  });
+
   readonly priceBreakdown = computed(() => {
     const crs = this.course();
     const batch = this.selectedBatch();
@@ -57,12 +62,7 @@ export class CourseDetailCheckoutComponent implements OnInit {
     const batch = this.selectedBatch();
     if (!user || !batch) return false;
     if (user.role !== 'Student' || !this.isProfileComplete()) return false;
-    if (
-      batch.status === 'Full' ||
-      this.svc.getUsedSeatsForBatch(batch.id) >= batch.maxSeats
-    ) {
-      return false;
-    }
+    if (this.selectedBatchFull()) return false;
     if (this.isAlreadyRegisteredInBatch()) return false;
     return true;
   });

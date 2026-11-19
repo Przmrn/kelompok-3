@@ -38,7 +38,7 @@ export class CourseRefundTabComponent {
     const preview = this.preview();
     if (!reg || !preview?.canCancel) return;
     const result = this.page.svc.confirmCancelRegistration(
-      reg.id, preview.cancellationDate, 'Dibatalkan oleh Student'
+      reg.id, preview.cancellationDate, 'Dibatalkan oleh peserta'
     );
     if (result.success) {
       this.router.navigate(['/my-courses/jadwal']);

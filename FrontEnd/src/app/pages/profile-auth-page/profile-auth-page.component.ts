@@ -1,3 +1,4 @@
+import { courseLabels } from '../../models/course-labels';
 import { CommonModule } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
@@ -18,6 +19,7 @@ function phoneNumberValidator(control: AbstractControl<string>): ValidationError
   templateUrl: './profile-auth-page.component.html',
 })
 export class ProfileAuthPageComponent {
+  readonly labels = courseLabels;
   readonly svc = inject(CourseSystemService);
   private readonly router = inject(Router);
 
@@ -86,7 +88,7 @@ export class ProfileAuthPageComponent {
     if (!this.regName().trim() || !this.regEmail().trim() || !this.regPhone().trim()) {
       this.authAlert.set({
         success: false,
-        message: 'Mohon lengkapi FullName, Email, PhoneNumber, dan Password.',
+        message: 'Isi nama lengkap, email, nomor telepon, dan kata sandi.',
       });
       return;
     }
