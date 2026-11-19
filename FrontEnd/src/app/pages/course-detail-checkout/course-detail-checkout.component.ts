@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { CourseBatch } from '../../models/course-system.models';
 import { CourseSystemService } from '../../services/course-system.service';
 
 @Component({
@@ -14,17 +15,17 @@ export class CourseDetailCheckoutComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-  readonly courseId = signal<number>(1);
-  readonly selectedBatchId = signal<number>(2);
+  readonly courseId = signal<number>(0);
+  readonly selectedBatchId = signal<number | null>(null);
 
   readonly currentUser = this.svc.currentUser;
   readonly course = computed(() => this.svc.getCourseById(this.courseId()));
   readonly courseBatches = computed(() => this.svc.getBatchesByCourseId(this.courseId()));
 
-  readonly selectedBatch = computed(() => {
+  readonly selectedBatch = computed<CourseBatch | null>(() => {
     const id = this.selectedBatchId();
     const batches = this.courseBatches();
-    return batches.find((b) => b.id === id) ?? batches[0] ?? null;
+    return batches.find((b) => b.id === id) ?? batches.find(b => b.status === 'Open') ?? batches[0] ?? null;
   });
 
   readonly batchInstructors = computed(() => {
@@ -69,13 +70,9 @@ export class CourseDetailCheckoutComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
-      const id = Number(params.get('id')) || 1;
+      const id = Number(params.get('id'));
       this.courseId.set(id);
-      const batches = this.svc.getBatchesByCourseId(id);
-      const firstOpen = batches.find((b) => b.status === 'Open') ?? batches[0];
-      if (firstOpen) {
-        this.selectedBatchId.set(firstOpen.id);
-      }
+      this.selectedBatchId.set(null);
     });
   }
 

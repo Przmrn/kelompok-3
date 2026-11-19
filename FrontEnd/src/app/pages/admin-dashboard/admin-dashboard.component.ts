@@ -2,12 +2,13 @@ import { courseLabels } from '../../models/course-labels';
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ReferenceEditorComponent } from '../admin-courses/reference-editor.component';
 import { CourseSystemService } from '../../services/course-system.service';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ReferenceEditorComponent],
   templateUrl: './admin-dashboard.component.html',
 })
 export class AdminDashboardComponent {

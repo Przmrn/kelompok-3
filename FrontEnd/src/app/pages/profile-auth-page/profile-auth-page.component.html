@@ -9,6 +9,13 @@
         </p>
       </div>
 
+      @if (svc.accountError() || svc.loadError()) {
+        <div class="k-card p-3 mb-4" role="alert">Ringkasan aktivitas belum berhasil dimuat.
+          <button class="btn-k-light" type="button" (click)="svc.reload()">Coba lagi</button>
+        </div>
+      } @else if (svc.accountLoading() || svc.loading()) {
+        <p role="status">Memuat ringkasan aktivitas…</p>
+      } @else {
       <div class="row g-3 mb-4 anim-fade-up">
         <div class="col-md-4">
           <div class="k-card p-4 h-100">
@@ -69,7 +76,16 @@
         </div>
       }
 
-      @if (user.role === 'Student') {
+      }
+
+      @if (user.role === 'Student' && svc.profileStatus() === 'loading') {
+        <p class="k-card p-4" role="status">Memuat profil Anda…</p>
+      } @else if (user.role === 'Student' && svc.profileStatus() === 'error') {
+        <div class="k-card p-4">
+          <p role="alert">Profil belum berhasil dimuat. Periksa koneksi Anda lalu coba lagi.</p>
+          <button type="button" class="btn-k-light align-self-start" (click)="svc.retryProfile()">Coba lagi</button>
+        </div>
+      } @else if (user.role === 'Student') {
         <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="k-card p-4 p-md-5 anim-fade-up delay-2">
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 pb-3 border-bottom">
             <div>
@@ -89,17 +105,10 @@
               <span class="small" style="color: #92400E;">
                 Lengkapi seluruh kolom profil di bawah ini sebelum mendaftar kelas.
               </span>
-              <button
-                type="button"
-                class="btn-k-primary btn-sm"
-                (click)="autoFillCompleteProfile()"
-              >
-                Isi Otomatis (Demo)
-              </button>
             </div>
           }
 
-          <div class="row g-3">
+          <fieldset [disabled]="svc.savingProfile()" class="row g-3">
             <div class="col-md-6">
               <label class="k-label" for="profile-fullName">Nama lengkap</label>
               <input
@@ -107,8 +116,12 @@
                 class="form-control k-input"
                 id="profile-fullName"
                 formControlName="fullName"
+                required maxlength="150" pattern=".*\S.*"
                 placeholder="Nama lengkap peserta"
               />
+              @if (profileForm.controls.fullName.touched && profileForm.controls.fullName.invalid) {
+                <div class="small text-danger">Masukkan nama lengkap Anda.</div>
+              }
             </div>
 
             <div class="col-md-6">
@@ -118,13 +131,14 @@
                 class="form-control k-input"
                 id="profile-phoneNumber"
                 formControlName="phoneNumber"
+                required maxlength="20"
                 autocomplete="tel"
                 [class.is-invalid]="phone.invalid && phone.touched"
                 [attr.aria-invalid]="phone.invalid && phone.touched"
                 [attr.aria-describedby]="phone.invalid && phone.touched ? 'profile-phone-error' : null"
                 placeholder="0812xxxxxxxx"
               />
-              @if (phone.touched && phone.hasError('phoneNumber')) {
+              @if (phone.touched && phone.invalid) {
                 <div id="profile-phone-error" class="invalid-feedback">
                   Masukkan 8–15 digit. Tanda + di awal, spasi, dan tanda hubung diperbolehkan.
                 </div>
@@ -148,7 +162,7 @@
                 type="text"
                 class="form-control k-input"
                 id="profile-city"
-                formControlName="city"
+                formControlName="city" maxlength="100"
                 placeholder="Jakarta Selatan / Bandung"
               />
             </div>
@@ -159,7 +173,7 @@
                 type="text"
                 class="form-control k-input"
                 id="profile-province"
-                formControlName="province"
+                formControlName="province" maxlength="100"
                 placeholder="DKI Jakarta / Jawa Barat"
               />
             </div>
@@ -170,7 +184,7 @@
                 type="text"
                 class="form-control k-input"
                 id="profile-country"
-                formControlName="country"
+                formControlName="country" maxlength="100"
                 placeholder="Indonesia"
               />
             </div>
@@ -181,7 +195,7 @@
                 type="text"
                 class="form-control k-input"
                 id="profile-educationLevel"
-                formControlName="educationLevel"
+                formControlName="educationLevel" maxlength="100"
                 placeholder="S1 Teknik Informatika / D3 / SMA"
               />
             </div>
@@ -192,15 +206,15 @@
                 type="text"
                 class="form-control k-input"
                 id="profile-occupation"
-                formControlName="occupation"
+                formControlName="occupation" maxlength="100"
                 placeholder="Mahasiswa / Software Engineer"
               />
             </div>
-          </div>
+          </fieldset>
 
           <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
-            <button type="submit" class="btn-k-primary">
-              Simpan profil
+            <button type="submit" class="btn-k-primary" [disabled]="svc.savingProfile()">
+              {{ svc.savingProfile() ? 'Menyimpan…' : 'Simpan profil' }}
             </button>
 
             @if (isProfileComplete()) {

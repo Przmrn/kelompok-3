@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, inject } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { CourseSystemService } from '../../services/course-system.service';
 
 @Component({
@@ -11,19 +11,11 @@ import { CourseSystemService } from '../../services/course-system.service';
 })
 export class CartPageComponent {
   readonly svc = inject(CourseSystemService);
-  private readonly router = inject(Router);
 
-  readonly unpaidRegistrations = computed(() => {
-    const student = this.svc.currentStudentProfile();
-    if (!student) return [];
-    return this.svc.getUnpaidCartRegistrations(student.id);
-  });
 
-  readonly paidCoursesCount = computed(() => {
-    const student = this.svc.currentStudentProfile();
-    if (!student) return 0;
-    return this.svc.getPaidCoursesForStudent(student.id).length;
-  });
+  readonly unpaidRegistrations = this.svc.unpaidCartRegistrations;
+
+  readonly paidCoursesCount = computed(() => this.svc.purchasedCourses().length);
 
   getInitialAmountDue(registrationId: number, fallbackTotal: number): number {
     const firstSchedule = this.svc
@@ -32,17 +24,7 @@ export class CartPageComponent {
     return firstSchedule ? firstSchedule.amount : fallbackTotal;
   }
 
-  payNow(registrationId: number): void {
-    this.svc.payRegistrationFromCart(registrationId);
-    this.router.navigate(['/my-courses']);
-  }
-
   cancelOrder(registrationId: number): void {
-    const today = new Date().toISOString().slice(0, 10);
-    this.svc.confirmCancelRegistration(
-      registrationId,
-      today,
-      'Dibatalkan dari keranjang sebelum pembayaran'
-    );
+    void this.svc.confirmCancelRegistration(registrationId);
   }
 }

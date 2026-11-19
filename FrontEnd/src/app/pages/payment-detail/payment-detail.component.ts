@@ -18,10 +18,8 @@ export class PaymentDetailPageComponent implements OnInit {
   readonly registrationId = signal<number>(1);
 
   readonly registration = computed(() => {
-    const studentId = this.svc.currentStudentProfile()?.id;
-    return this.svc.registrations().find(reg =>
-      reg.id === this.registrationId() && (reg.studentId === studentId || this.svc.isAdmin())
-    ) ?? null;
+    const registrations = this.svc.isAdmin() ? this.svc.registrations() : this.svc.myRegistrations();
+    return registrations.find(reg => reg.id === this.registrationId()) ?? null;
   });
 
   readonly schedules = computed(() => {

@@ -26,11 +26,7 @@ export class ProfileAuthPageComponent {
     return u ? this.svc.isStudentProfileComplete(u.id) : false;
   });
 
-  readonly myRegistrations = computed(() => {
-    const student = this.svc.currentStudentProfile();
-    if (!student) return [];
-    return this.svc.registrations().filter((r) => r.studentId === student.id);
-  });
+  readonly myRegistrations = this.svc.myRegistrations;
 
   readonly confirmedCount = computed(
     () =>
@@ -67,24 +63,8 @@ export class ProfileAuthPageComponent {
 
   constructor() {
     effect(() => {
-      this.profileForm.reset(this.svc.currentStudentProfile() ?? {});
+      this.profileForm.reset(this.svc.currentStudentProfile() ?? { fullName: this.svc.currentUser()?.fullName ?? '' });
     });
-  }
-
-  autoFillCompleteProfile(): void {
-    const u = this.svc.currentUser();
-    if (!u) return;
-    this.profileForm.setValue({
-      fullName: u.fullName,
-      phoneNumber: this.profileForm.controls.phoneNumber.value || '085711223344',
-      address: 'Jl. Dago Asri No. 19, Coblong',
-      city: 'Bandung',
-      province: 'Jawa Barat',
-      country: 'Indonesia',
-      educationLevel: 'S1 Sistem Informasi',
-      occupation: 'Mahasiswa',
-    });
-    this.saveProfile();
   }
 
   saveProfile(): void {
@@ -94,6 +74,6 @@ export class ProfileAuthPageComponent {
       this.profileForm.markAllAsTouched();
       return;
     }
-    this.svc.updateStudentProfile(u.id, this.profileForm.getRawValue());
+    void this.svc.updateStudentProfile(this.profileForm.getRawValue());
   }
 }

@@ -22,6 +22,18 @@ describe('Sesi akun Karsa', () => {
     sessionStorage.removeItem('karsa.auth');
   });
 
+  it('membersihkan sesi jika server menolak token aktif dengan tantangan Bearer', () => {
+    sessionStorage.setItem('karsa.auth', JSON.stringify(session()));
+    const auth = TestBed.inject(AuthService);
+    TestBed.inject(HttpClient).get('/api/students/me').subscribe({ error: () => {} });
+    const request = http.expectOne('/api/students/me');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer token-uji');
+    request.flush(null, { status: 401, statusText: 'Unauthorized', headers: { 'WWW-Authenticate': 'Bearer error="invalid_token"' } });
+    expect(auth.user()).toBeNull();
+    expect(auth.signInRequired()).toBeTrue();
+    expect(sessionStorage.getItem('karsa.auth')).toBeNull();
+  });
+
   it('membuat akun tanpa membuka sesi dan mengirim kata sandi apa adanya', () => {
     const auth = TestBed.inject(AuthService);
     auth.register(' Peserta Baru ', user.email, ' sandi uji ').subscribe();
@@ -41,10 +53,16 @@ describe('Sesi akun Karsa', () => {
     request.flush(session());
     const courses = TestBed.inject(CourseSystemService);
     expect(courses.currentUser()?.role).toBe('Student');
+    expect(courses.currentStudentProfile()).toBeNull();
+    TestBed.flushEffects();
+    const profile = http.expectOne('/api/students/me');
+    expect(profile.request.headers.get('Authorization')).toBe('Bearer token-uji');
+    profile.flush({ id: 1, userId: user.id, fullName: user.fullName, phoneNumber: '', address: '',
+      city: '', province: '', country: '', educationalLevel: '', occupation: '' });
     const student = courses.currentStudentProfile()!;
     expect(student.fullName).toBe(user.fullName);
     expect(student.phoneNumber).toBe('');
-    expect(courses.getUnpaidCartRegistrations(student.id)).toEqual([]);
+    expect(courses.unpaidCartRegistrations()).toEqual([]);
     auth.logout();
     expect(auth.user()).toBeNull();
     expect(sessionStorage.getItem('karsa.auth')).toBeNull();

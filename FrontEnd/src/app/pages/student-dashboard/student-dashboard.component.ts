@@ -20,11 +20,7 @@ export class StudentDashboardComponent {
     return u ? this.svc.isStudentProfileComplete(u.id) : false;
   });
 
-  readonly myRegistrations = computed(() => {
-    const student = this.svc.currentStudentProfile();
-    if (!student) return [];
-    return this.svc.registrations().filter((r) => r.studentId === student.id);
-  });
+  readonly myRegistrations = this.svc.myRegistrations;
 
   readonly confirmedCount = computed(
     () =>

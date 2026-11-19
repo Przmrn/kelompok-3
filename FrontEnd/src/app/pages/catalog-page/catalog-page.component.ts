@@ -13,6 +13,7 @@ import { CourseSystemService } from '../../services/course-system.service';
 })
 export class CatalogPageComponent {
   readonly svc = inject(CourseSystemService);
+  readonly studioCities = computed(() => [...new Set(this.svc.locations().map(location => location.city).filter(Boolean))].join(', '));
   readonly selectedCategoryId = signal<number>(0);
   readonly categoryIcons: Record<number, string> = {
     1: 'bi-database',
@@ -49,9 +50,11 @@ export class CatalogPageComponent {
     return null;
   }
 
-  getLowestMonthly(basePrice: number): number {
-    const calc = this.svc.calculatePriceBreakdown(basePrice, 1);
-    const tenor12 = calc.installmentPreviews.find((p) => p.tenorMonths === 12);
-    return tenor12 ? tenor12.regularMonthlyAmount : Math.ceil((basePrice * 1.11) / 12);
+  getLowestMonthly(course: Course): number | null {
+    const openBatches = this.svc.getBatchesByCourseId(course.id).filter(batch => batch.status === 'Open');
+    if (!openBatches.length) return null;
+    const queue = Math.min(...openBatches.map(batch => batch.nextQueue));
+    return this.svc.calculatePriceBreakdown(course.basePrice, queue)
+      .installmentPreviews.find(preview => preview.tenorMonths === 12)?.regularMonthlyAmount ?? null;
   }
 }

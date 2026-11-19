@@ -17,7 +17,7 @@ export class CheckoutPaymentPageComponent implements OnInit {
   private readonly router = inject(Router);
   readonly Number = Number;
 
-  readonly batchId = signal<number>(2);
+  readonly batchId = signal<number>(0);
   readonly paymentMethod = signal<PaymentMethodType>('Installment');
   readonly selectedTenor = signal<3 | 6 | 12>(3);
 
@@ -70,7 +70,7 @@ export class CheckoutPaymentPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
-      const id = Number(params.get('batchId')) || 2;
+      const id = Number(params.get('batchId'));
       this.batchId.set(id);
     });
   }
@@ -81,39 +81,10 @@ export class CheckoutPaymentPageComponent implements OnInit {
     }
   }
 
-  addToUnpaidCart(): void {
-    const u = this.currentUser();
-    const b = this.batch();
-    if (!u || !b) return;
-
-    const res = this.svc.submitCourseRegistration({
-      userId: u.id,
-      batchId: b.id,
-      paymentMethod: this.paymentMethod(),
-      installmentTenor: this.paymentMethod() === 'Installment' ? this.selectedTenor() : null,
-      simulateInitialPaymentConfirmed: false,
-    });
-
-    if (res.success) {
-      this.router.navigate(['/cart']);
-    }
-  }
-
-  payImmediately(): void {
-    const u = this.currentUser();
-    const b = this.batch();
-    if (!u || !b) return;
-
-    const res = this.svc.submitCourseRegistration({
-      userId: u.id,
-      batchId: b.id,
-      paymentMethod: this.paymentMethod(),
-      installmentTenor: this.paymentMethod() === 'Installment' ? this.selectedTenor() : null,
-      simulateInitialPaymentConfirmed: true,
-    });
-
-    if (res.success) {
-      this.router.navigate(['/my-courses']);
-    }
+  async addToUnpaidCart() {
+    if (!this.canSubmit()) return;
+    const result = await this.svc.submitCourseRegistration(this.batchId(), this.paymentMethod(),
+      this.paymentMethod() === 'Installment' ? this.selectedTenor() : null);
+    if (result.success) await this.router.navigate(['/cart']);
   }
 }

@@ -23,7 +23,6 @@
               @for (item of svc.getInstructorsForBatch(batch.id); track item.assignment.id) {
                 <div class="bg-white px-3 py-1 rounded-3 border">
                   <span class="fw-bold">{{ item.instructor.fullName }}</span>
-                  <span class="text-secondary ms-1">({{ item.instructor.email }})</span>
                 </div>
               }
             </div>
@@ -34,8 +33,7 @@
 
     @if (reg.registrationStatus === 'Cancelled') {
       <div class="small text-danger mt-3">
-        Kursus dibatalkan pada {{ reg.cancelledAt | date: 'd MMM yyyy' }} ({{ reg.daysBeforeBatchStart }} hari sebelum jadwal dimulai) ·
-        Pengembalian dana {{ reg.refundPercentage }}%: <strong>Rp{{ (reg.refundAmount ?? 0) | number: '1.0-0' }}</strong>
+        Pendaftaran kelas ini sudah dibatalkan.
       </div>
     }
   </app-course-registration-card>

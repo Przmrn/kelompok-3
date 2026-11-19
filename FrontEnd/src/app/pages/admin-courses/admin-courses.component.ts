@@ -1,3 +1,4 @@
+import { ReferenceEditorComponent } from '../admin-courses/reference-editor.component';
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -7,7 +8,7 @@ import { CourseSystemService } from '../../services/course-system.service';
 @Component({
   selector: 'app-admin-courses',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReferenceEditorComponent],
   templateUrl: './admin-courses.component.html',
 })
 export class AdminCoursesComponent {
@@ -16,29 +17,19 @@ export class AdminCoursesComponent {
   readonly showForm = signal(false);
   readonly editingCourseId = signal<number | undefined>(undefined);
 
-  form = {
-    categoryId: 1,
-    title: '',
-    description: '',
-    syllabus: '1. Konsep Dasar & Arsitektur\n2. Praktikum Studio & Studi Kasus',
-    durationHours: 42,
-    basePrice: 1200000,
-  };
+  form = this.newCourse();
+
+  private newCourse() {
+    return { categoryId: this.svc.categories()[0]?.id ?? 0, syllabus: '', durationHours: 0, basePrice: 0 };
+  }
 
   openNewCourseForm(): void {
-    if (this.showForm() && !this.editingCourseId()) {
+    if (this.showForm()) {
       this.showForm.set(false);
       return;
     }
     this.editingCourseId.set(undefined);
-    this.form = {
-      categoryId: 1,
-      title: '',
-      description: '',
-      syllabus: '1. Konsep Dasar & Arsitektur\n2. Praktikum Studio & Studi Kasus',
-      durationHours: 42,
-      basePrice: 1200000,
-    };
+    this.form = this.newCourse();
     this.showForm.set(true);
   }
 
@@ -46,8 +37,6 @@ export class AdminCoursesComponent {
     this.editingCourseId.set(course.id);
     this.form = {
       categoryId: course.categoryId,
-      title: course.title,
-      description: course.description,
       syllabus: course.syllabus,
       durationHours: course.durationHours,
       basePrice: course.basePrice,
@@ -55,12 +44,11 @@ export class AdminCoursesComponent {
     this.showForm.set(true);
   }
 
-  saveCourse(): void {
-    if (!this.form.title.trim()) return;
-    this.svc.saveCourseByAdmin({
+  async saveCourse() {
+    const result = await this.svc.saveCourseByAdmin({
       id: this.editingCourseId(),
       ...this.form,
     });
-    this.showForm.set(false);
+    if (result.success) this.showForm.set(false);
   }
 }

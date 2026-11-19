@@ -1,0 +1,28 @@
+<details class="k-card p-3 mb-4">
+  <summary class="fw-semibold">Kelola {{ kind === 'locations' ? 'lokasi kelas' : 'kategori kelas' }}</summary>
+  <ul class="list-unstyled my-3">
+    @for (row of (kind === 'locations' ? svc.locations() : svc.categories()); track row.id) {
+      <li class="d-flex align-items-center gap-2 py-1">
+        <span class="me-auto">{{ row.name }}</span>
+        <button type="button" class="btn-k-light btn-sm" (click)="edit(row)">Ubah</button>
+        <button type="button" class="btn btn-outline-danger btn-sm" [disabled]="svc.saving()" (click)="remove(row.id)">Hapus</button>
+      </li>
+    }
+  </ul>
+  <form ngNativeValidate (ngSubmit)="save()" class="row g-2">
+    <label class="col-md-6 k-label">{{ kind === 'locations' ? 'Nama lokasi' : 'Nama kategori' }}
+      <input name="name" class="form-control k-input" [(ngModel)]="form.name" required [attr.maxlength]="kind === 'locations' ? 150 : 100" />
+    </label>
+    @if (kind === 'locations') {
+      <label class="col-md-6 k-label">Alamat <input name="address" class="form-control k-input" [(ngModel)]="form.address" required maxlength="150" /></label>
+      <label class="col-md-6 k-label">Kota <input name="city" class="form-control k-input" [(ngModel)]="form.city" required maxlength="100" /></label>
+      <label class="col-md-6 k-label">Ruangan <input name="room" class="form-control k-input" [(ngModel)]="form.roomName" maxlength="100" /></label>
+    } @else {
+      <label class="col-md-6 k-label">Deskripsi <input name="description" class="form-control k-input" [(ngModel)]="form.description" /></label>
+    }
+    <div class="d-flex gap-2">
+      <button class="btn-k-primary btn-sm" type="submit" [disabled]="svc.saving() || !form.name.trim()">{{ id ? 'Simpan perubahan' : (kind === 'locations' ? 'Tambah lokasi' : 'Tambah kategori') }}</button>
+      @if (id) { <button class="btn-k-light btn-sm" type="button" (click)="edit()">Batal</button> }
+    </div>
+  </form>
+</details>

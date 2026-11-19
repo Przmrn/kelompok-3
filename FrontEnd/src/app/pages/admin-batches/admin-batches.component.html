@@ -17,6 +17,8 @@
       </button>
     </div>
 
+    <app-reference-editor kind="locations"></app-reference-editor>
+
     @if (showForm()) {
       <div class="k-card p-4 mb-4 anim-pop">
         <h2 class="h5 fw-bold mb-3">
@@ -61,13 +63,7 @@
             <label class="k-label">Jam selesai</label>
             <input type="time" class="form-control k-input" [(ngModel)]="form.endTime" />
           </div>
-          <div class="col-md-2">
-            <label class="k-label">Status</label>
-            <select class="form-select k-select" [(ngModel)]="form.status">
-              <option value="Open">Dibuka</option>
-              <option value="Full">Penuh</option>
-            </select>
-          </div>
+
         </div>
 
         <div class="d-flex gap-2">
