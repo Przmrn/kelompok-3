@@ -77,13 +77,18 @@ namespace BackEnd.Services
                 new SymmetricSecurityKey(Encoding.UTF8.GetBytes(key)),
                 SecurityAlgorithms.HmacSha256);
 
-            var claims = new[]
+            var claims = new List<Claim>
             {
                 new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
                 new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim(ClaimTypes.Name, user.FullName),
                 new Claim(ClaimTypes.Role, user.Role.ToString())
             };
+
+            var students = await _studentRepository.FindAsync(student => student.UserId == user.Id);
+            var student = students.FirstOrDefault();
+            if (student != null)
+                claims.Add(new Claim("StudentId", student.Id.ToString()));
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["Jwt:Issuer"],

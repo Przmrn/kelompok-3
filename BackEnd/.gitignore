@@ -42,15 +42,5 @@ TestResults/
 Thumbs.db
 desktop.ini
 
-# Test results
-TestResults/
-
-# Publish output
-publish/
-artifacts/
-
-# Temporary files
-*.tmp
-*.bak
-
+# Ignore all appsettings files because they may contain local secrets
 **/appsettings*.json
