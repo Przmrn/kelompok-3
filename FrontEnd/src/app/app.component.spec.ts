@@ -1,3 +1,4 @@
+import { flushCourseData } from './services/course-api.testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { AuthService } from './services/auth.service';
@@ -28,6 +29,7 @@ describe('AppComponent', () => {
     const user = { id: 12, fullName: 'Pengguna Uji', email: 'uji@example.test', role: 'STUDENT' };
     app.switchModalMode('REGISTER');
     fixture.detectChanges();
+    flushCourseData('Guest');
     setValue('register-name', user.fullName);
     setValue('register-email', user.email);
     setValue('register-password', 'sandi uji');
@@ -52,6 +54,7 @@ describe('AppComponent', () => {
     await Promise.resolve();
     expect(navigate).toHaveBeenCalledWith(['/admin/dashboard']);
     expect(app.svc.authModalOpen()).toBeFalse();
+    flushCourseData('Admin');
     auth.logout();
     http.verify();
   });

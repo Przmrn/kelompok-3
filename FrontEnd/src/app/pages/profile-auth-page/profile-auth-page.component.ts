@@ -71,22 +71,6 @@ export class ProfileAuthPageComponent {
     });
   }
 
-  autoFillCompleteProfile(): void {
-    const u = this.svc.currentUser();
-    if (!u) return;
-    this.profileForm.setValue({
-      fullName: u.fullName,
-      phoneNumber: this.profileForm.controls.phoneNumber.value || '085711223344',
-      address: 'Jl. Dago Asri No. 19, Coblong',
-      city: 'Bandung',
-      province: 'Jawa Barat',
-      country: 'Indonesia',
-      educationLevel: 'S1 Sistem Informasi',
-      occupation: 'Mahasiswa',
-    });
-    this.saveProfile();
-  }
-
   saveProfile(): void {
     const u = this.svc.currentUser();
     if (u?.role !== 'Student') return;

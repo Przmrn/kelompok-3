@@ -58,6 +58,8 @@ export interface CourseBatch {
   endTime: string;
   maxSeats: number;
   status: BatchStatus;
+  usedSeats: number;
+  nextQueue: number;
 }
 
 export interface Instructor {
@@ -95,6 +97,7 @@ export interface Registration {
   totalAmount: number;
   paymentMethod: PaymentMethodType;
   installmentTenor: 3 | 6 | 12 | null;
+  paidAmount: number;
   paymentStatus: PaymentStatus;
   registrationStatus: RegistrationStatus;
   cancelledAt?: string;

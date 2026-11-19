@@ -25,12 +25,12 @@
                   style="cursor: pointer;"
                   [style.animation-delay.ms]="idx * 60"
                   [style.border]="
-                    selectedBatchId() === b.id
+                    selectedBatch()?.id === b.id
                       ? '2px solid var(--brand-forest)'
                       : '1.5px solid var(--border-light)'
                   "
                   [style.background-color]="
-                    selectedBatchId() === b.id ? 'var(--brand-lime-soft)' : 'var(--bg-card)'
+                    selectedBatch()?.id === b.id ? 'var(--brand-lime-soft)' : 'var(--bg-card)'
                   "
                   [style.opacity]="b.status === 'Full' ? '0.6' : '1'"
                   (click)="selectBatch(b.id)"

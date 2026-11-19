@@ -1,85 +1,87 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
+import { catchError, forkJoin, map, of, throwError } from 'rxjs';
+import { BatchInstructor, Course, CourseBatch, CourseCategory, InstallmentSchedule, Instructor, Location, PaymentStatus, Registration, Student } from '../models/course-system.models';
 
-export interface CourseCategory {
-  id: number;
-  name: string;
-  description?: string;
-}
-
-export interface Location {
-  id: number;
-  name: string;
-  address?: string;
-}
-
-export interface CourseBatch {
-  id: number;
-  courseId: number;
-  instructorId: number;
-  startDate: string;
-  endDate: string;
-  capacity: number;
-  availableSeats: number;
-}
-
-export interface RegistrationCreate {
-  batchId: number;
+interface CourseRow extends Omit<Course, 'title' | 'description'> { categoryName: string }
+interface BatchRow extends Omit<CourseBatch, 'status'> { courseStatus: number }
+interface AssignmentRow extends BatchInstructor { instructor: Omit<Instructor, 'phoneNumber' | 'email'> }
+type StudentRow = Omit<Student, 'educationLevel'> & { educationalLevel: string };
+interface RegistrationRow extends Omit<Registration, 'paymentMethod' | 'registrationStatus' | 'paymentStatus'> {
   paymentMethod: 'UPFRONT' | 'INSTALLMENT';
-  installmentTenor?: number;
+  registrationStatus: number;
+  paymentStatus: number;
+  installmentSchedules: (Omit<InstallmentSchedule, 'status'> & { installmentStatus: number })[];
 }
 
-export interface ApiRegistration {
-  id: number;
-  studentId: number;
-  batchId: number;
-  status: string;
-  paymentMethod: string;
-  totalAmount: number;
-  paidAmount: number;
-}
+const registrationStatuses: Registration['registrationStatus'][] = ['Pending', 'Confirmed', 'Cancelled', 'Completed'];
+const paymentStatuses: PaymentStatus[] = ['Pending', 'PartiallyPaid', 'Paid', 'Overdue', 'Failed'];
+const installmentStatuses: InstallmentSchedule['status'][] = ['Pending', 'Paid', 'Overdue'];
+type Resource = 'courses' | 'course-categories' | 'locations' | 'instructors' | 'CourseBatch';
 
 @Injectable({ providedIn: 'root' })
 export class BackendApiService {
   private readonly http = inject(HttpClient);
 
-  getCourseCategories() {
-    return this.http.get<CourseCategory[]>('/api/course-categories');
+  catalog() {
+    return forkJoin({
+      categories: this.http.get<CourseCategory[]>('/api/course-categories'),
+      locations: this.http.get<Location[]>('/api/locations'),
+      courses: this.http.get<CourseRow[]>('/api/courses'),
+      batches: this.http.get<BatchRow[]>('/api/CourseBatch'),
+      assignments: this.http.get<AssignmentRow[]>('/api/BatchInstructor'),
+    }).pipe(map(data => ({
+      ...data,
+      courses: data.courses.map(row => ({ ...row, title: row.categoryName + ' · ' + row.id,
+        description: data.categories.find(category => category.id === row.categoryId)?.description ?? '' })),
+      batches: data.batches.map((row): CourseBatch => ({ ...row, status: row.courseStatus === 1 ? 'Full' : 'Open',
+        startTime: row.startTime.slice(0, 5), endTime: row.endTime.slice(0, 5) })),
+    })));
   }
 
-  getLocations() {
-    return this.http.get<Location[]>('/api/locations');
+  instructors() { return this.http.get<Instructor[]>('/api/instructors'); }
+
+  students(admin: boolean) {
+    const rows = admin ? this.http.get<StudentRow[]>('/api/students') :
+      this.http.get<StudentRow>('/api/students/me').pipe(map(row => [row]), catchError((error: HttpErrorResponse) =>
+        error.status === 404 ? of([] as StudentRow[]) : throwError(() => error)));
+    return rows.pipe(map(list => list.map(({ educationalLevel, ...student }) => ({ ...student, educationLevel: educationalLevel }))));
   }
 
-  getCourseBatches() {
-    return this.http.get<CourseBatch[]>('/api/CourseBatch');
+  saveProfile(profile: Omit<Student, 'id' | 'userId'>, exists: boolean) {
+    const { educationLevel, ...rest } = profile;
+    return this.http.request(exists ? 'PUT' : 'POST', '/api/students/me', { body: { ...rest, educationalLevel: educationLevel } });
   }
 
-  getCourseBatch(id: number) {
-    return this.http.get<CourseBatch>(`/api/CourseBatch/${id}`);
+  registrations(admin: boolean) {
+    return this.http.get<RegistrationRow[]>(admin ? '/api/Registration' : '/api/Registration/me').pipe(map(rows => ({
+      registrations: rows.map(({ installmentSchedules, ...row }): Registration => ({
+        ...row, registrationStatus: registrationStatuses[row.registrationStatus], paymentStatus: paymentStatuses[row.paymentStatus],
+        paymentMethod: row.paymentMethod === 'UPFRONT' ? 'Upfront' : 'Installment',
+      })),
+      schedules: rows.flatMap(row => row.installmentSchedules.map((item): InstallmentSchedule => ({
+        ...item, status: installmentStatuses[item.installmentStatus],
+      }))),
+    })));
   }
 
-  getMyRegistrations() {
-    return this.http.get<ApiRegistration[]>('/api/Registration/me');
+  createRegistration(batchId: number, paymentMethod: Registration['paymentMethod'], installmentTenor: number | null) {
+    return this.http.post<{ id: number }>('/api/Registration', { batchId, paymentMethod: paymentMethod.toUpperCase(), installmentTenor });
   }
 
-  getRegistration(id: number) {
-    return this.http.get<ApiRegistration>(`/api/Registration/${id}`);
+  cancelRegistration(id: number) { return this.http.delete('/api/Registration/' + id); }
+  confirmUpfront(id: number) { return this.http.post('/api/Registration/' + id + '/confirm-upfront', {}); }
+  confirmInstallment(id: number) { return this.http.post('/api/Registration/installments/' + id + '/confirm', {}); }
+  processOverdue() { return this.http.post('/api/Registration/process-overdue', {}); }
+
+  assignment(batchId: number, instructorId: number, remove: boolean) {
+    return this.http.request(remove ? 'DELETE' : 'POST', '/api/BatchInstructor', { params: { batchId, instructorId } });
   }
 
-  createRegistration(request: RegistrationCreate) {
-    return this.http.post<ApiRegistration>('/api/Registration', request);
+  save(resource: Resource, id: number | undefined, body: object) {
+    const url = '/api/' + resource;
+    return id === undefined ? this.http.post(url, body) : this.http.put(url + '/' + id, body);
   }
 
-  cancelRegistration(id: number) {
-    return this.http.delete(`/api/Registration/${id}`);
-  }
-
-  confirmUpfrontRegistration(id: number) {
-    return this.http.post(`/api/Registration/${id}/confirm-upfront`, {});
-  }
-
-  confirmInstallment(scheduleId: number) {
-    return this.http.post(`/api/Registration/installments/${scheduleId}/confirm`, {});
-  }
+  remove(resource: Resource, id: number) { return this.http.delete('/api/' + resource + '/' + id); }
 }

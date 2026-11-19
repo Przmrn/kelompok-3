@@ -1,3 +1,4 @@
+import { ReferenceEditorComponent } from '../admin-courses/reference-editor.component';
 import { courseLabels } from '../../models/course-labels';
 import { CommonModule } from '@angular/common';
 import { Component, inject, signal } from '@angular/core';
@@ -8,7 +9,7 @@ import { CourseSystemService } from '../../services/course-system.service';
 @Component({
   selector: 'app-admin-batches',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ReferenceEditorComponent],
   templateUrl: './admin-batches.component.html',
 })
 export class AdminBatchesComponent {
@@ -19,33 +20,31 @@ export class AdminBatchesComponent {
   readonly editingBatchId = signal<number | undefined>(undefined);
 
   form = {
-    courseId: 1,
-    locationId: 1,
+    courseId: this.svc.courses()[0]?.id ?? 0,
+    locationId: this.svc.locations()[0]?.id ?? 0,
     batchName: 'BCH-BE-04 — Batch 4 Reguler Januari',
     startDate: '2027-01-16',
     endDate: '2027-02-14',
     startTime: '09:00',
     endTime: '16:00',
     maxSeats: 30,
-    status: 'Open' as 'Open' | 'Full',
   };
 
   openNewBatchForm(): void {
-    if (this.showForm() && !this.editingBatchId()) {
+    if (this.showForm()) {
       this.showForm.set(false);
       return;
     }
     this.editingBatchId.set(undefined);
     this.form = {
-      courseId: 1,
-      locationId: 1,
+      courseId: this.svc.courses()[0]?.id ?? 0,
+      locationId: this.svc.locations()[0]?.id ?? 0,
       batchName: `BCH-NEW-0${this.svc.batches().length + 1} — Batch Reguler`,
       startDate: '2027-01-16',
       endDate: '2027-02-14',
       startTime: '09:00',
       endTime: '16:00',
       maxSeats: 30,
-      status: 'Open',
     };
     this.showForm.set(true);
   }
@@ -61,16 +60,15 @@ export class AdminBatchesComponent {
       startTime: b.startTime,
       endTime: b.endTime,
       maxSeats: b.maxSeats,
-      status: b.status,
     };
     this.showForm.set(true);
   }
 
-  saveBatch(): void {
-    this.svc.saveBatchByAdmin({
+  async saveBatch() {
+    const result = await this.svc.saveBatchByAdmin({
       id: this.editingBatchId(),
       ...this.form,
     });
-    this.showForm.set(false);
+    if (result.success) this.showForm.set(false);
   }
 }

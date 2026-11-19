@@ -1,6 +1,6 @@
 import { courseLabels } from './models/course-labels';
 import { CommonModule, DOCUMENT, ViewportScroller } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject, signal, untracked } from '@angular/core';
 import { HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { AuthService } from './services/auth.service';
@@ -17,6 +17,10 @@ import { CourseSystemService } from './services/course-system.service';
 export class AppComponent {
   readonly labels = courseLabels;
   constructor() {
+    effect(() => {
+      this.auth.user();
+      untracked(() => void this.svc.reload());
+    }, { allowSignalWrites: true });
     let signedIn = false;
     effect(() => {
       const user = this.svc.currentUser();
@@ -33,7 +37,22 @@ export class AppComponent {
   private readonly router = inject(Router);
   readonly mobileMenuOpen = signal(false);
 
+  private get needsAccountData(): boolean {
+    return !this.router.isActive('/courses', {
+      paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored',
+    });
+  }
+
+  get pageLoadError(): string {
+    return this.svc.loadError() || (this.needsAccountData ? this.svc.accountError() : '');
+  }
+
+  get pageLoading(): boolean {
+    return this.svc.loading() || (this.needsAccountData && this.svc.accountLoading());
+  }
+
   private readonly auth = inject(AuthService);
+  readonly signInRequired = this.auth.signInRequired;
   readonly busy = signal(false);
   readonly loginEmail = signal('');
   readonly registrationNotice = signal('');

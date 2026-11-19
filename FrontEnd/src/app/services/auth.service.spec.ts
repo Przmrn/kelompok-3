@@ -22,6 +22,18 @@ describe('Sesi akun Karsa', () => {
     sessionStorage.removeItem('karsa.auth');
   });
 
+  it('membersihkan sesi jika server menolak token aktif dengan tantangan Bearer', () => {
+    sessionStorage.setItem('karsa.auth', JSON.stringify(session()));
+    const auth = TestBed.inject(AuthService);
+    TestBed.inject(HttpClient).get('/api/students/me').subscribe({ error: () => {} });
+    const request = http.expectOne('/api/students/me');
+    expect(request.request.headers.get('Authorization')).toBe('Bearer token-uji');
+    request.flush(null, { status: 401, statusText: 'Unauthorized', headers: { 'WWW-Authenticate': 'Bearer error="invalid_token"' } });
+    expect(auth.user()).toBeNull();
+    expect(auth.signInRequired()).toBeTrue();
+    expect(sessionStorage.getItem('karsa.auth')).toBeNull();
+  });
+
   it('membuat akun tanpa membuka sesi dan mengirim kata sandi apa adanya', () => {
     const auth = TestBed.inject(AuthService);
     auth.register(' Peserta Baru ', user.email, ' sandi uji ').subscribe();

@@ -25,17 +25,23 @@
             Pilih pengajar dan jadwal kelas. Setiap pengajar hanya bisa ditugaskan sekali pada jadwal yang sama.
           </div>
         </div>
-        <button
-          type="button"
-          class="btn-k-light btn-sm"
-          (click)="testScheduleConflict()"
-        >
-          Coba jadwal yang bentrok
-        </button>
+
       </div>
 
-      @if (feedbackMessage(); as fb) {
+      @if (conflictingBatches().length) {
+        <div class="alert alert-warning mb-3 small" role="alert" id="assignment-conflict">
+          <strong><i class="bi bi-exclamation-triangle me-1" aria-hidden="true"></i>Jadwal mengajar bentrok</strong>
+          <p class="mt-1 mb-1">Pengajar ini sudah dijadwalkan mengajar kelas berikut pada waktu yang sama. Pilih jadwal atau pengajar lain.</p>
+          <ul class="mb-0">
+            @for (batch of conflictingBatches(); track batch.id) {
+              <li>{{ batch.batchName }} · {{ batch.startDate | date: 'd MMM yyyy' }} – {{ batch.endDate | date: 'd MMM yyyy' }} · {{ batch.startTime }}–{{ batch.endTime }} WIB</li>
+            }
+          </ul>
+        </div>
+      }
+      @if (!conflictingBatches().length && feedbackMessage(); as fb) {
         <div
+          [attr.role]="fb.success ? 'status' : 'alert'"
           class="p-3 rounded-4 mb-3 small"
           [style.background-color]="fb.success ? 'var(--brand-forest-light)' : '#FFE4E0'"
           [style.color]="fb.success ? 'var(--brand-forest)' : '#C22A12'"
@@ -46,24 +52,31 @@
 
       <div class="row g-3 align-items-end">
         <div class="col-md-5">
-          <label class="k-label">Pengajar</label>
+          <label class="k-label" for="assignment-instructor">Pengajar</label>
           <select
+            id="assignment-instructor"
+            [disabled]="svc.saving()"
             class="form-select k-select"
             [ngModel]="selectedInstructorId()"
-            (ngModelChange)="selectedInstructorId.set(Number($event))"
+            (ngModelChange)="selectedInstructorId.set($event); feedbackMessage.set(null)"
           >
+            <option [ngValue]="null" disabled>Pilih pengajar</option>
             @for (ins of svc.instructors(); track ins.id) {
               <option [ngValue]="ins.id">{{ ins.fullName }} (No. {{ ins.id }})</option>
             }
           </select>
         </div>
         <div class="col-md-5">
-          <label class="k-label">Jadwal kelas</label>
+          <label class="k-label" for="assignment-batch">Jadwal kelas</label>
           <select
+            id="assignment-batch"
+            [disabled]="svc.saving()"
+            [attr.aria-describedby]="conflictingBatches().length ? 'assignment-conflict' : null"
             class="form-select k-select"
             [ngModel]="selectedBatchId()"
-            (ngModelChange)="selectedBatchId.set(Number($event))"
+            (ngModelChange)="selectedBatchId.set($event); feedbackMessage.set(null)"
           >
+            <option [ngValue]="null" disabled>Pilih jadwal</option>
             @for (b of svc.batches(); track b.id) {
               <option [ngValue]="b.id">
                 {{ b.batchName }} ({{ b.startDate | date: 'd MMM yyyy' }} s/d {{ b.endDate | date: 'd MMM yyyy' }}, {{ b.startTime }}–{{ b.endTime }})
@@ -72,7 +85,7 @@
           </select>
         </div>
         <div class="col-md-2">
-          <button type="button" class="btn-k-coral w-100" (click)="submitAssignment()">
+          <button type="button" class="btn-k-coral w-100" [disabled]="!selectedInstructorId() || !selectedBatchId() || conflictingBatches().length > 0 || svc.saving()" (click)="submitAssignment()">
             Tugaskan
           </button>
         </div>
@@ -97,6 +110,12 @@
             <label class="k-label">Nomor telepon</label>
             <input type="tel" class="form-control k-input" [(ngModel)]="form.phoneNumber" placeholder="0812xxxxxxxx" />
           </div>
+          @if (!editingInstructorId()) {
+            <div class="col-md-6">
+              <label for="instructor-password" class="k-label">Kata sandi akun pengajar</label>
+              <input type="password" id="instructor-password" class="form-control k-input" autocomplete="new-password" [(ngModel)]="password" minlength="8" placeholder="Minimal 8 karakter" />
+            </div>
+          }
           <div class="col-12">
             <label class="k-label" for="new-skill">Keahlian</label>
             <div class="d-flex gap-2">
@@ -211,7 +230,7 @@
                       type="button"
                       class="btn btn-sm text-danger p-0 border-0"
                       title="Lepaskan penugasan"
-                      (click)="svc.removeInstructorAssignment(item.assignment.id)"
+                      (click)="svc.removeInstructorAssignment(item.assignment)"
                     >
                       <i class="bi bi-x-circle"></i>
                     </button>

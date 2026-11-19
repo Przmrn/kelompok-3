@@ -1,4 +1,5 @@
-import { AuthService } from '../../services/auth.service';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { accountId, apiTestProviders, flushCourseData, instructor, loadCourseData } from '../../services/course-api.testing';
 import { TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
@@ -6,8 +7,9 @@ import { filter, firstValueFrom } from 'rxjs';
 import { routes } from '../../app.routes';
 
 describe('My Courses child routes', () => {
-  beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideRouter(routes), { provide: AuthService, useValue: { user: () => ({ id: -1, role: 'Student', fullName: 'Peserta', email: 'peserta@example.test' }) } }] });
+  beforeEach(async () => {
+    TestBed.configureTestingModule({ providers: [provideRouter(routes), ...apiTestProviders('Student')] });
+    await loadCourseData('Student');
   });
 
   it('opens the schedule from the legacy URL and returns there after a refund', async () => {
@@ -20,15 +22,17 @@ describe('My Courses child routes', () => {
     expect(harness.routeNativeElement!.textContent).toContain('16 hari sebelum kelas');
 
     const buttons = Array.from(harness.routeNativeElement!.querySelectorAll('button'));
-    buttons.find(button => button.textContent?.includes('7–13 Hari'))!.click();
-    harness.detectChanges();
-    expect(harness.routeNativeElement!.textContent).toContain('10 hari sebelum kelas');
     const navigation = firstValueFrom(router.events.pipe(filter(event => event instanceof NavigationEnd)));
     buttons.find(button => button.textContent?.includes('Konfirmasi Pembatalan'))!.click();
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/Registration/1');
+    expect(request.request.method).toBe('DELETE');
+    request.flush({});
+    await Promise.resolve();
+    flushCourseData('Student', { phone: '', expertise: '', cancelled: true });
     await navigation;
     harness.detectChanges();
     expect(router.url).toBe('/my-courses/jadwal');
-    expect(harness.routeNativeElement!.textContent).toContain('Pengembalian dana 50%');
+    expect(harness.routeNativeElement!.textContent).toContain('Pendaftaran kelas ini sudah dibatalkan.');
   });
 
   it('excludes unpaid registrations from direct refund links', async () => {

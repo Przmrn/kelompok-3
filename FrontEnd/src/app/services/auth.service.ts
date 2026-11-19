@@ -1,6 +1,6 @@
-import { HttpClient, HttpInterceptorFn } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { DestroyRef, Injectable, computed, inject, signal } from '@angular/core';
-import { map } from 'rxjs';
+import { map, tap } from 'rxjs';
 import { User, UserRole } from '../models/course-system.models';
 
 interface ApiUser extends Omit<User, 'role'> {
@@ -34,6 +34,7 @@ function isActive(session: LoginResponse | null): session is LoginResponse {
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly session = signal<LoginResponse | null>(null);
+  readonly signInRequired = signal(false);
   private expiryTimer?: ReturnType<typeof setTimeout>;
   readonly user = computed<User | null>(() => {
     const user = this.session()?.user;
@@ -84,6 +85,7 @@ export class AuthService {
 
   logout(): void {
     clearTimeout(this.expiryTimer);
+    this.signInRequired.set(false);
     this.session.set(null);
     try {
       sessionStorage.removeItem(sessionKey);
@@ -94,6 +96,7 @@ export class AuthService {
 
   private activate(session: LoginResponse): void {
     clearTimeout(this.expiryTimer);
+    this.signInRequired.set(false);
     this.session.set(session);
     this.expiryTimer = setTimeout(() => this.logout(), Date.parse(session.expiresAt) - Date.now());
   }
@@ -101,6 +104,16 @@ export class AuthService {
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   if (!request.url.startsWith('/api/') || request.url.startsWith('/api/auth/')) return next(request);
-  const token = inject(AuthService).accessToken();
-  return next(token ? request.clone({ setHeaders: { Authorization: `Bearer ${token}` } }) : request);
+  const auth = inject(AuthService);
+  const token = auth.accessToken();
+  if (!token) return next(request);
+  return next(request.clone({ setHeaders: { Authorization: `Bearer ${token}` } })).pipe(tap({
+    error: (error: unknown) => {
+      if (error instanceof HttpErrorResponse && error.status === 401 &&
+          /^Bearer\b/i.test(error.headers.get('WWW-Authenticate') ?? '') && auth.accessToken() === token) {
+        auth.logout();
+        auth.signInRequired.set(true);
+      }
+    },
+  }));
 };

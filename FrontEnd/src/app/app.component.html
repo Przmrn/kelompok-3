@@ -331,7 +331,18 @@
 }
 
 <main style="min-height: calc(100vh - 220px);">
-  <router-outlet></router-outlet>
+  @if (signInRequired()) {
+    <div class="container py-3" role="status">
+      Silakan masuk kembali untuk membuka data akun Anda.
+      <button type="button" class="btn-k-light btn-sm" (click)="openSignInModal()">Masuk</button>
+    </div>
+  }
+  @if (pageLoadError; as message) {
+    <div class="container py-4" role="alert">{{ message }} <button type="button" class="btn-k-light btn-sm" (click)="svc.reload()">Coba lagi</button></div>
+  } @else if (pageLoading) {
+    <div class="container py-4" role="status">Memuat data kelas…</div>
+  }
+  <div [hidden]="pageLoading || !!pageLoadError"><router-outlet></router-outlet></div>
 </main>
 
 <footer class="k-footer py-4 mt-5">

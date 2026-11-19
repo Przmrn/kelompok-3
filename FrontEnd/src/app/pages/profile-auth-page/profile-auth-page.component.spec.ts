@@ -1,13 +1,13 @@
-import { AuthService } from '../../services/auth.service';
+import { HttpTestingController } from '@angular/common/http/testing';
+import { accountId, apiTestProviders, flushCourseData, instructor, loadCourseData } from '../../services/course-api.testing';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { CourseSystemService } from '../../services/course-system.service';
 import { ProfileAuthPageComponent } from './profile-auth-page.component';
 
 describe('Student profile form', () => {
-  it('blocks an invalid phone and saves a formatted number on a partial profile', () => {
-    TestBed.configureTestingModule({ providers: [provideRouter([]), { provide: AuthService, useValue: { user: () => ({ id: -2, role: 'Student', fullName: 'Peserta', email: 'peserta@example.test' }) } }] });
-    const svc = TestBed.inject(CourseSystemService);
+  it('blocks an invalid phone and saves a formatted number on a partial profile', async () => {
+    TestBed.configureTestingModule({ providers: [provideRouter([]), ...apiTestProviders('Student')] });
+    const svc = await loadCourseData('Student');
     const fixture = TestBed.createComponent(ProfileAuthPageComponent);
     fixture.detectChanges();
     const form: HTMLFormElement = fixture.nativeElement.querySelector('form');
@@ -27,8 +27,15 @@ describe('Student profile form', () => {
     expect(svc.currentStudentProfile()!.phoneNumber).toBe(original);
 
     submit('+62 812-3456-7890');
+    const request = TestBed.inject(HttpTestingController).expectOne('/api/students/me');
+    expect(request.request.method).toBe('PUT');
+    expect(request.request.body.phoneNumber).toBe('+62 812-3456-7890');
+    request.flush({});
+    await Promise.resolve();
+    flushCourseData('Student', { phone: '+62 812-3456-7890', expertise: '', cancelled: false });
+    await Promise.resolve();
     expect(form.querySelector('#profile-phone-error')).toBeNull();
     expect(svc.currentStudentProfile()!.phoneNumber).toBe('+62 812-3456-7890');
-    expect(svc.isStudentProfileComplete(-2)).toBeFalse();
+    expect(svc.isStudentProfileComplete(accountId)).toBeFalse();
   });
 });

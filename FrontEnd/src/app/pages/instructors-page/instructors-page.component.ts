@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Instructor } from '../../models/course-system.models';
 import { CourseSystemService } from '../../services/course-system.service';
@@ -13,15 +13,28 @@ import { CourseSystemService } from '../../services/course-system.service';
 })
 export class InstructorsPageComponent {
   readonly svc = inject(CourseSystemService);
-  readonly Number = Number;
 
-  readonly selectedInstructorId = signal<number>(1);
-  readonly selectedBatchId = signal<number>(2);
+  readonly selectedInstructorId = signal<number | null>(null);
+  readonly selectedBatchId = signal<number | null>(null);
+  readonly conflictingBatches = computed(() => {
+    const instructorId = this.selectedInstructorId();
+    const selected = this.svc.batches().find(batch => batch.id === this.selectedBatchId());
+    if (!instructorId || !selected) return [];
+    const assignedIds = new Set(this.svc.batchInstructors()
+      .filter(assignment => assignment.instructorId === instructorId)
+      .map(assignment => assignment.batchId));
+    return this.svc.batches().filter(batch =>
+      assignedIds.has(batch.id) && batch.id !== selected.id &&
+      batch.startDate <= selected.endDate && batch.endDate >= selected.startDate &&
+      batch.startTime < selected.endTime && batch.endTime > selected.startTime
+    );
+  });
   readonly feedbackMessage = signal<{ success: boolean; message: string } | null>(null);
 
   readonly showForm = signal(false);
   readonly editingInstructorId = signal<number | undefined>(undefined);
   pendingSkill = '';
+  password = '';
 
   form = {
     fullName: '',
@@ -31,21 +44,12 @@ export class InstructorsPageComponent {
     bio: '',
   };
 
-  submitAssignment(): void {
-    const res = this.svc.assignInstructorToBatch({
-      batchId: this.selectedBatchId(),
-      instructorId: this.selectedInstructorId(),
-    });
-    this.feedbackMessage.set(res);
-  }
-
-  testScheduleConflict(): void {
-    this.selectedInstructorId.set(1);
-    this.selectedBatchId.set(4);
-    const res = this.svc.assignInstructorToBatch({
-      batchId: 4,
-      instructorId: 1,
-    });
+  async submitAssignment() {
+    const batchId = this.selectedBatchId();
+    const instructorId = this.selectedInstructorId();
+    if (!batchId || !instructorId || this.conflictingBatches().length || this.svc.saving()) return;
+    this.feedbackMessage.set(null);
+    const res = await this.svc.assignInstructorToBatch({ batchId, instructorId });
     this.feedbackMessage.set(res);
   }
 
@@ -56,6 +60,7 @@ export class InstructorsPageComponent {
     }
     this.editingInstructorId.set(undefined);
     this.pendingSkill = '';
+    this.password = '';
     this.form = {
       fullName: '',
       email: '',
@@ -69,6 +74,7 @@ export class InstructorsPageComponent {
   editInstructor(ins: Instructor): void {
     this.editingInstructorId.set(ins.id);
     this.pendingSkill = '';
+    this.password = '';
     this.form = {
       fullName: ins.fullName,
       email: ins.email,
@@ -99,20 +105,19 @@ export class InstructorsPageComponent {
     [skills[index], skills[target]] = [skills[target], skills[index]];
   }
 
-  saveInstructor(): void {
+  async saveInstructor() {
     if (!this.form.fullName.trim() || !this.form.email.trim()) return;
     this.addSkills();
     const payload = { ...this.form, expertise: this.form.expertise.join(', ') };
     const editId = this.editingInstructorId();
-    if (editId) {
-      this.svc.updateInstructorByAdmin(editId, payload);
-    } else {
-      const result = this.svc.addInstructorByAdmin(payload);
-      if (!result.success) {
-        this.svc.showNotification('warning', 'Pengajar belum tersimpan', result.message);
-        return;
-      }
+    if (!editId && this.password.length < 8) {
+      this.svc.showNotification('warning', 'Periksa kata sandi', 'Gunakan minimal 8 karakter untuk akun pengajar.');
+      return;
     }
-    this.showForm.set(false);
+    const result = await this.svc.saveInstructor(editId, editId ? payload : { ...payload, password: this.password });
+    if (result.success) {
+      this.password = '';
+      this.showForm.set(false);
+    }
   }
 }
