@@ -16,21 +16,19 @@ export class AppComponent {
   private readonly router = inject(Router);
   readonly mobileMenuOpen = signal(false);
 
-  // State Form di dalam Pop-Up Modal Login & Register
   readonly loginEmail = signal('raka.wijaya@karsa.id');
   readonly loginPassword = signal('karsa123');
 
   readonly regName = signal('');
   readonly regEmail = signal('');
-  readonly regPhone = signal('');
   readonly regPassword = signal('');
 
   readonly modalError = signal<string | null>(null);
 
-  readonly userRegCount = computed(() => {
+  readonly unpaidCartCount = computed(() => {
     const student = this.svc.currentStudentProfile();
     if (!student) return 0;
-    return this.svc.registrations().filter((r) => r.studentId === student.id).length;
+    return this.svc.getUnpaidCartRegistrations(student.id).length;
   });
 
   openSignInModal(): void {
@@ -64,16 +62,15 @@ export class AppComponent {
 
   handleModalRegister(): void {
     this.modalError.set(null);
-    if (!this.regName().trim() || !this.regEmail().trim() || !this.regPhone().trim()) {
-      this.modalError.set('Mohon lengkapi Nama Lengkap, Email, Nomor Telepon, dan Password.');
+    if (!this.regName().trim() || !this.regEmail().trim() || !this.regPassword().trim()) {
+      this.modalError.set('Mohon lengkapi Nama Lengkap, Email, dan Password.');
       return;
     }
 
     const res = this.svc.registerUser({
       fullName: this.regName(),
       email: this.regEmail(),
-      phoneNumber: this.regPhone(),
-      password: this.regPassword() || '123456',
+      password: this.regPassword(),
     });
 
     if (!res.success) {
@@ -83,7 +80,6 @@ export class AppComponent {
 
     this.regName.set('');
     this.regEmail.set('');
-    this.regPhone.set('');
     this.regPassword.set('');
     this.svc.closeAuthModal();
     this.router.navigate(['/profile']);

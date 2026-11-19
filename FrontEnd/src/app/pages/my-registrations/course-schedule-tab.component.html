@@ -1,0 +1,42 @@
+@for (reg of page.paidCourses(); track reg.id) {
+  <app-course-registration-card [reg]="reg">
+    @if (svc.getBatchById(reg.batchId); as batch) {
+      <div class="k-surface-soft p-3 small">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <div class="text-muted">Jadwal Pelaksanaan Batch</div>
+            <div class="fw-bold mt-1">{{ batch.startDate }} s/d {{ batch.endDate }}</div>
+            <div class="text-secondary">Jam {{ batch.startTime }} – {{ batch.endTime }} WIB</div>
+          </div>
+
+          @if (svc.getLocationById(batch.locationId); as loc) {
+            <div class="col-md-6">
+              <div class="text-muted">Lokasi Pelaksanaan Offline</div>
+              <div class="fw-bold mt-1">{{ loc.name }} ({{ loc.roomName }})</div>
+              <div class="text-secondary">{{ loc.address }}, {{ loc.city }}</div>
+            </div>
+          }
+
+          <div class="col-12 pt-2 border-top">
+            <div class="text-muted mb-2">Instructor yang Ditugaskan pada Batch Ini:</div>
+            <div class="d-flex flex-wrap gap-2">
+              @for (item of svc.getInstructorsForBatch(batch.id); track item.assignment.id) {
+                <div class="bg-white px-3 py-1 rounded-3 border">
+                  <span class="fw-bold">{{ item.instructor.fullName }}</span>
+                  <span class="text-secondary ms-1">({{ item.instructor.email }})</span>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    }
+
+    @if (reg.registrationStatus === 'Cancelled') {
+      <div class="small text-danger mt-3">
+        Kursus dibatalkan pada {{ reg.cancelledAt }} ({{ reg.daysBeforeBatchStart }} hari sebelum batch dimulai) ·
+        Refund {{ reg.refundPercentage }}%: <strong>Rp{{ (reg.refundAmount ?? 0) | number: '1.0-0' }}</strong>
+      </div>
+    }
+  </app-course-registration-card>
+}

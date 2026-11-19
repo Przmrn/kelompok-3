@@ -1,6 +1,5 @@
 <section class="py-5">
   <div class="container" style="max-width: 860px;">
-    <!-- Header -->
     <div class="mb-4 anim-fade-up">
       <span class="k-pill k-pill-green mb-2">Role: Instructor · My Teaching Schedule</span>
       <h1 class="h2 fw-bold mb-1">My Teaching Schedule</h1>
@@ -15,7 +14,6 @@
       }
     </div>
 
-    <!-- Assigned Batches List (Only for Logged-in Instructor) -->
     <div class="row g-3">
       @for (item of myAssignedBatches(); track item.assignment.id; let idx = $index) {
         <div class="col-12">
@@ -43,7 +41,6 @@
               </span>
             </div>
 
-            <!-- Tanggal, Waktu, & Lokasi Kelas (Sesuai Bab 1.3 & Bab 10) -->
             <div class="row g-3 mt-2 pt-3 border-top small">
               <div class="col-md-4">
                 <div class="text-muted">StartDate &amp; EndDate</div>

@@ -9,7 +9,6 @@
         </p>
       </div>
 
-      <!-- A. RINGKASAN AKTIVITAS & PENDAFTARAN (DASHBOARD STUDENT DI DALAM PROFIL) -->
       <div class="row g-3 mb-4 anim-fade-up">
         <div class="col-md-4">
           <div class="k-card p-4 h-100">
@@ -38,7 +37,6 @@
         </div>
       </div>
 
-      <!-- Daftar Singkat Aktivitas Pendaftaran Kelas -->
       @if (myRegistrations().length > 0) {
         <div class="k-card p-4 mb-4 anim-fade-up delay-1">
           <div class="d-flex justify-content-between align-items-center mb-3">
@@ -71,133 +69,149 @@
         </div>
       }
 
-      <!-- B. FORM KELENGKAPAN PROFIL STUDENT (SESUAI 8 KOLOM TABEL STUDENTS PADA ERD) -->
-      <div class="k-card p-4 p-md-5 anim-fade-up delay-2">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 pb-3 border-bottom">
-          <div>
-            <h2 class="h4 fw-bold mb-1">Data Diri Student ({{ user.fullName }})</h2>
-            <div class="small text-secondary">{{ user.email }}</div>
+      @if (user.role === 'Student') {
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="k-card p-4 p-md-5 anim-fade-up delay-2">
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 pb-3 border-bottom">
+            <div>
+              <h2 class="h4 fw-bold mb-1">Data Diri Student ({{ user.fullName }})</h2>
+              <div class="small text-secondary">{{ user.email }}</div>
+            </div>
+
+            @if (isProfileComplete()) {
+              <span class="k-pill k-pill-green">Profil Lengkap · Siap Daftar Kelas</span>
+            } @else {
+              <span class="k-pill k-pill-amber">Profil Belum Lengkap</span>
+            }
           </div>
 
-          @if (isProfileComplete()) {
-            <span class="k-pill k-pill-green">Profil Lengkap · Siap Daftar Kelas</span>
-          } @else {
-            <span class="k-pill k-pill-amber">Profil Belum Lengkap</span>
+          @if (!isProfileComplete()) {
+            <div class="p-3 rounded-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: var(--brand-amber-light);">
+              <span class="small" style="color: #92400E;">
+                Lengkapi seluruh kolom profil di bawah ini sebelum mendaftar kelas.
+              </span>
+              <button
+                type="button"
+                class="btn-k-primary btn-sm"
+                (click)="autoFillCompleteProfile()"
+              >
+                Isi Otomatis (Demo)
+              </button>
+            </div>
           }
-        </div>
 
-        @if (!isProfileComplete()) {
-          <div class="p-3 rounded-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: var(--brand-amber-light);">
-            <span class="small" style="color: #92400E;">
-              Lengkapi seluruh kolom profil di bawah ini sebelum mendaftar kelas.
-            </span>
-            <button
-              type="button"
-              class="btn-k-primary btn-sm"
-              (click)="autoFillCompleteProfile()"
-            >
-              Isi Otomatis (Demo)
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="k-label" for="profile-fullName">FullName</label>
+              <input
+                type="text"
+                class="form-control k-input"
+                id="profile-fullName"
+                formControlName="fullName"
+                placeholder="Nama lengkap Student"
+              />
+            </div>
+
+            <div class="col-md-6">
+              <label class="k-label" for="profile-phoneNumber">PhoneNumber</label>
+              <input
+                type="tel"
+                class="form-control k-input"
+                id="profile-phoneNumber"
+                formControlName="phoneNumber"
+                autocomplete="tel"
+                [class.is-invalid]="phone.invalid && phone.touched"
+                [attr.aria-invalid]="phone.invalid && phone.touched"
+                [attr.aria-describedby]="phone.invalid && phone.touched ? 'profile-phone-error' : null"
+                placeholder="0812xxxxxxxx"
+              />
+              @if (phone.touched && phone.hasError('phoneNumber')) {
+                <div id="profile-phone-error" class="invalid-feedback">
+                  Masukkan 8–15 digit. Tanda + di awal, spasi, dan tanda hubung diperbolehkan.
+                </div>
+              }
+            </div>
+
+            <div class="col-12">
+              <label class="k-label" for="profile-address">Address</label>
+              <input
+                type="text"
+                class="form-control k-input"
+                id="profile-address"
+                formControlName="address"
+                placeholder="Alamat lengkap tempat tinggal..."
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label class="k-label" for="profile-city">City</label>
+              <input
+                type="text"
+                class="form-control k-input"
+                id="profile-city"
+                formControlName="city"
+                placeholder="Jakarta Selatan / Bandung"
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label class="k-label" for="profile-province">Province</label>
+              <input
+                type="text"
+                class="form-control k-input"
+                id="profile-province"
+                formControlName="province"
+                placeholder="DKI Jakarta / Jawa Barat"
+              />
+            </div>
+
+            <div class="col-md-4">
+              <label class="k-label" for="profile-country">Country</label>
+              <input
+                type="text"
+                class="form-control k-input"
+                id="profile-country"
+                formControlName="country"
+                placeholder="Indonesia"
+              />
+            </div>
+
+            <div class="col-md-6">
+              <label class="k-label" for="profile-educationLevel">EducationLevel</label>
+              <input
+                type="text"
+                class="form-control k-input"
+                id="profile-educationLevel"
+                formControlName="educationLevel"
+                placeholder="S1 Teknik Informatika / D3 / SMA"
+              />
+            </div>
+
+            <div class="col-md-6">
+              <label class="k-label" for="profile-occupation">Occupation</label>
+              <input
+                type="text"
+                class="form-control k-input"
+                id="profile-occupation"
+                formControlName="occupation"
+                placeholder="Mahasiswa / Software Engineer"
+              />
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
+            <button type="submit" class="btn-k-primary">
+              Simpan Profil Student
             </button>
+
+            @if (isProfileComplete()) {
+              <a routerLink="/courses" class="btn-k-light">
+                Jelajahi Kelas <i class="bi bi-arrow-right"></i>
+              </a>
+            }
           </div>
-        }
-
-        <!-- 8 Kolom Tabel Students sesuai ERD -->
-        <div class="row g-3">
-          <div class="col-md-6">
-            <label class="k-label">FullName</label>
-            <input
-              type="text"
-              class="form-control k-input"
-              [(ngModel)]="profileForm.fullName"
-              placeholder="Nama lengkap Student"
-            />
-          </div>
-
-          <div class="col-md-6">
-            <label class="k-label">PhoneNumber</label>
-            <input
-              type="tel"
-              class="form-control k-input"
-              [(ngModel)]="profileForm.phoneNumber"
-              placeholder="0812xxxxxxxx"
-            />
-          </div>
-
-          <div class="col-12">
-            <label class="k-label">Address</label>
-            <input
-              type="text"
-              class="form-control k-input"
-              [(ngModel)]="profileForm.address"
-              placeholder="Alamat lengkap tempat tinggal..."
-            />
-          </div>
-
-          <div class="col-md-4">
-            <label class="k-label">City</label>
-            <input
-              type="text"
-              class="form-control k-input"
-              [(ngModel)]="profileForm.city"
-              placeholder="Jakarta Selatan / Bandung"
-            />
-          </div>
-
-          <div class="col-md-4">
-            <label class="k-label">Province</label>
-            <input
-              type="text"
-              class="form-control k-input"
-              [(ngModel)]="profileForm.province"
-              placeholder="DKI Jakarta / Jawa Barat"
-            />
-          </div>
-
-          <div class="col-md-4">
-            <label class="k-label">Country</label>
-            <input
-              type="text"
-              class="form-control k-input"
-              [(ngModel)]="profileForm.country"
-              placeholder="Indonesia"
-            />
-          </div>
-
-          <div class="col-md-6">
-            <label class="k-label">EducationLevel</label>
-            <input
-              type="text"
-              class="form-control k-input"
-              [(ngModel)]="profileForm.educationLevel"
-              placeholder="S1 Teknik Informatika / D3 / SMA"
-            />
-          </div>
-
-          <div class="col-md-6">
-            <label class="k-label">Occupation</label>
-            <input
-              type="text"
-              class="form-control k-input"
-              [(ngModel)]="profileForm.occupation"
-              placeholder="Mahasiswa / Software Engineer"
-            />
-          </div>
-        </div>
-
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mt-4 pt-3 border-top">
-          <button type="button" class="btn-k-primary" (click)="saveProfile()">
-            Simpan Profil Student
-          </button>
-
-          @if (isProfileComplete()) {
-            <a routerLink="/courses" class="btn-k-light">
-              Jelajahi Kelas <i class="bi bi-arrow-right"></i>
-            </a>
-          }
-        </div>
-      </div>
+        </form>
+      }
     } @else {
-      <!-- Belum Login -->
       <div class="k-card p-5 text-center anim-fade-up">
         <div
           class="brand-mark mx-auto mb-3"

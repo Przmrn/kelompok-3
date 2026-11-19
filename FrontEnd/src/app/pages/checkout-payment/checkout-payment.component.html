@@ -1,25 +1,22 @@
 @if (batch(); as b) {
   @if (course(); as crs) {
     <section class="py-5">
-      <div class="container" style="max-width: 860px;">
-        <!-- Back Link -->
+      <div class="container" style="max-width: 900px;">
         <div class="mb-4 anim-fade-up">
           <a [routerLink]="['/courses', crs.id]" class="btn-k-light btn-sm">
             <i class="bi bi-arrow-left"></i> Kembali ke Course Detail
           </a>
         </div>
 
-        <!-- Header -->
         <div class="mb-4 anim-fade-up">
           <span class="k-pill k-pill-green mb-2">Role: Student · Checkout / Payment</span>
-          <h1 class="h2 fw-bold mb-1">Checkout &amp; Metode Pembayaran</h1>
+          <h1 class="h2 fw-bold mb-1">Checkout, Perhitungan Diskon &amp; Pembayaran</h1>
           <p class="text-secondary small mb-0">
-            Memilih metode pembayaran, memilih tenor melalui dropdown, dan melihat rincian tagihan.
+            Memilih metode pembayaran, memilih tenor melalui dropdown, serta melihat perhitungan diskon Early Bird dan rincian tagihan.
           </p>
         </div>
 
         <div class="row g-4">
-          <!-- Left Column: Pilihan Metode Pembayaran & Dropdown Tenor -->
           <div class="col-lg-6 anim-fade-up delay-1">
             <div class="k-card p-4 h-100">
               <h2 class="h5 fw-bold mb-3">1. Course &amp; Batch Dipilih</h2>
@@ -44,7 +41,7 @@
                   [class.active]="paymentMethod() === 'Upfront'"
                   (click)="paymentMethod.set('Upfront')"
                 >
-                  Upfront
+                  Upfront (Bayar Lunas)
                 </button>
                 <button
                   type="button"
@@ -52,11 +49,10 @@
                   [class.active]="paymentMethod() === 'Installment'"
                   (click)="paymentMethod.set('Installment')"
                 >
-                  Installment
+                  Installment (Cicilan 0%)
                 </button>
               </div>
 
-              <!-- Dropdown Tenor (3, 6, atau 12 bulan) -->
               @if (paymentMethod() === 'Installment') {
                 <div class="mb-3 anim-pop">
                   <label class="k-label" for="checkoutTenorDropdown">
@@ -76,7 +72,7 @@
 
                 @if (selectedInstallmentPreview(); as insPrev) {
                   <div class="k-surface-soft p-3 small anim-pop">
-                    <div class="fw-bold mb-2">Pratinjau InstallmentSchedules:</div>
+                    <div class="fw-bold mb-2">Rincian Jadwal Cicilan (InstallmentSchedules):</div>
                     @for (sch of insPrev.schedules; track sch.installmentNumber) {
                       <div class="d-flex justify-content-between py-1 border-bottom">
                         <span>Cicilan #{{ sch.installmentNumber }} (DueDate: {{ sch.dueDate }})</span>
@@ -96,26 +92,41 @@
             </div>
           </div>
 
-          <!-- Right Column: Rincian Tagihan (Registrations Snapshot) -->
           <div class="col-lg-6 anim-fade-up delay-2">
             @if (priceBreakdown(); as calc) {
               <div class="k-card p-4 h-100 d-flex flex-column justify-content-between">
                 <div>
-                  <h2 class="h5 fw-bold mb-3">3. Rincian Tagihan</h2>
+                  <h2 class="h5 fw-bold mb-3">3. Perhitungan Diskon &amp; Rincian Tagihan</h2>
+
+                  <div class="p-3 rounded-4 border bg-white small mb-3">
+                    <div class="fw-bold mb-1">Skema Early Bird Discount Bertingkat:</div>
+                    <div class="d-flex justify-content-between text-secondary" [class.fw-bold]="calc.discountTier === 'Tier 1'" [class.text-success]="calc.discountTier === 'Tier 1'">
+                      <span>• Tier 1 (Antrean #1–#3)</span>
+                      <span>Diskon 10% (Maks Rp150.000)</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-secondary" [class.fw-bold]="calc.discountTier === 'Tier 2'" [class.text-success]="calc.discountTier === 'Tier 2'">
+                      <span>• Tier 2 (Antrean #4–#7)</span>
+                      <span>Diskon 5% (Maks Rp75.000)</span>
+                    </div>
+                    <div class="d-flex justify-content-between text-secondary" [class.fw-bold]="calc.discountTier === 'Reguler'">
+                      <span>• Reguler (Antrean #8–#30)</span>
+                      <span>Diskon 0%</span>
+                    </div>
+                  </div>
 
                   <div class="k-surface-soft p-3 mb-3 small">
                     <div class="d-flex justify-content-between py-1">
-                      <span class="text-secondary">QueueNumber</span>
+                      <span class="text-secondary">Nomor Antrean Anda (QueueNumber)</span>
                       <span class="k-pill k-pill-green">#{{ calc.queueNumber }} · {{ calc.discountTier }}</span>
                     </div>
 
                     <div class="d-flex justify-content-between py-1 mt-1">
-                      <span class="text-secondary">BasePrice</span>
+                      <span class="text-secondary">Harga Dasar Course (BasePrice)</span>
                       <span class="font-mono">Rp{{ calc.basePrice | number: '1.0-0' }}</span>
                     </div>
 
                     <div class="d-flex justify-content-between py-1 text-success fw-semibold">
-                      <span>EarlyBirdDiscount ({{ calc.discountPercentage }}%)</span>
+                      <span>Potongan Diskon ({{ calc.discountTier }} · {{ calc.discountPercentage }}%)</span>
                       <span class="font-mono">-Rp{{ calc.earlyBirdDiscount | number: '1.0-0' }}</span>
                     </div>
 
@@ -125,50 +136,67 @@
                     </div>
 
                     <div class="d-flex justify-content-between py-1">
-                      <span class="text-secondary">TaxAmount (TaxRate {{ calc.taxRate }}%)</span>
+                      <span class="text-secondary">Pajak PPN (TaxRate {{ calc.taxRate }}%)</span>
                       <span class="font-mono">+Rp{{ calc.taxAmount | number: '1.0-0' }}</span>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-baseline pt-2 mt-2 border-top">
-                      <span class="fw-bold">TotalAmount</span>
+                      <span class="fw-bold">Total Pembayaran (TotalAmount)</span>
                       <span class="fs-4 fw-bold font-mono" style="color: var(--brand-forest);">
                         Rp{{ calc.totalAmount | number: '1.0-0' }}
                       </span>
                     </div>
                   </div>
 
-                  <!-- Payload Preview Box -->
-                  <div class="p-3 rounded-3 border bg-white small mb-3">
-                    <div class="text-muted mb-1" style="font-size: 0.75rem;">
-                      Payload yang dikirim Angular ke Backend:
+                  @if (!svc.currentUser()) {
+                    <div class="small text-danger mb-3">
+                      * Silakan Sign In terlebih dahulu sebelum mengonfirmasi pendaftaran.
                     </div>
-                    <code class="text-dark">
-                      &#123; "paymentMethod": "{{ paymentMethod() }}", "installmentTenor": {{ paymentMethod() === 'Installment' ? selectedTenor() : 'null' }} &#125;
-                    </code>
-                  </div>
-
-                  @if (!isProfileComplete()) {
+                  } @else if (!isProfileComplete()) {
                     <div class="small text-danger mb-3">
                       * Student wajib melengkapi profil di halaman <a routerLink="/profile" class="fw-bold text-danger">Profil</a> sebelum mendaftar.
                     </div>
                   }
                 </div>
 
-                <button
-                  type="button"
-                  class="btn-k-coral w-100 py-3"
-                  [disabled]="!canSubmit()"
-                  (click)="confirmCheckout()"
-                >
-                  @if (b.status === 'Full') {
-                    Batch Sudah Penuh (Full)
-                  } @else if (isAlreadyRegistered()) {
-                    Sudah Terdaftar Aktif di Batch Ini
-                  } @else {
-                    Konfirmasi Pendaftaran &amp; Lanjut ke Payment Detail
-                    <i class="bi bi-arrow-right"></i>
-                  }
-                </button>
+                @if (!svc.currentUser()) {
+                  <button
+                    type="button"
+                    class="btn-k-primary w-100 py-3"
+                    (click)="svc.openAuthModal('LOGIN')"
+                  >
+                    <i class="bi bi-box-arrow-in-right"></i>
+                    <span>Sign In untuk Checkout</span>
+                  </button>
+                } @else {
+                  <div class="d-flex flex-column gap-2">
+                    <button
+                      type="button"
+                      class="btn-k-coral w-100 py-2"
+                      [disabled]="!canSubmit()"
+                      (click)="payImmediately()"
+                    >
+                      @if (b.status === 'Full') {
+                        Batch Sudah Penuh (Full)
+                      } @else if (isAlreadyRegistered()) {
+                        Sudah Terdaftar Aktif di Batch Ini
+                      } @else {
+                        <i class="bi bi-credit-card-check"></i>
+                        <span>Bayar Sekarang (Masuk ke My Course)</span>
+                      }
+                    </button>
+
+                    <button
+                      type="button"
+                      class="btn-k-light w-100 py-2"
+                      [disabled]="!canSubmit()"
+                      (click)="addToUnpaidCart()"
+                    >
+                      <i class="bi bi-cart-plus"></i>
+                      <span>Masukkan ke Keranjang (Bayar Nanti)</span>
+                    </button>
+                  </div>
+                }
               </div>
             }
           </div>

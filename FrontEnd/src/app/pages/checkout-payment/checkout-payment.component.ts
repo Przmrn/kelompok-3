@@ -81,7 +81,25 @@ export class CheckoutPaymentPageComponent implements OnInit {
     }
   }
 
-  confirmCheckout(): void {
+  addToUnpaidCart(): void {
+    const u = this.currentUser();
+    const b = this.batch();
+    if (!u || !b) return;
+
+    const res = this.svc.submitCourseRegistration({
+      userId: u.id,
+      batchId: b.id,
+      paymentMethod: this.paymentMethod(),
+      installmentTenor: this.paymentMethod() === 'Installment' ? this.selectedTenor() : null,
+      simulateInitialPaymentConfirmed: false,
+    });
+
+    if (res.success) {
+      this.router.navigate(['/cart']);
+    }
+  }
+
+  payImmediately(): void {
     const u = this.currentUser();
     const b = this.batch();
     if (!u || !b) return;
@@ -94,8 +112,8 @@ export class CheckoutPaymentPageComponent implements OnInit {
       simulateInitialPaymentConfirmed: true,
     });
 
-    if (res.success && res.registration) {
-      this.router.navigate(['/payments', res.registration.id]);
+    if (res.success) {
+      this.router.navigate(['/my-courses']);
     }
   }
 }

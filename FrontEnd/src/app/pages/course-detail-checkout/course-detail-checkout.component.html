@@ -1,7 +1,6 @@
 @if (course(); as crs) {
   <section class="py-4 py-lg-5">
     <div class="container" style="max-width: 960px;">
-      <!-- Back Link -->
       <div class="mb-4 anim-fade-up">
         <a routerLink="/courses" class="btn-k-light btn-sm">
           <i class="bi bi-arrow-left"></i> Kembali ke Course Catalog
@@ -9,7 +8,6 @@
       </div>
 
       <div class="row g-4">
-        <!-- LEFT COLUMN: Detail Course, Pilihan Batch, Jadwal, Lokasi, dan Instructor -->
         <div class="col-lg-7 anim-fade-up delay-1">
           <span class="k-pill k-pill-green mb-2">
             Course Detail · {{ crs.durationHours }} Jam Belajar
@@ -17,7 +15,6 @@
           <h1 class="h2 fw-bold mb-2">{{ crs.title }}</h1>
           <p class="text-secondary mb-4">{{ crs.description }}</p>
 
-          <!-- 1. PILIHAN BATCH, JADWAL & LOKASI -->
           <h2 class="h5 fw-bold mb-3">Pilihan Batch, Jadwal &amp; Lokasi</h2>
 
           <div class="row g-3 mb-4">
@@ -63,7 +60,6 @@
             }
           </div>
 
-          <!-- 2. INSTRUCTOR & SYLLABUS -->
           <div class="k-card p-4">
             <h3 class="h6 fw-bold mb-3">Instructor pada Batch Ini</h3>
             <div class="d-flex flex-wrap gap-3 mb-4">
@@ -94,7 +90,6 @@
           </div>
         </div>
 
-        <!-- RIGHT COLUMN: RINGKASAN BATCH & TOMBOL LANJUT KE CHECKOUT / PAYMENT -->
         <div class="col-lg-5 anim-fade-up delay-2">
           <div class="k-card p-4 position-sticky" style="top: 96px;">
             <h2 class="h5 fw-bold mb-3">Ringkasan Batch Dipilih</h2>

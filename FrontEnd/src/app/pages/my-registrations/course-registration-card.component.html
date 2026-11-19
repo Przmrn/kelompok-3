@@ -1,0 +1,79 @@
+<div class="k-card p-4 mb-4">
+  <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+    <div>
+      <div class="small text-muted mb-1">
+        {{ reg.registrationNumber }} · QueueNumber: <strong>#{{ reg.queueNumber }}</strong> ({{ svc.getTierNameFromQueue(reg.queueNumber) }})
+      </div>
+      @if (svc.getBatchById(reg.batchId); as batch) {
+        <h2 class="h5 fw-bold mb-1">
+          {{ svc.getCourseById(batch.courseId)?.title }}
+        </h2>
+        <div class="small text-secondary">
+          {{ batch.batchName }} · Mulai {{ batch.startDate }}
+        </div>
+      }
+    </div>
+
+    <div class="d-flex flex-wrap gap-2">
+      <span
+        class="k-pill"
+        [ngClass]="{
+          'k-pill-green': reg.registrationStatus === 'Confirmed' || reg.registrationStatus === 'Completed',
+          'k-pill-amber': reg.registrationStatus === 'Pending',
+          'k-pill-red': reg.registrationStatus === 'Cancelled'
+        }"
+      >
+        Status: {{ reg.registrationStatus }}
+      </span>
+
+      <span
+        class="k-pill"
+        [ngClass]="{
+          'k-pill-green': reg.paymentStatus === 'Paid',
+          'k-pill-amber': reg.paymentStatus === 'PartiallyPaid' || reg.paymentStatus === 'Pending',
+          'k-pill-red': reg.paymentStatus === 'Failed' || reg.paymentStatus === 'Overdue'
+        }"
+      >
+        Bayar: {{ reg.paymentStatus }}
+      </span>
+    </div>
+  </div>
+
+  <div class="small text-secondary pb-3 mb-3 border-bottom d-flex flex-wrap gap-3">
+    <span>Metode: <strong>{{ reg.paymentMethod }}{{ reg.installmentTenor ? ' (' + reg.installmentTenor + ' Bulan)' : '' }}</strong></span>
+    <span>Total Tagihan: <strong>Rp{{ reg.totalAmount | number: '1.0-0' }}</strong></span>
+    <span>Sudah Dibayar: <strong class="text-success">Rp{{ svc.getTotalPaidForRegistration(reg) | number: '1.0-0' }}</strong></span>
+    <span>Sisa Cicilan: <strong style="color: var(--brand-coral);">Rp{{ svc.getRemainingObligationForRegistration(reg) | number: '1.0-0' }}</strong></span>
+  </div>
+
+  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div class="d-flex flex-wrap gap-2">
+      <a
+        class="k-chip py-1 px-3 small"
+        routerLink="/my-courses/jadwal"
+        routerLinkActive="active"
+        ariaCurrentWhenActive="page"
+      >
+        Jadwal, Lokasi &amp; Instructor
+      </a>
+      @if (reg.registrationStatus !== 'Cancelled' && reg.registrationStatus !== 'Completed') {
+        <a
+          class="k-chip py-1 px-3 small"
+          [routerLink]="['/my-courses', reg.id, 'refund']"
+          routerLinkActive="active"
+          ariaCurrentWhenActive="page"
+        >
+          Batalkan Kursus (Refund)
+        </a>
+      }
+    </div>
+
+    <a
+      [routerLink]="['/payments', reg.id]"
+      class="btn-k-primary btn-sm py-1 px-3"
+    >
+      Payment Detail &amp; Cicilan <i class="bi bi-arrow-right"></i>
+    </a>
+  </div>
+  <ng-content></ng-content>
+</div>

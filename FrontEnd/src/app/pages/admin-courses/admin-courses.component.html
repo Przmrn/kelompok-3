@@ -1,6 +1,5 @@
 <section class="py-5">
   <div class="container" style="max-width: 960px;">
-    <!-- Header -->
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
       <div>
         <span class="k-pill k-pill-green mb-2">Role: Admin · Courses</span>
@@ -18,7 +17,6 @@
       </button>
     </div>
 
-    <!-- Form Tambah / Ubah Course -->
     @if (showForm()) {
       <div class="k-card p-4 mb-4 anim-pop">
         <h2 class="h5 fw-bold mb-3">
@@ -68,7 +66,6 @@
       </div>
     }
 
-    <!-- Daftar Courses -->
     <div class="row g-3">
       @for (course of svc.courses(); track course.id) {
         <div class="col-md-6">

@@ -1,0 +1,162 @@
+<section class="py-5">
+  <div class="container" style="max-width: 840px;">
+    @if (!svc.currentUser()) {
+      <div class="k-card p-5 text-center anim-fade-up">
+        <div
+          class="brand-mark mx-auto mb-3"
+          style="width: 48px; height: 48px; font-size: 1.25rem;"
+        >
+          <i class="bi bi-cart3"></i>
+        </div>
+        <h1 class="h4 fw-bold mb-2">Keranjang Pembayaran Course</h1>
+        <p class="text-secondary small mb-4">
+          Silakan Sign In terlebih dahulu untuk melihat daftar course yang belum dibayar di keranjang Anda.
+        </p>
+        <button
+          type="button"
+          class="btn-k-primary"
+          (click)="svc.openAuthModal('LOGIN')"
+        >
+          <i class="bi bi-box-arrow-in-right"></i>
+          <span>Sign In Sekarang</span>
+        </button>
+      </div>
+    } @else {
+      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 anim-fade-up">
+        <div>
+          <span class="k-pill k-pill-amber mb-2">
+            <i class="bi bi-cart3"></i> Keranjang Tagihan · Belum Dibayar
+          </span>
+          <h1 class="h2 fw-bold mb-1">Course Belum Dibayar ({{ unpaidRegistrations().length }})</h1>
+          <p class="text-secondary small mb-0">
+            Selesaikan pembayaran awal untuk mengonfirmasi pendaftaran dan memindahkan course ke halaman <strong>My Course</strong>.
+          </p>
+        </div>
+
+        <div class="d-flex gap-2">
+          <a routerLink="/my-courses" class="btn-k-light btn-sm">
+            Lihat My Course ({{ paidCoursesCount() }})
+          </a>
+          <a routerLink="/courses" class="btn-k-primary btn-sm">
+            + Pilih Kelas Lain
+          </a>
+        </div>
+      </div>
+
+      @for (reg of unpaidRegistrations(); track reg.id) {
+        <div class="k-card p-4 mb-4">
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3 pb-3 border-bottom">
+            <div>
+              <div class="small text-muted mb-1">
+                {{ reg.registrationNumber }} · QueueNumber: <strong>#{{ reg.queueNumber }}</strong> ({{ svc.getTierNameFromQueue(reg.queueNumber) }})
+              </div>
+              @if (svc.getBatchById(reg.batchId); as batch) {
+                <h2 class="h5 fw-bold mb-1">
+                  {{ svc.getCourseById(batch.courseId)?.title }}
+                </h2>
+                <div class="small text-secondary">
+                  {{ batch.batchName }} · Mulai {{ batch.startDate }} s/d {{ batch.endDate }} ({{ batch.startTime }}–{{ batch.endTime }} WIB)
+                </div>
+                @if (svc.getLocationById(batch.locationId); as loc) {
+                  <div class="small text-secondary">
+                    Lokasi: {{ loc.name }} ({{ loc.roomName }}, {{ loc.city }})
+                  </div>
+                }
+              }
+            </div>
+
+            <span class="k-pill k-pill-amber">
+              Status: Belum Dibayar ({{ reg.paymentStatus }})
+            </span>
+          </div>
+
+          <div class="k-surface-soft p-3 mb-3 small">
+            <div class="row g-2">
+              <div class="col-md-6">
+                <div class="d-flex justify-content-between py-1">
+                  <span class="text-secondary">BasePrice</span>
+                  <span>Rp{{ reg.basePrice | number: '1.0-0' }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-1 text-success fw-semibold">
+                  <span>EarlyBirdDiscount</span>
+                  <span>-Rp{{ reg.earlyBirdDiscount | number: '1.0-0' }}</span>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                  <span class="text-secondary">TaxAmount (PPN {{ reg.taxRate }}%)</span>
+                  <span>+Rp{{ reg.taxAmount | number: '1.0-0' }}</span>
+                </div>
+              </div>
+
+              <div class="col-md-6 border-start-md ps-md-3">
+                <div class="d-flex justify-content-between py-1">
+                  <span class="text-secondary">PaymentMethod</span>
+                  <strong>{{ reg.paymentMethod }}{{ reg.installmentTenor ? ' (' + reg.installmentTenor + ' Bulan)' : ' (Lunas)' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-1">
+                  <span class="text-secondary">Total Tagihan (TotalAmount)</span>
+                  <strong class="fs-6" style="color: var(--brand-forest);">Rp{{ reg.totalAmount | number: '1.0-0' }}</strong>
+                </div>
+                <div class="d-flex justify-content-between py-1" style="color: var(--brand-coral);">
+                  <span class="fw-semibold">
+                    {{ reg.paymentMethod === 'Upfront' ? 'Tagihan Saat Ini (Lunas)' : 'Tagihan Cicilan #1' }}
+                  </span>
+                  <strong class="fs-6">Rp{{ getInitialAmountDue(reg.id, reg.totalAmount) | number: '1.0-0' }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+            <div class="d-flex gap-2">
+              <a
+                [routerLink]="['/payments', reg.id]"
+                class="btn-k-light btn-sm"
+              >
+                Lihat Rincian Cicilan
+              </a>
+              <button
+                type="button"
+                class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                (click)="cancelOrder(reg.id)"
+              >
+                Batalkan Pesanan
+              </button>
+            </div>
+
+            <button
+              type="button"
+              class="btn-k-coral py-2 px-4"
+              (click)="payNow(reg.id)"
+            >
+              <i class="bi bi-credit-card-check"></i>
+              <span>
+                Bayar Sekarang (Rp{{ getInitialAmountDue(reg.id, reg.totalAmount) | number: '1.0-0' }})
+              </span>
+            </button>
+          </div>
+        </div>
+      } @empty {
+        <div class="k-card p-5 text-center">
+          <div
+            class="brand-mark mx-auto mb-3"
+            style="width: 48px; height: 48px; font-size: 1.25rem;"
+          >
+            <i class="bi bi-check2-all"></i>
+          </div>
+          <h2 class="h5 fw-bold mb-1">Keranjang Anda Kosong</h2>
+          <p class="text-secondary small mb-4">
+            Tidak ada course yang menunggu pembayaran awal. Course yang sudah dibayar dapat dilihat di halaman <strong>My Course</strong>.
+          </p>
+          <div class="d-flex justify-content-center gap-2">
+            <a routerLink="/my-courses" class="btn-k-primary btn-sm">
+              Buka My Course
+            </a>
+            <a routerLink="/courses" class="btn-k-light btn-sm">
+              Jelajahi Kelas Baru
+            </a>
+          </div>
+        </div>
+      }
+    }
+  </div>
+</section>

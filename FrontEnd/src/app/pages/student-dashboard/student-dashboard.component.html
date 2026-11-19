@@ -1,6 +1,5 @@
 <section class="py-5">
   <div class="container" style="max-width: 920px;">
-    <!-- Header -->
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
       <div>
         <span class="k-pill k-pill-green mb-2">Role: Student · Dashboard</span>
@@ -15,7 +14,6 @@
       </div>
     </div>
 
-    <!-- Warning if Profile Incomplete -->
     @if (!isProfileComplete()) {
       <div class="k-card p-3 px-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: var(--brand-amber-light);">
         <span class="small" style="color: #92400E;">
@@ -25,7 +23,6 @@
       </div>
     }
 
-    <!-- 3 Summary Cards -->
     <div class="row g-3 mb-4">
       <div class="col-md-4">
         <div class="k-card p-4 h-100">
@@ -54,7 +51,6 @@
       </div>
     </div>
 
-    <!-- Pendaftaran Aktif & Pintasan ke Payment Detail -->
     <div class="k-card p-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
         <h2 class="h5 fw-bold mb-0">Aktivitas &amp; Pendaftaran Terbaru</h2>

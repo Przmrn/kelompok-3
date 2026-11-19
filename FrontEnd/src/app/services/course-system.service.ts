@@ -26,9 +26,6 @@ export class CourseSystemService {
     message: string;
   } | null>(null);
 
-  // ==========================================================================
-  // 1. TABEL USERS (Id, FullName, Email, PasswordHash, Role)
-  // ==========================================================================
   readonly users = signal<User[]>([
     {
       id: 1,
@@ -67,10 +64,6 @@ export class CourseSystemService {
     },
   ]);
 
-  // ==========================================================================
-  // 2. TABEL STUDENTS (One-to-One ke Users melalui UserId)
-  // Kolom ERD: Id, UserId, FullName, PhoneNumber, Address, City, Province, Country, EducationLevel, Occupation
-  // ==========================================================================
   readonly students = signal<Student[]>([
     {
       id: 1,
@@ -89,8 +82,6 @@ export class CourseSystemService {
       userId: 2,
       fullName: 'Nadia Larasati Putri',
       phoneNumber: '085711223344',
-      // Sengaja belum lengkap untuk mendemonstrasikan ketentuan Bab 1.2:
-      // "Student wajib melengkapi profil sebelum melakukan pendaftaran course."
       address: '',
       city: '',
       province: '',
@@ -100,10 +91,8 @@ export class CourseSystemService {
     },
   ]);
 
-  // Saat pertama kali membuka website, user belum login (null)
   readonly currentUserId = signal<number | null>(null);
 
-  // State Pop-Up Modal Sign In / Register
   readonly authModalOpen = signal<boolean>(false);
   readonly authModalMode = signal<'LOGIN' | 'REGISTER'>('LOGIN');
 
@@ -123,9 +112,6 @@ export class CourseSystemService {
   readonly isInstructor = computed<boolean>(() => this.currentUser()?.role === 'Instructor');
   readonly isStudent = computed<boolean>(() => this.currentUser()?.role === 'Student');
 
-  // ==========================================================================
-  // 3. TABEL COURSE CATEGORIES (Id, Name, Description)
-  // ==========================================================================
   readonly categories = signal<CourseCategory[]>([
     {
       id: 1,
@@ -149,9 +135,6 @@ export class CourseSystemService {
     },
   ]);
 
-  // ==========================================================================
-  // 4. TABEL LOCATIONS (Id, Name, Address, City, RoomName)
-  // ==========================================================================
   readonly locations = signal<Location[]>([
     {
       id: 1,
@@ -176,9 +159,6 @@ export class CourseSystemService {
     },
   ]);
 
-  // ==========================================================================
-  // 5. TABEL COURSES (Id, CategoryId, Title, Description, Syllabus, DurationHours, BasePrice)
-  // ==========================================================================
   readonly courses = signal<Course[]>([
     {
       id: 1,
@@ -226,10 +206,6 @@ export class CourseSystemService {
     },
   ]);
 
-  // ==========================================================================
-  // 6. TABEL COURSE BATCHES
-  // Kolom ERD: Id, CourseId, LocationId, BatchName, StartDate, EndDate, StartTime, EndTime, MaxSeats, Status
-  // ==========================================================================
   readonly batches = signal<CourseBatch[]>([
     {
       id: 1,
@@ -317,21 +293,16 @@ export class CourseSystemService {
     },
   ]);
 
-  // Menyimpan baseline seat terpakai & antrean historis untuk simulasi skenario Bab 11
   private readonly batchSeatBaseline = signal<Record<number, { usedSeats: number; nextQueue: number }>>({
-    1: { usedSeats: 30, nextQueue: 31 }, // Batch 1 Full (30/30)
-    2: { usedSeats: 18, nextQueue: 19 }, // Batch 2 Open (18/30, sisa 12 seat sesuai Bab 11)
-    3: { usedSeats: 1, nextQueue: 2 },   // Pendaftar berikutnya QueueNumber #2 (Tier 1: 10%)
-    4: { usedSeats: 4, nextQueue: 5 },   // Pendaftar berikutnya QueueNumber #5 (Tier 2: 5%)
-    5: { usedSeats: 2, nextQueue: 3 },   // Pendaftar berikutnya QueueNumber #3 (Tier 1: 10%)
-    6: { usedSeats: 0, nextQueue: 1 },   // Pendaftar pertama QueueNumber #1 (Tier 1: 10%)
-    7: { usedSeats: 5, nextQueue: 6 },   // Pendaftar berikutnya QueueNumber #6 (Tier 2: 5%)
+    1: { usedSeats: 30, nextQueue: 31 },
+    2: { usedSeats: 18, nextQueue: 19 },
+    3: { usedSeats: 1, nextQueue: 2 },
+    4: { usedSeats: 4, nextQueue: 5 },
+    5: { usedSeats: 2, nextQueue: 3 },
+    6: { usedSeats: 0, nextQueue: 1 },
+    7: { usedSeats: 5, nextQueue: 6 },
   });
 
-  // ==========================================================================
-  // 7. TABEL INSTRUCTORS
-  // Kolom ERD: Id, UserId, FullName, Expertise, Bio, Email, PhoneNumber
-  // ==========================================================================
   readonly instructors = signal<Instructor[]>([
     {
       id: 1,
@@ -371,9 +342,6 @@ export class CourseSystemService {
     },
   ]);
 
-  // ==========================================================================
-  // 8. TABEL BATCH INSTRUCTORS (Id, BatchId, InstructorId)
-  // ==========================================================================
   readonly batchInstructors = signal<BatchInstructor[]>([
     { id: 1, batchId: 1, instructorId: 1 },
     { id: 2, batchId: 1, instructorId: 3 },
@@ -385,17 +353,11 @@ export class CourseSystemService {
     { id: 8, batchId: 7, instructorId: 4 },
   ]);
 
-  // ==========================================================================
-  // 9. TABEL REGISTRATIONS
-  // Kolom ERD: Id, StudentId, BatchId, RegistrationNumber, RegistrationDate,
-  // QueueNumber, BasePrice, EarlyBirdDiscount, TaxRate, TaxAmount, TotalAmount,
-  // PaymentMethod, InstallmentTenor, PaymentStatus, RegistrationStatus
-  // ==========================================================================
   readonly registrations = signal<Registration[]>([
     {
       id: 1,
-      studentId: 1, // Raka Pratama Wijaya (Students.Id = 1)
-      batchId: 2,   // BCH-BE-02
+      studentId: 1,
+      batchId: 2,
       registrationNumber: 'REG-202611-0001',
       registrationDate: '2026-11-10T10:30:00Z',
       queueNumber: 1,
@@ -409,12 +371,25 @@ export class CourseSystemService {
       paymentStatus: 'PartiallyPaid',
       registrationStatus: 'Confirmed',
     },
+    {
+      id: 2,
+      studentId: 1,
+      batchId: 7,
+      registrationNumber: 'REG-202611-0002',
+      registrationDate: '2026-11-18T09:15:00Z',
+      queueNumber: 5,
+      basePrice: 1250000,
+      earlyBirdDiscount: 62500,
+      taxRate: 11.0,
+      taxAmount: 130625,
+      totalAmount: 1318125,
+      paymentMethod: 'Upfront',
+      installmentTenor: null,
+      paymentStatus: 'Pending',
+      registrationStatus: 'Pending',
+    },
   ]);
 
-  // ==========================================================================
-  // 10. TABEL INSTALLMENT SCHEDULES
-  // Kolom ERD: Id, RegistrationId, InstallmentNumber, DueDate, Amount, PaidAt, PaidAmount, Status
-  // ==========================================================================
   readonly installmentSchedules = signal<InstallmentSchedule[]>([
     {
       id: 1,
@@ -448,9 +423,6 @@ export class CourseSystemService {
     },
   ]);
 
-  // ==========================================================================
-  // HELPER & DERIVED METHODS (Sesuai Aturan ERD Bab 13.2)
-  // ==========================================================================
 
   showNotification(
     type: 'success' | 'warning' | 'danger' | 'info',
@@ -530,10 +502,6 @@ export class CourseSystemService {
     );
   }
 
-  /**
-   * Bab 13.2: RemainingSeats tidak disimpan sebagai kolom permanen karena dihitung dari
-   * MaxSeats dikurangi jumlah seat yang sedang digunakan.
-   */
   getUsedSeatsForBatch(batchId: number): number {
     return this.batchSeatBaseline()[batchId]?.usedSeats ?? 0;
   }
@@ -554,10 +522,6 @@ export class CourseSystemService {
     return 'Reguler';
   }
 
-  /**
-   * Bab 7 Hal. 7: Total pembayaran yang telah diterima (Total Paid) dihitung dari
-   * penjumlahan PaidAmount seluruh jadwal cicilan yang berstatus dibayar (atau TotalAmount untuk Upfront Paid).
-   */
   getTotalPaidForRegistration(reg: Registration): number {
     if (reg.paymentMethod === 'Upfront') {
       return reg.paymentStatus === 'Paid' ? reg.totalAmount : 0;
@@ -570,6 +534,42 @@ export class CourseSystemService {
   getRemainingObligationForRegistration(reg: Registration): number {
     if (reg.registrationStatus === 'Cancelled') return 0;
     return Math.max(0, reg.totalAmount - this.getTotalPaidForRegistration(reg));
+  }
+
+  getUnpaidCartRegistrations(studentId: number): Registration[] {
+    return this.registrations().filter(
+      (r) =>
+        r.studentId === studentId &&
+        r.registrationStatus !== 'Cancelled' &&
+        r.paymentStatus === 'Pending'
+    );
+  }
+
+  getPaidCoursesForStudent(studentId: number): Registration[] {
+    return this.registrations().filter(
+      (r) =>
+        r.studentId === studentId &&
+        (r.paymentStatus === 'Paid' ||
+          r.paymentStatus === 'PartiallyPaid' ||
+          r.registrationStatus === 'Confirmed' ||
+          r.registrationStatus === 'Completed')
+    );
+  }
+
+  payRegistrationFromCart(registrationId: number): void {
+    const reg = this.registrations().find((r) => r.id === registrationId);
+    if (!reg) return;
+
+    if (reg.paymentMethod === 'Upfront') {
+      this.confirmUpfrontPayment(reg.id);
+    } else {
+      const firstSchedule = this.installmentSchedules().find(
+        (s) => s.registrationId === reg.id && s.installmentNumber === 1
+      );
+      if (firstSchedule) {
+        this.payInstallmentSchedule(firstSchedule.id);
+      }
+    }
   }
 
   getSyllabusList(syllabusText: string): string[] {
@@ -635,9 +635,6 @@ export class CourseSystemService {
     );
   }
 
-  // ==========================================================================
-  // BAB 4 & BAB 5: PERHITUNGAN HARGA, EARLY BIRD DISCOUNT, PAJAK 11%, & CICILAN ARREAR
-  // ==========================================================================
 
   calculatePriceBreakdown(
     basePrice: number,
@@ -713,14 +710,11 @@ export class CourseSystemService {
     return `${yyyy}-${mm}-${dd}`;
   }
 
-  // ==========================================================================
-  // BAB 1: REGISTER, LOGIN, & PROFIL STUDENT (TABEL USERS & STUDENTS)
-  // ==========================================================================
 
   registerUser(payload: {
     fullName: string;
     email: string;
-    phoneNumber: string;
+    phoneNumber?: string;
     password: string;
   }): { success: boolean; message: string } {
     const normalizedEmail = payload.email.trim().toLowerCase();
@@ -746,7 +740,7 @@ export class CourseSystemService {
       id: Date.now() + 1,
       userId: newUserId,
       fullName: payload.fullName.trim(),
-      phoneNumber: payload.phoneNumber.trim(),
+      phoneNumber: (payload.phoneNumber ?? '').trim(),
       address: '',
       city: '',
       province: '',
@@ -848,9 +842,6 @@ export class CourseSystemService {
     };
   }
 
-  // ==========================================================================
-  // BAB 3, 6 & 7: PENDAFTARAN COURSE, RESERVASI SEAT, & PEMBAYARAN
-  // ==========================================================================
 
   hasActiveRegistrationInBatch(studentId: number, batchId: number): boolean {
     return this.registrations().some(
@@ -1107,9 +1098,6 @@ export class CourseSystemService {
     );
   }
 
-  // ==========================================================================
-  // BAB 8: RIWAYAT PENDAFTARAN, PEMBATALAN & KALKULASI REFUND OTOMATIS
-  // ==========================================================================
 
   calculateRefundPreview(
     registration: Registration,
@@ -1240,9 +1228,6 @@ export class CourseSystemService {
     return { success: true, message: 'Pembatalan berhasil dikonfirmasi.' };
   }
 
-  // ==========================================================================
-  // BAB 10: ADMIN CRUD & DETEKSI BENTROK JADWAL INSTRUCTOR
-  // ==========================================================================
 
   assignInstructorToBatch(payload: {
     batchId: number;

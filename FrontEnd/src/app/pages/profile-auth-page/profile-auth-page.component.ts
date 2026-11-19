@@ -1,13 +1,20 @@
 import { CommonModule } from '@angular/common';
 import { Component, computed, effect, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CourseSystemService } from '../../services/course-system.service';
+
+function phoneNumberValidator(control: AbstractControl<string>): ValidationErrors | null {
+  const value = control.value.trim();
+  if (!value) return null;
+
+  return /^\+?\d(?:[ -]?\d){7,14}$/.test(value) ? null : { phoneNumber: true };
+}
 
 @Component({
   selector: 'app-profile-auth-page',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './profile-auth-page.component.html',
 })
 export class ProfileAuthPageComponent {
@@ -57,35 +64,21 @@ export class ProfileAuthPageComponent {
     )
   );
 
-  profileForm = {
+  readonly profileForm = inject(FormBuilder).nonNullable.group({
     fullName: '',
-    phoneNumber: '',
+    phoneNumber: ['', phoneNumberValidator],
     address: '',
     city: '',
     province: '',
     country: '',
     educationLevel: '',
     occupation: '',
-  };
+  });
+  readonly phone = this.profileForm.controls.phoneNumber;
 
   constructor() {
     effect(() => {
-      const u = this.svc.currentUser();
-      const s = this.svc.currentStudentProfile();
-      if (s) {
-        this.profileForm = {
-          fullName: s.fullName,
-          phoneNumber: s.phoneNumber,
-          address: s.address,
-          city: s.city,
-          province: s.province,
-          country: s.country,
-          educationLevel: s.educationLevel,
-          occupation: s.occupation,
-        };
-      } else if (u && u.role !== 'Student') {
-        this.activeView.set('LOGIN');
-      }
+      this.profileForm.reset(this.svc.currentStudentProfile() ?? {});
     });
   }
 
@@ -142,22 +135,26 @@ export class ProfileAuthPageComponent {
   autoFillCompleteProfile(): void {
     const u = this.svc.currentUser();
     if (!u) return;
-    this.profileForm = {
+    this.profileForm.setValue({
       fullName: u.fullName,
-      phoneNumber: this.profileForm.phoneNumber || '085711223344',
+      phoneNumber: this.profileForm.controls.phoneNumber.value || '085711223344',
       address: 'Jl. Dago Asri No. 19, Coblong',
       city: 'Bandung',
       province: 'Jawa Barat',
       country: 'Indonesia',
       educationLevel: 'S1 Sistem Informasi',
       occupation: 'Mahasiswa',
-    };
+    });
     this.saveProfile();
   }
 
   saveProfile(): void {
     const u = this.svc.currentUser();
-    if (!u) return;
-    this.svc.updateStudentProfile(u.id, { ...this.profileForm });
+    if (u?.role !== 'Student') return;
+    if (this.profileForm.invalid) {
+      this.profileForm.markAllAsTouched();
+      return;
+    }
+    this.svc.updateStudentProfile(u.id, this.profileForm.getRawValue());
   }
 }

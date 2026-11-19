@@ -1,8 +1,6 @@
-<!-- HEADER NAVBAR -->
 <header class="sticky-top k-header">
   <nav class="navbar navbar-expand-lg py-2">
     <div class="container">
-      <!-- 1. Left: Brand -->
       <a
         [routerLink]="
           svc.isAdmin()
@@ -20,19 +18,18 @@
         </span>
       </a>
 
-      <!-- Mobile Hamburger + Cart / Sign In Quick Access -->
       <div class="d-flex align-items-center gap-2 d-lg-none">
         @if (svc.isStudent()) {
           <a
-            routerLink="/my-registrations"
+            routerLink="/cart"
             routerLinkActive="active"
             class="k-cart-btn"
-            title="My Registrations"
+            title="Keranjang (Course Belum Dibayar)"
             (click)="closeMobileMenu()"
           >
             <i class="bi bi-cart3 fs-5"></i>
-            @if (userRegCount() > 0) {
-              <span class="k-cart-badge">{{ userRegCount() }}</span>
+            @if (unpaidCartCount() > 0) {
+              <span class="k-cart-badge">{{ unpaidCartCount() }}</span>
             }
           </a>
         } @else if (!svc.currentUser()) {
@@ -56,12 +53,9 @@
         </button>
       </div>
 
-      <!-- 2. Center & Right (Collapsible on Mobile) -->
       <div class="collapse navbar-collapse" [class.show]="mobileMenuOpen()">
-        <!-- Center Navigation Track -->
         <ul class="navbar-nav mx-auto my-3 my-lg-0 k-nav-track">
           @if (svc.isAdmin()) {
-            <!-- ROLE: ADMIN (Dashboard, Courses, Batches, Instructors) -->
             <li class="nav-item">
               <a
                 routerLink="/admin/dashboard"
@@ -103,7 +97,6 @@
               </a>
             </li>
           } @else if (svc.isInstructor()) {
-            <!-- ROLE: INSTRUCTOR (My Teaching Schedule) -->
             <li class="nav-item">
               <a
                 routerLink="/teaching-schedule"
@@ -115,7 +108,6 @@
               </a>
             </li>
           } @else {
-            <!-- GUEST / STUDENT -->
             <li class="nav-item">
               <a
                 routerLink="/courses"
@@ -128,12 +120,12 @@
             </li>
             <li class="nav-item">
               <a
-                routerLink="/simulator"
+                routerLink="/my-courses"
                 routerLinkActive="active"
                 class="nav-link k-nav-pill"
                 (click)="closeMobileMenu()"
               >
-                Perhitungan Diskon
+                My Course
               </a>
             </li>
             @if (svc.isStudent()) {
@@ -151,10 +143,8 @@
           }
         </ul>
 
-        <!-- 3. Far Right: Sign In Button (When Logged Out) OR User Pill + Cart Icon (When Logged In) -->
         <div class="d-flex align-items-center justify-content-between justify-content-lg-end gap-2 pb-2 pb-lg-0">
           @if (svc.currentUser(); as user) {
-            <!-- Unified User & Role Switcher Dropdown -->
             <div class="dropdown">
               <button
                 class="k-user-btn dropdown-toggle"
@@ -236,24 +226,22 @@
               </ul>
             </div>
 
-            <!-- Cart Icon at the Far Right (My Registrations — Khusus Student) -->
             @if (svc.isStudent()) {
               <a
-                routerLink="/my-registrations"
+                routerLink="/cart"
                 routerLinkActive="active"
                 class="k-cart-btn d-none d-lg-inline-flex"
-                title="My Registrations"
-                aria-label="My Registrations"
+                title="Keranjang (Course Belum Dibayar)"
+                aria-label="Keranjang (Course Belum Dibayar)"
                 (click)="closeMobileMenu()"
               >
                 <i class="bi bi-cart3 fs-5"></i>
-                @if (userRegCount() > 0) {
-                  <span class="k-cart-badge">{{ userRegCount() }}</span>
+                @if (unpaidCartCount() > 0) {
+                  <span class="k-cart-badge">{{ unpaidCartCount() }}</span>
                 }
               </a>
             }
           } @else {
-            <!-- BELUM LOGIN: Tampilkan Tombol Sign In dengan Logo Sign In di Kanan Navbar -->
             <button
               type="button"
               class="k-signin-btn d-none d-lg-inline-flex"
@@ -269,13 +257,9 @@
   </nav>
 </header>
 
-<!-- ==========================================================================
-     POP-UP MODAL LOGIN & REGISTER
-     ========================================================================== -->
 @if (svc.authModalOpen()) {
   <div class="k-modal-backdrop" (click)="svc.closeAuthModal()">
     <div class="k-modal-dialog anim-pop" (click)="$event.stopPropagation()">
-      <!-- Tombol Close Pop-Up -->
       <button
         type="button"
         class="btn-close position-absolute top-0 end-0 m-3"
@@ -283,7 +267,6 @@
         (click)="svc.closeAuthModal()"
       ></button>
 
-      <!-- MODE 1: HALAMAN POP-UP LOGIN -->
       @if (svc.authModalMode() === 'LOGIN') {
         <div class="text-center mb-4">
           <div
@@ -326,7 +309,6 @@
           />
         </div>
 
-        <!-- Pintasan Akun Demo (Student / Instructor / Admin) -->
         <div class="mb-4">
           <div class="small text-muted mb-1" style="font-size: 0.75rem;">
             Isi cepat akun simulasi:
@@ -376,7 +358,6 @@
           <span>Sign In Sekarang</span>
         </button>
 
-        <!-- Bagian Paling Bawah Pop-Up: Tombol untuk Register jika belum punya akun -->
         <div class="pt-3 border-top text-center">
           <div class="small text-secondary mb-2">
             Belum memiliki akun Student?
@@ -391,7 +372,6 @@
           </button>
         </div>
       } @else {
-        <!-- MODE 2: HALAMAN POP-UP REGISTER STUDENT -->
         <div class="text-center mb-3">
           <div
             class="brand-mark mx-auto mb-2"
@@ -411,8 +391,8 @@
           </div>
         }
 
-        <div class="mb-2">
-          <label class="k-label">FullName</label>
+        <div class="mb-3">
+          <label class="k-label">Nama Lengkap</label>
           <input
             type="text"
             class="form-control k-input"
@@ -422,7 +402,7 @@
           />
         </div>
 
-        <div class="mb-2">
+        <div class="mb-3">
           <label class="k-label">Email</label>
           <input
             type="email"
@@ -433,18 +413,7 @@
           />
         </div>
 
-        <div class="mb-2">
-          <label class="k-label">PhoneNumber</label>
-          <input
-            type="tel"
-            class="form-control k-input"
-            placeholder="0812xxxxxxxx"
-            [ngModel]="regPhone()"
-            (ngModelChange)="regPhone.set($event)"
-          />
-        </div>
-
-        <div class="mb-3">
+        <div class="mb-4">
           <label class="k-label">Password</label>
           <input
             type="password"
@@ -464,7 +433,6 @@
           <span>Buat Akun Sekarang</span>
         </button>
 
-        <!-- Bagian Paling Bawah Pop-Up: Kembali ke Sign In -->
         <div class="pt-3 border-top text-center">
           <div class="small text-secondary mb-2">
             Sudah memiliki akun?
@@ -483,7 +451,6 @@
   </div>
 }
 
-<!-- ANIMATED TOAST NOTIFICATION -->
 @if (svc.notification(); as notif) {
   <div
     class="position-fixed bottom-0 end-0 p-3 anim-pop"
@@ -513,16 +480,13 @@
   </div>
 }
 
-<!-- MAIN CONTENT -->
 <main style="min-height: calc(100vh - 220px);">
   <router-outlet></router-outlet>
 </main>
 
-<!-- CLEAN STRUCTURED FOOTER -->
 <footer class="k-footer py-4 mt-5">
   <div class="container">
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 pb-3 border-bottom" style="border-color: var(--border-light) !important;">
-      <!-- Footer Brand -->
       <a
         [routerLink]="
           svc.isAdmin()
@@ -540,7 +504,6 @@
         <span class="text-muted small ms-1">· Studio Kursus Tatap Muka</span>
       </a>
 
-      <!-- Footer Navigation Links -->
       <nav class="d-flex flex-wrap justify-content-center gap-4">
         @if (svc.isAdmin()) {
           <a routerLink="/admin/dashboard" routerLinkActive="active" class="k-footer-link">Dashboard</a>
@@ -553,12 +516,12 @@
           </a>
         } @else {
           <a routerLink="/courses" routerLinkActive="active" class="k-footer-link">Kelas</a>
-          <a routerLink="/simulator" routerLinkActive="active" class="k-footer-link">Perhitungan Diskon</a>
+          <a routerLink="/my-courses" routerLinkActive="active" class="k-footer-link">My Course</a>
           @if (svc.isStudent()) {
             <a routerLink="/profile" routerLinkActive="active" class="k-footer-link">Profil</a>
-            <a routerLink="/my-registrations" routerLinkActive="active" class="k-footer-link d-inline-flex align-items-center gap-1">
+            <a routerLink="/cart" routerLinkActive="active" class="k-footer-link d-inline-flex align-items-center gap-1">
               <i class="bi bi-cart3"></i>
-              <span>Keranjang ({{ userRegCount() }})</span>
+              <span>Keranjang ({{ unpaidCartCount() }})</span>
             </a>
           }
         }

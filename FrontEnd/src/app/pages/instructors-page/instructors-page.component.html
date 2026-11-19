@@ -1,6 +1,5 @@
 <section class="py-5">
   <div class="container" style="max-width: 960px;">
-    <!-- Header -->
     <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
       <div>
         <span class="k-pill k-pill-green mb-2">Role: Admin · Instructors</span>
@@ -18,7 +17,6 @@
       </button>
     </div>
 
-    <!-- 1. Form Penugasan Pengajar ke Batch (Tabel BatchInstructors) -->
     <div class="k-card p-4 mb-4">
       <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
         <div>
@@ -81,7 +79,6 @@
       </div>
     </div>
 
-    <!-- 2. Form Tambah / Ubah Instructor -->
     @if (showForm()) {
       <div class="k-card p-4 mb-4 anim-pop">
         <h2 class="h5 fw-bold mb-3">
@@ -120,7 +117,6 @@
       </div>
     }
 
-    <!-- 3. Daftar Instructors -->
     <div class="row g-4">
       @for (ins of svc.instructors(); track ins.id) {
         <div class="col-md-6">
@@ -162,7 +158,6 @@
               <p class="small text-secondary mb-3">{{ ins.bio }}</p>
             </div>
 
-            <!-- Daftar Batch yang Diajar -->
             <div class="pt-3 border-top">
               <div class="small fw-semibold text-secondary mb-2">
                 Penugasan Batch ({{ svc.getBatchesForInstructor(ins.id).length }}):

@@ -2,10 +2,6 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { CourseSystemService } from '../services/course-system.service';
 
-/**
- * Guard untuk halaman Pengelolaan Admin (/instructors).
- * Sesuai Bab 1.1 & Bab 10: Hanya Admin yang dapat mengelola Instructor, Batch, dan Penugasan.
- */
 export const adminOnlyGuard: CanActivateFn = () => {
   const svc = inject(CourseSystemService);
   const router = inject(Router);
@@ -26,11 +22,6 @@ export const adminOnlyGuard: CanActivateFn = () => {
   return router.createUrlTree(['/courses']);
 };
 
-/**
- * Guard untuk halaman My Teaching Schedule (/teaching-schedule).
- * Sesuai Bab 1.3 & Bab 10: Setelah login, Instructor diarahkan ke halaman My Teaching Schedule
- * dan hanya melihat jadwal batch miliknya sendiri.
- */
 export const instructorScheduleGuard: CanActivateFn = () => {
   const svc = inject(CourseSystemService);
   const router = inject(Router);

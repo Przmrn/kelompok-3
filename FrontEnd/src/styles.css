@@ -1,8 +1,3 @@
-/* ==========================================================================
-   KARSA — Clean Typography + Unique Color & Smooth Animations
-   Palette: Midnight Cypress (#0D211E) · Acid Matcha (#C8F550) · Persimmon (#FF5429)
-   Font: Plus Jakarta Sans (Standard, Clean & Legible)
-   ========================================================================== */
 
 :root {
   --bg-page: #EFF3EC;
@@ -17,7 +12,6 @@
   --border-light: #CFD9C8;
   --border-strong: #0D211E;
 
-  /* Signature Unique Accents */
   --brand-forest: #0D211E;
   --brand-forest-light: #DFF2E6;
   --brand-lime: #C8F550;
@@ -27,7 +21,6 @@
   --brand-amber: #F59E0B;
   --brand-amber-light: #FEF3C7;
 
-  /* Standard Clean Font Stack */
   --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
   --font-serif: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -70,9 +63,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   font-variant-numeric: tabular-nums;
 }
 
-/* ==========================================================================
-   KEYFRAME ANIMATIONS
-   ========================================================================== */
 
 @keyframes springUp {
   0% {
@@ -133,7 +123,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
 .delay-3 { animation-delay: 0.18s; }
 .delay-4 { animation-delay: 0.24s; }
 
-/* Live Pulse Indicator */
 .pulse-dot {
   width: 8px;
   height: 8px;
@@ -143,9 +132,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   animation: pulseDot 2s infinite;
 }
 
-/* ==========================================================================
-   CARDS WITH KINETIC HOVER
-   ========================================================================== */
 
 .k-card {
   background: var(--bg-card);
@@ -181,9 +167,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   transition: background-color 0.2s ease;
 }
 
-/* ==========================================================================
-   BUTTONS WITH SPRING MICRO-INTERACTIONS
-   ========================================================================== */
 
 .btn-k-primary {
   background-color: var(--brand-forest);
@@ -275,9 +258,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   transform: translateY(-2px);
 }
 
-/* ==========================================================================
-   PILLS & CHIPS
-   ========================================================================== */
 
 .k-pill {
   display: inline-flex;
@@ -337,7 +317,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   box-shadow: 0 6px 14px rgba(13, 33, 30, 0.14);
 }
 
-/* Form Inputs */
 .k-input,
 .k-select {
   border: 1.5px solid var(--border-light);
