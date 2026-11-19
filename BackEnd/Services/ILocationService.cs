@@ -4,10 +4,10 @@ namespace BackEnd.Services
 {
     public interface ILocationService
     {
-        Task<IEnumerable<LocationResponseDto>> GetAllAsync();
+        Task<IEnumerable<LocationResponseDto>> GetAllAsync(string? city);
         Task<LocationResponseDto?> GetByIdAsync(long id);
         Task<LocationResponseDto> CreateAsync(LocationCreateDto dto);
         Task<LocationResponseDto?> UpdateAsync(long id, LocationUpdateDto dto);
-        Task<bool> DeleteAsync(long id);
+        Task DeleteAsync(long id);
     }
 }
