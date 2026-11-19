@@ -156,7 +156,6 @@ VALUES
 -- TotalAmount = BasePrice - Discount + Tax
 --
 -- PaidAmount = total pembayaran yang sudah diterima.
--- PaidAt = waktu pembayaran lunas.
 --
 -- PaymentMethod:
 -- UPFRONT      : Pembayaran lunas di awal.
@@ -233,7 +232,7 @@ VALUES
  'INSTALLMENT',
  3,
  1240000,
- NULL,
+ '2026-11-19 10:00:00+07',
  'PARTIALLY_PAID',
  'CONFIRMED');
 

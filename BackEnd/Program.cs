@@ -19,6 +19,12 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<ICourseCategoryService, CourseCategoryService>();
 builder.Services.AddScoped<ILocationService, LocationService>();
+builder.Services.AddScoped<ICourseService, CourseService>();
+builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IInstructorService, InstructorService>();
+builder.Services.AddScoped<ICourseBatchService, CourseBatchService>();
+builder.Services.AddScoped<IBatchInstructorService, BatchInstructorService>();
+builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 
 builder.Services.AddCors(options =>
@@ -63,7 +69,16 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-app.UseHttpsRedirection();
+app.UseMiddleware<BackEnd.Middlewares.ExceptionMiddleware>();
+app.UseWhen(context =>
+{
+    var peer = context.Connection.RemoteIpAddress;
+    var localProxy = app.Environment.IsDevelopment()
+        && context.Request.Host.Host == "127.0.0.1"
+        && peer != null
+        && System.Net.IPAddress.IsLoopback(peer.IsIPv4MappedToIPv6 ? peer.MapToIPv4() : peer);
+    return !localProxy;
+}, pipeline => pipeline.UseHttpsRedirection());
 app.UseCors("AngularDevelopment");
 app.UseAuthentication();
 app.UseAuthorization();
