@@ -1,0 +1,48 @@
+.skill-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: .5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.skill-card {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: .5rem;
+  max-width: 100%;
+  padding: .35rem .7rem;
+  border: 1px solid var(--lavender);
+  border-radius: .5rem;
+  background: var(--lavender-soft);
+  color: var(--iris-hover);
+  font-size: .8125rem;
+  font-weight: 600;
+  overflow-wrap: anywhere;
+}
+
+.skill-actions {
+  display: inline-flex;
+  gap: .125rem;
+}
+
+.skill-actions button {
+  width: 1.75rem;
+  height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: .375rem;
+  background: transparent;
+  color: inherit;
+}
+
+.skill-actions button:enabled:hover,
+.skill-actions button:focus-visible {
+  background: var(--lavender);
+}
+
+.skill-actions button:disabled {
+  opacity: .35;
+}

@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BackEnd.Migrations
 {
     [DbContext(typeof(CourseDbContext))]
-    [Migration("20261118143347_InitialCreate")]
-    partial class InitialCreate
+    [Migration("20261119040259_AddPaidAmountAndPaidAtToRegistration")]
+    partial class AddPaidAmountAndPaidAtToRegistration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -280,6 +280,12 @@ namespace BackEnd.Migrations
                     b.Property<int?>("InstallmentTenor")
                         .HasColumnType("integer");
 
+                    b.Property<decimal>("PaidAmount")
+                        .HasColumnType("decimal(15,2)");
+
+                    b.Property<DateTime?>("PaidAt")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("PaymentMethod")
                         .IsRequired()
                         .HasMaxLength(30)
@@ -302,8 +308,7 @@ namespace BackEnd.Migrations
 
                     b.Property<string>("RegistrationStatus")
                         .IsRequired()
-                        .HasMaxLength(30)
-                        .HasColumnType("character varying(30)");
+                        .HasColumnType("text");
 
                     b.Property<long>("StudentId")
                         .HasColumnType("bigint");
@@ -494,7 +499,7 @@ namespace BackEnd.Migrations
 
             modelBuilder.Entity("BackEnd.Models.Registration", b =>
                 {
-                    b.HasOne("BackEnd.Models.CourseBatch", "CourseBatch")
+                    b.HasOne("BackEnd.Models.CourseBatch", "Batch")
                         .WithMany("Registrations")
                         .HasForeignKey("BatchId")
                         .OnDelete(DeleteBehavior.Restrict)
@@ -506,7 +511,7 @@ namespace BackEnd.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
-                    b.Navigation("CourseBatch");
+                    b.Navigation("Batch");
 
                     b.Navigation("Student");
                 });

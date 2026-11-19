@@ -1,0 +1,73 @@
+<section class="studio-hero" aria-labelledby="hero-title">
+  <img class="hero-photo" src="assets/karsa-studio.jpg" alt="" fetchpriority="high" width="1774" height="887">
+  <div class="container hero-inner">
+    <p class="studio-location"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Studio Jakarta &amp; Bandung</p>
+    <h1 id="hero-title">Belajar teknologi.<br><span>Langsung praktik.</span></h1>
+    <p class="hero-description">Bangun aplikasi, olah data, atau rancang produk digital lewat kelas tatap muka bersama praktisi industri.</p>
+    <div class="hero-actions">
+      <a routerLink="/courses" fragment="program" class="hero-cta">Jelajahi kelas <i class="bi bi-arrow-down-right" aria-hidden="true"></i></a>
+      <a routerLink="/courses" fragment="belajar" class="hero-secondary">Cara belajar <i class="bi bi-arrow-down" aria-hidden="true"></i></a>
+    </div>
+  </div>
+</section>
+
+<div class="studio-facts">
+  <div class="container facts-inner">
+    <span><i class="bi bi-laptop" aria-hidden="true"></i> Praktik di studio</span>
+    <span><i class="bi bi-wallet2" aria-hidden="true"></i> Cicilan 0%</span>
+    <span><i class="bi bi-ticket-perforated" aria-hidden="true"></i> Diskon awal hingga Rp150.000</span>
+  </div>
+</div>
+
+<section id="program" class="program-section container" aria-labelledby="program-title">
+  <div class="program-heading">
+    <h2 id="program-title">Pilihan kelas<span>.</span></h2>
+    <span aria-live="polite">{{ filteredCourses().length }} kelas tersedia</span>
+  </div>
+  <div class="category-list" role="group" aria-label="Filter kategori kelas">
+    <button type="button" class="k-chip" [class.active]="selectedCategoryId() === 0"
+      [attr.aria-pressed]="selectedCategoryId() === 0" (click)="selectedCategoryId.set(0)">Semua kelas</button>
+    @for (cat of svc.categories(); track cat.id) {
+      <button type="button" class="k-chip" [class.active]="selectedCategoryId() === cat.id"
+        [attr.aria-pressed]="selectedCategoryId() === cat.id" (click)="selectedCategoryId.set(cat.id)">{{ cat.name }}</button>
+    }
+  </div>
+
+  <div class="program-grid">
+    @for (course of filteredCourses(); track course.id) {
+      <a [routerLink]="['/courses', course.id]" class="program-card" [attr.aria-label]="'Lihat kelas ' + course.title">
+        <div class="course-cover" [attr.data-category]="course.categoryId">
+          <span>{{ getCategoryName(course.categoryId) }}</span>
+          <i class="bi cover-icon" [ngClass]="categoryIcons[course.categoryId] || 'bi-laptop'" aria-hidden="true"></i>
+        </div>
+        <div class="course-content">
+          <div class="course-meta"><span><i class="bi bi-clock"></i> {{ course.durationHours }} jam</span><span><i class="bi bi-calendar3"></i> {{ getOpenBatchCount(course.id) }} jadwal dibuka</span></div>
+          <h3>{{ course.title }}</h3>
+          <p>{{ course.description }}</p>
+          <div class="course-price">
+            <div>
+              <span class="price-label">Biaya kelas</span>
+              <strong>Rp{{ course.basePrice | number: '1.0-0' }}</strong>
+              <small>Perkiraan cicilan Rp{{ getLowestMonthly(course.basePrice) | number: '1.0-0' }}/bln</small>
+            </div>
+            @if (getEarlyBirdBadge(course.id); as badge) { <span class="offer">{{ badge }}</span> }
+          </div>
+          <span class="course-link">Lihat kelas <i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
+        </div>
+      </a>
+    } @empty {
+      <p class="text-secondary">Belum ada kelas untuk kategori ini.</p>
+    }
+  </div>
+</section>
+
+<section id="belajar" class="study-section">
+  <div class="container">
+    <h2>Belajar di Karsa Studio<span>.</span></h2>
+    <div class="study-grid">
+      <div><i class="bi bi-people" aria-hidden="true"></i><h3>Praktik bersama pengajar</h3><p>Diskusikan kendala dan bedah hasil pekerjaanmu langsung di studio.</p></div>
+      <div><i class="bi bi-ticket-perforated" aria-hidden="true"></i><h3>Harga pendaftar awal</h3><p>Tujuh pendaftar pertama tiap jadwal mendapat potongan sesuai urutan pendaftaran.</p></div>
+      <div><i class="bi bi-calendar2-check" aria-hidden="true"></i><h3>Pengembalian dana</h3><p>Lihat estimasi pengembalian dana di Kelas Saya sebelum mengonfirmasi pembatalan.</p></div>
+    </div>
+  </div>
+</section>

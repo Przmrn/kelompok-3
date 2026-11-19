@@ -86,7 +86,7 @@ namespace BackEnd.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
             modelBuilder.Entity<Registration>()
-                .HasOne(r => r.CourseBatch)
+                .HasOne(r => r.Batch)
                 .WithMany(cb => cb.Registrations)
                 .HasForeignKey(r => r.BatchId)
                 .OnDelete(DeleteBehavior.Restrict);
