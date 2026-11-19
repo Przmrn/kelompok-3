@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "ebQfAOhLgY8=",
+  "dgSpecHash": "YcFkzpjmeNI=",
   "success": true,
-  "projectFilePath": "E:\\Projects\\kelompok-3\\BackEnd\\BackEnd.csproj",
+  "projectFilePath": "C:\\Users\\Adicipta\\Downloads\\kelompok-3\\BackEnd\\BackEnd.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\Adicipta\\.nuget\\packages\\aspire.npgsql.entityframeworkcore.postgresql\\13.6.5\\aspire.npgsql.entityframeworkcore.postgresql.13.6.5.nupkg.sha512",
     "C:\\Users\\Adicipta\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",
@@ -22,7 +22,7 @@
     "C:\\Users\\Adicipta\\.nuget\\packages\\microsoft.entityframeworkcore.tools\\10.0.15\\microsoft.entityframeworkcore.tools.10.0.15.nupkg.sha512",
     "C:\\Users\\Adicipta\\.nuget\\packages\\microsoft.extensions.dependencymodel\\10.0.15\\microsoft.extensions.dependencymodel.10.0.15.nupkg.sha512",
     "C:\\Users\\Adicipta\\.nuget\\packages\\microsoft.extensions.diagnostics.healthchecks.entityframeworkcore\\10.0.14\\microsoft.extensions.diagnostics.healthchecks.entityframeworkcore.10.0.14.nupkg.sha512",
-    "C:\\Users\\Adicipta\\.nuget\\packages\\microsoft.openapi\\2.0.0\\microsoft.openapi.2.0.0.nupkg.sha512",
+    "C:\\Users\\Adicipta\\.nuget\\packages\\microsoft.openapi\\2.7.5\\microsoft.openapi.2.7.5.nupkg.sha512",
     "C:\\Users\\Adicipta\\.nuget\\packages\\microsoft.visualstudio.solutionpersistence\\1.0.52\\microsoft.visualstudio.solutionpersistence.1.0.52.nupkg.sha512",
     "C:\\Users\\Adicipta\\.nuget\\packages\\mono.texttemplating\\3.0.0\\mono.texttemplating.3.0.0.nupkg.sha512",
     "C:\\Users\\Adicipta\\.nuget\\packages\\newtonsoft.json\\13.0.4\\newtonsoft.json.13.0.4.nupkg.sha512",
@@ -42,18 +42,5 @@
     "C:\\Users\\Adicipta\\.nuget\\packages\\system.composition.runtime\\9.0.0\\system.composition.runtime.9.0.0.nupkg.sha512",
     "C:\\Users\\Adicipta\\.nuget\\packages\\system.composition.typedparts\\9.0.0\\system.composition.typedparts.9.0.0.nupkg.sha512"
   ],
-  "logs": [
-    {
-      "code": "NU1903",
-      "level": "Warning",
-      "message": "Package 'Microsoft.OpenApi' 2.0.0 has a known high severity vulnerability, https://github.com/advisories/GHSA-v5pm-xwqc-g5wc",
-      "projectPath": "C:\\Users\\Adicipta\\Downloads\\kelompok-3\\BackEnd\\BackEnd.csproj",
-      "warningLevel": 1,
-      "filePath": "C:\\Users\\Adicipta\\Downloads\\kelompok-3\\BackEnd\\BackEnd.csproj",
-      "libraryId": "Microsoft.OpenApi",
-      "targetGraphs": [
-        "net10.0"
-      ]
-    }
-  ]
+  "logs": []
 }
