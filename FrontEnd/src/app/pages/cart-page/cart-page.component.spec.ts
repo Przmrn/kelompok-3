@@ -1,3 +1,4 @@
+import { AuthService } from '../../services/auth.service';
 import { TestBed } from '@angular/core/testing';
 import { appConfig } from '../../app.config';
 import { CourseSystemService } from '../../services/course-system.service';
@@ -5,11 +6,10 @@ import { CartPageComponent } from './cart-page.component';
 
 describe('Cart payment summary', () => {
   it('shows the full price for a single payment and only the first installment on the installment pay button', () => {
-    TestBed.configureTestingModule({ providers: appConfig.providers });
+    TestBed.configureTestingModule({ providers: [...appConfig.providers, { provide: AuthService, useValue: { user: () => ({ id: -1, role: 'Student', fullName: 'Peserta', email: 'peserta@example.test' }) } }] });
     const svc = TestBed.inject(CourseSystemService);
-    svc.switchDemoUser(1);
     const installment = svc.submitCourseRegistration({
-      userId: 1,
+      userId: -1,
       batchId: 3,
       paymentMethod: 'Installment',
       installmentTenor: 3,

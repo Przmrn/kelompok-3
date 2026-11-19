@@ -17,11 +17,12 @@ export class PaymentDetailPageComponent implements OnInit {
 
   readonly registrationId = signal<number>(1);
 
-  readonly registration = computed(() =>
-    this.svc.registrations().find((r) => r.id === this.registrationId()) ??
-    this.svc.registrations()[0] ??
-    null
-  );
+  readonly registration = computed(() => {
+    const studentId = this.svc.currentStudentProfile()?.id;
+    return this.svc.registrations().find(reg =>
+      reg.id === this.registrationId() && (reg.studentId === studentId || this.svc.isAdmin())
+    ) ?? null;
+  });
 
   readonly schedules = computed(() => {
     const reg = this.registration();
@@ -34,7 +35,7 @@ export class PaymentDetailPageComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
-      const id = Number(params.get('registrationId')) || 1;
+      const id = Number(params.get('registrationId'));
       this.registrationId.set(id);
     });
   }

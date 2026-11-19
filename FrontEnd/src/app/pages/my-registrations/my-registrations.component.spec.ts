@@ -1,14 +1,13 @@
+import { AuthService } from '../../services/auth.service';
 import { TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';
 import { filter, firstValueFrom } from 'rxjs';
 import { routes } from '../../app.routes';
-import { CourseSystemService } from '../../services/course-system.service';
 
 describe('My Courses child routes', () => {
   beforeEach(() => {
-    TestBed.configureTestingModule({ providers: [provideRouter(routes)] });
-    TestBed.inject(CourseSystemService).switchDemoUser(1);
+    TestBed.configureTestingModule({ providers: [provideRouter(routes), { provide: AuthService, useValue: { user: () => ({ id: -1, role: 'Student', fullName: 'Peserta', email: 'peserta@example.test' }) } }] });
   });
 
   it('opens the schedule from the legacy URL and returns there after a refund', async () => {

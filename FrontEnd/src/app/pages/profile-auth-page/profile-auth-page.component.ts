@@ -1,8 +1,8 @@
 import { courseLabels } from '../../models/course-labels';
 import { CommonModule } from '@angular/common';
-import { Component, computed, effect, inject, signal } from '@angular/core';
+import { Component, computed, effect, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { CourseSystemService } from '../../services/course-system.service';
 
 function phoneNumberValidator(control: AbstractControl<string>): ValidationErrors | null {
@@ -21,19 +21,6 @@ function phoneNumberValidator(control: AbstractControl<string>): ValidationError
 export class ProfileAuthPageComponent {
   readonly labels = courseLabels;
   readonly svc = inject(CourseSystemService);
-  private readonly router = inject(Router);
-
-  readonly activeView = signal<'PROFILE' | 'REGISTER' | 'LOGIN'>('PROFILE');
-  readonly authAlert = signal<{ success: boolean; message: string } | null>(null);
-
-  readonly regName = signal('');
-  readonly regEmail = signal('');
-  readonly regPhone = signal('');
-  readonly regPassword = signal('');
-
-  readonly loginEmail = signal('raka.wijaya@karsa.id');
-  readonly loginPassword = signal('karsa123');
-
   readonly isProfileComplete = computed(() => {
     const u = this.svc.currentUser();
     return u ? this.svc.isStudentProfileComplete(u.id) : false;
@@ -82,56 +69,6 @@ export class ProfileAuthPageComponent {
     effect(() => {
       this.profileForm.reset(this.svc.currentStudentProfile() ?? {});
     });
-  }
-
-  handleRegister(): void {
-    if (!this.regName().trim() || !this.regEmail().trim() || !this.regPhone().trim()) {
-      this.authAlert.set({
-        success: false,
-        message: 'Isi nama lengkap, email, nomor telepon, dan kata sandi.',
-      });
-      return;
-    }
-
-    const res = this.svc.registerUser({
-      fullName: this.regName(),
-      email: this.regEmail(),
-      phoneNumber: this.regPhone(),
-      password: this.regPassword() || '123456',
-    });
-
-    this.authAlert.set(res);
-    if (res.success) {
-      this.activeView.set('PROFILE');
-    }
-  }
-
-  testDuplicateEmail(): void {
-    this.regName.set('Raka Duplikat');
-    this.regEmail.set('raka.wijaya@karsa.id');
-    this.regPhone.set('081200001111');
-    this.regPassword.set('tes123');
-    const res = this.svc.registerUser({
-      fullName: 'Raka Duplikat',
-      email: 'raka.wijaya@karsa.id',
-      phoneNumber: '081200001111',
-      password: 'tes123',
-    });
-    this.authAlert.set(res);
-  }
-
-  handleLogin(): void {
-    const res = this.svc.loginUser(this.loginEmail(), this.loginPassword());
-    this.authAlert.set(res);
-    if (res.success && res.user) {
-      if (res.user.role === 'Instructor') {
-        this.router.navigate(['/teaching-schedule']);
-      } else if (res.user.role === 'Admin') {
-        this.router.navigate(['/admin/dashboard']);
-      } else {
-        this.router.navigate(['/courses']);
-      }
-    }
   }
 
   autoFillCompleteProfile(): void {

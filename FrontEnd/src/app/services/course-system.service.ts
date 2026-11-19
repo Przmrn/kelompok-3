@@ -1,4 +1,5 @@
-import { Injectable, computed, signal } from '@angular/core';
+import { Injectable, computed, inject, signal } from '@angular/core';
+import { AuthService } from './auth.service';
 import {
   BatchInstructor,
   Course,
@@ -26,48 +27,11 @@ export class CourseSystemService {
     message: string;
   } | null>(null);
 
-  readonly users = signal<User[]>([
-    {
-      id: 1,
-      fullName: 'Raka Pratama Wijaya',
-      email: 'raka.wijaya@karsa.id',
-      passwordHash: 'hashed:karsa123',
-      role: 'Student',
-    },
-    {
-      id: 2,
-      fullName: 'Nadia Larasati Putri',
-      email: 'nadia.putri@student.ac.id',
-      passwordHash: 'hashed:nadia123',
-      role: 'Student',
-    },
-    {
-      id: 3,
-      fullName: 'Ir. Bagas Adiwardhana, M.Kom.',
-      email: 'bagas.adi@karsa.id',
-      passwordHash: 'hashed:pengajar123',
-      role: 'Instructor',
-    },
-    {
-      id: 4,
-      fullName: 'Clara Sinta Maharani, S.T.',
-      email: 'clara.maharani@karsa.id',
-      passwordHash: 'hashed:clara123',
-      role: 'Instructor',
-    },
-    {
-      id: 5,
-      fullName: 'Admin Akademik Karsa',
-      email: 'admin@karsa.id',
-      passwordHash: 'hashed:admin123',
-      role: 'Admin',
-    },
-  ]);
-
+  private readonly auth = inject(AuthService);
   readonly students = signal<Student[]>([
     {
       id: 1,
-      userId: 1,
+      userId: -1,
       fullName: 'Raka Pratama Wijaya',
       phoneNumber: '081288901122',
       address: 'Jl. Kemang Raya No. 42A, Mampang Prapatan',
@@ -79,7 +43,7 @@ export class CourseSystemService {
     },
     {
       id: 2,
-      userId: 2,
+      userId: -2,
       fullName: 'Nadia Larasati Putri',
       phoneNumber: '085711223344',
       address: '',
@@ -91,21 +55,20 @@ export class CourseSystemService {
     },
   ]);
 
-  readonly currentUserId = signal<number | null>(null);
-
   readonly authModalOpen = signal<boolean>(false);
   readonly authModalMode = signal<'LOGIN' | 'REGISTER'>('LOGIN');
 
   readonly currentUser = computed<User | null>(() => {
-    const id = this.currentUserId();
-    if (id === null) return null;
-    return this.users().find((u) => u.id === id) ?? null;
+    const user = this.auth.user();
+    if (user?.role !== 'Student') return user;
+    const profile = this.students().find(student => student.userId === user.id);
+    return profile ? { ...user, fullName: profile.fullName } : user;
   });
 
   readonly currentStudentProfile = computed<Student | null>(() => {
     const u = this.currentUser();
     if (!u || u.role !== 'Student') return null;
-    return this.students().find((s) => s.userId === u.id) ?? null;
+    return this.getStudentByUserId(u.id) ?? null;
   });
 
   readonly isAdmin = computed<boolean>(() => this.currentUser()?.role === 'Admin');
@@ -451,7 +414,7 @@ export class CourseSystemService {
   }
 
   logoutUser(): void {
-    this.currentUserId.set(null);
+    this.auth.logout();
     this.showNotification(
       'info',
       'Anda sudah keluar',
@@ -484,7 +447,14 @@ export class CourseSystemService {
   }
 
   getStudentByUserId(userId: number): Student | undefined {
-    return this.students().find((s) => s.userId === userId);
+    const saved = this.students().find(student => student.userId === userId);
+    if (saved) return saved;
+    const user = this.auth.user();
+    if (user?.id !== userId || user.role !== 'Student') return undefined;
+    return {
+      id: -user.id, userId, fullName: user.fullName, phoneNumber: '', address: '',
+      city: '', province: '', country: '', educationLevel: '', occupation: '',
+    };
   }
 
   isStudentProfileComplete(userId: number): boolean {
@@ -630,7 +600,7 @@ export class CourseSystemService {
     if (!user || user.role !== 'Instructor') return null;
     return (
       this.instructors().find(
-        (i) => i.userId === user.id || i.email.toLowerCase() === user.email.toLowerCase()
+        (i) => i.email.toLowerCase() === user.email.toLowerCase()
       ) ?? null
     );
   }
@@ -711,87 +681,6 @@ export class CourseSystemService {
   }
 
 
-  registerUser(payload: {
-    fullName: string;
-    email: string;
-    phoneNumber?: string;
-    password: string;
-  }): { success: boolean; message: string } {
-    const normalizedEmail = payload.email.trim().toLowerCase();
-    const exists = this.users().some((u) => u.email.toLowerCase() === normalizedEmail);
-
-    if (exists) {
-      return {
-        success: false,
-        message: 'Email ini sudah terdaftar. Silakan masuk atau gunakan email lain.',
-      };
-    }
-
-    const newUserId = Date.now();
-    const newUser: User = {
-      id: newUserId,
-      fullName: payload.fullName.trim(),
-      email: normalizedEmail,
-      passwordHash: `hashed:${payload.password}`,
-      role: 'Student',
-    };
-
-    const newStudent: Student = {
-      id: Date.now() + 1,
-      userId: newUserId,
-      fullName: payload.fullName.trim(),
-      phoneNumber: (payload.phoneNumber ?? '').trim(),
-      address: '',
-      city: '',
-      province: '',
-      country: '',
-      educationLevel: '',
-      occupation: '',
-    };
-
-    this.users.update((list) => [...list, newUser]);
-    this.students.update((list) => [...list, newStudent]);
-    this.currentUserId.set(newUser.id);
-
-    this.showNotification(
-      'success',
-      'Registrasi Berhasil',
-      `Selamat datang, ${newUser.fullName}! Lengkapi profil Anda sebelum mendaftar kelas.`
-    );
-    return { success: true, message: 'Registrasi berhasil.' };
-  }
-
-  loginUser(email: string, _password: string): { success: boolean; message: string; user?: User } {
-    const normalizedEmail = email.trim().toLowerCase();
-    const found = this.users().find((u) => u.email.toLowerCase() === normalizedEmail);
-    if (!found) {
-      return {
-        success: false,
-        message: 'Akun dengan email tersebut tidak ditemukan.',
-      };
-    }
-    this.currentUserId.set(found.id);
-    this.showNotification(
-      'info',
-      `Berhasil masuk`,
-      `Selamat datang kembali, ${found.fullName}.`
-    );
-    return { success: true, message: 'Berhasil masuk.', user: found };
-  }
-
-  switchDemoUser(userId: number): User | null {
-    const found = this.users().find((u) => u.id === userId) ?? null;
-    if (found) {
-      this.currentUserId.set(found.id);
-      this.showNotification(
-        'info',
-        `Akun berhasil diganti`,
-        `Aktif sebagai ${found.fullName}.`
-      );
-    }
-    return found;
-  }
-
   updateStudentProfile(
     userId: number,
     profileData: {
@@ -805,27 +694,22 @@ export class CourseSystemService {
       occupation: string;
     }
   ): { success: boolean; message: string } {
-    this.users.update((list) =>
-      list.map((u) => (u.id === userId ? { ...u, fullName: profileData.fullName.trim() } : u))
-    );
-
-    this.students.update((list) =>
-      list.map((s) =>
-        s.userId === userId
-          ? {
-              ...s,
-              fullName: profileData.fullName.trim(),
-              phoneNumber: profileData.phoneNumber.trim(),
-              address: profileData.address.trim(),
-              city: profileData.city.trim(),
-              province: profileData.province.trim(),
-              country: profileData.country.trim(),
-              educationLevel: profileData.educationLevel.trim(),
-              occupation: profileData.occupation.trim(),
-            }
-          : s
-      )
-    );
+    const student = this.getStudentByUserId(userId);
+    if (!student || this.currentUser()?.id !== userId) {
+      return { success: false, message: 'Silakan masuk untuk memperbarui profil.' };
+    }
+    const updated: Student = {
+      ...student,
+      fullName: profileData.fullName.trim(),
+      phoneNumber: profileData.phoneNumber.trim(),
+      address: profileData.address.trim(),
+      city: profileData.city.trim(),
+      province: profileData.province.trim(),
+      country: profileData.country.trim(),
+      educationLevel: profileData.educationLevel.trim(),
+      occupation: profileData.occupation.trim(),
+    };
+    this.students.update(list => [...list.filter(s => s.userId !== userId), updated]);
 
     const complete = this.isStudentProfileComplete(userId);
     this.showNotification(
@@ -859,9 +743,9 @@ export class CourseSystemService {
     installmentTenor: 3 | 6 | 12 | null;
     simulateInitialPaymentConfirmed: boolean;
   }): { success: boolean; message: string; registration?: Registration } {
-    const user = this.users().find((u) => u.id === payload.userId);
+    const user = this.currentUser();
     const student = this.getStudentByUserId(payload.userId);
-    if (!user || !student || user.role !== 'Student') {
+    if (!user || user.id !== payload.userId || !student || user.role !== 'Student') {
       return {
         success: false,
         message: 'Gunakan akun peserta untuk mendaftar kelas.',
@@ -1301,19 +1185,11 @@ export class CourseSystemService {
     bio: string;
   }): { success: boolean; message: string } {
     const emailNorm = payload.email.trim().toLowerCase();
-    if (this.users().some((u) => u.email.toLowerCase() === emailNorm)) {
+    if (this.instructors().some(i => i.email.toLowerCase() === emailNorm) || this.currentUser()?.email.toLowerCase() === emailNorm) {
       return { success: false, message: 'Email sudah digunakan oleh akun lain.' };
     }
 
     const newUserId = Date.now();
-    const newUser: User = {
-      id: newUserId,
-      fullName: payload.fullName.trim(),
-      email: emailNorm,
-      passwordHash: 'hashed:instructor123',
-      role: 'Instructor',
-    };
-
     const newInstructor: Instructor = {
       id: Date.now() + 1,
       userId: newUserId,
@@ -1324,7 +1200,6 @@ export class CourseSystemService {
       phoneNumber: payload.phoneNumber.trim(),
     };
 
-    this.users.update((list) => [...list, newUser]);
     this.instructors.update((list) => [...list, newInstructor]);
     this.showNotification(
       'success',

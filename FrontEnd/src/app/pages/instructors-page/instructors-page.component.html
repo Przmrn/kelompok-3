@@ -97,11 +97,40 @@
             <label class="k-label">Nomor telepon</label>
             <input type="tel" class="form-control k-input" [(ngModel)]="form.phoneNumber" placeholder="0812xxxxxxxx" />
           </div>
-          <div class="col-md-6">
-            <label class="k-label">Keahlian</label>
-            <input type="text" class="form-control k-input" [(ngModel)]="form.expertise" placeholder="ASP.NET Core, SQL, Cloud" />
+          <div class="col-12">
+            <label class="k-label" for="new-skill">Keahlian</label>
+            <div class="d-flex gap-2">
+              <input #skillInput id="new-skill" type="text" class="form-control k-input"
+                     [(ngModel)]="pendingSkill" (keydown.enter)="$event.preventDefault(); addSkills()"
+                     placeholder="Contoh: SQL Server" />
+              <button type="button" class="btn-k-light btn-sm" [disabled]="!pendingSkill.trim()"
+                      (click)="addSkills(); skillInput.focus()">Tambah</button>
+            </div>
+            @if (form.expertise.length) {
+              <ol class="skill-list mt-2" aria-label="Urutan keahlian">
+                @for (skill of form.expertise; track skill; let i = $index) {
+                  <li class="skill-card">
+                    <span>{{ skill }}</span>
+                    <div class="skill-actions">
+                      <button type="button" [disabled]="$first" (click)="moveSkill(i, -1)"
+                              [attr.aria-label]="'Pindahkan ' + skill + ' lebih awal'" title="Pindahkan lebih awal">
+                        <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                      </button>
+                      <button type="button" [disabled]="$last" (click)="moveSkill(i, 1)"
+                              [attr.aria-label]="'Pindahkan ' + skill + ' lebih akhir'" title="Pindahkan lebih akhir">
+                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                      </button>
+                      <button type="button" (click)="form.expertise.splice(i, 1)"
+                              [attr.aria-label]="'Hapus keahlian ' + skill" title="Hapus keahlian">
+                        <i class="bi bi-x-lg" aria-hidden="true"></i>
+                      </button>
+                    </div>
+                  </li>
+                }
+              </ol>
+            }
           </div>
-          <div class="col-md-6">
+          <div class="col-12">
             <label class="k-label">Profil singkat</label>
             <input type="text" class="form-control k-input" [(ngModel)]="form.bio" placeholder="Profil singkat pengajar" />
           </div>
@@ -122,7 +151,7 @@
         <div class="col-md-6">
           <div class="k-card p-4 h-100 d-flex flex-column justify-content-between">
             <div>
-              <div class="d-flex justify-content-between align-items-start mb-3">
+              <div class="d-flex flex-wrap gap-2 justify-content-between align-items-start mb-3">
                 <div class="d-flex align-items-center gap-3">
                   <div
                     class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
@@ -154,7 +183,14 @@
                 </div>
               </div>
 
-              <div class="small fw-semibold mb-1">Keahlian: {{ ins.expertise }}</div>
+              <div class="small fw-semibold mb-2">Keahlian</div>
+              <ul class="skill-list mb-3" aria-label="Keahlian pengajar">
+                @for (skill of splitSkills(ins.expertise); track $index) {
+                  <li class="skill-card">{{ skill }}</li>
+                } @empty {
+                  <li class="small text-secondary">Belum ada keahlian.</li>
+                }
+              </ul>
               <p class="small text-secondary mb-3">{{ ins.bio }}</p>
             </div>
 

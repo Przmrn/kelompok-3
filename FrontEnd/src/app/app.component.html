@@ -175,36 +175,6 @@
               </button>
 
               <ul class="dropdown-menu dropdown-menu-end border shadow-sm rounded-4 p-2 mt-2" style="min-width: 265px;">
-                <li class="px-2 py-1 small text-muted fw-semibold">Pilih akun simulasi</li>
-                @for (u of svc.users(); track u.id) {
-                  <li>
-                    <button
-                      type="button"
-                      class="dropdown-item rounded-3 d-flex justify-content-between align-items-center py-2"
-                      [class.fw-bold]="svc.currentUserId() === u.id"
-                      (click)="switchAccount(u.id)"
-                    >
-                      <div>
-                        <div class="small">{{ u.fullName }}</div>
-                        @if (u.role === 'Student' && !svc.isStudentProfileComplete(u.id)) {
-                          <div class="text-warning" style="font-size: 0.68rem;">Profil belum lengkap</div>
-                        }
-                      </div>
-                      <span
-                        class="k-pill"
-                        style="font-size: 0.68rem;"
-                        [ngClass]="{
-                          'k-pill-neutral': u.role === 'Student',
-                          'k-pill-amber': u.role === 'Instructor',
-                          'k-pill-green': u.role === 'Admin'
-                        }"
-                      >
-                        {{ labels.role[u.role] }}
-                      </span>
-                    </button>
-                  </li>
-                }
-                <li><hr class="dropdown-divider my-1" /></li>
                 @if (user.role === 'Student') {
                   <li>
                     <a
@@ -262,194 +232,70 @@
 </header>
 
 @if (svc.authModalOpen()) {
-  <div class="k-modal-backdrop" (click)="svc.closeAuthModal()">
+  <div class="k-modal-backdrop" (click)="closeModal()">
     <div class="k-modal-dialog anim-pop" (click)="$event.stopPropagation()">
       <button
         type="button"
         class="btn-close position-absolute top-0 end-0 m-3"
         aria-label="Tutup"
-        (click)="svc.closeAuthModal()"
+        [disabled]="busy()"
+        (click)="closeModal()"
       ></button>
 
       @if (svc.authModalMode() === 'LOGIN') {
         <div class="text-center mb-4">
-          <div
-            class="brand-mark mx-auto mb-2"
-            style="width: 44px; height: 44px; font-size: 1.15rem;"
-          >
-            <i class="bi bi-box-arrow-in-right"></i>
-          </div>
           <h2 class="h4 fw-bold mb-1">Masuk ke Karsa</h2>
-          <p class="text-secondary small mb-0">
-            Masuk untuk mendaftar kelas tatap muka dan memantau jadwal.
-          </p>
+          <p class="text-secondary small mb-0">Masuk untuk mendaftar kelas dan melihat jadwal Anda.</p>
         </div>
-
-        @if (modalError(); as err) {
-          <div class="p-3 rounded-4 mb-3 small" style="background: #FFE4E0; color: #C22A12;">
-            {{ err }}
-          </div>
+        @if (registrationNotice()) {
+          <p role="status" class="alert alert-success small">{{ registrationNotice() }}</p>
         }
-
-        <div class="mb-3">
-          <label class="k-label">Email</label>
-          <input
-            type="email"
-            class="form-control k-input"
-            placeholder="nama@email.com"
-            [ngModel]="loginEmail()"
-            (ngModelChange)="loginEmail.set($event)"
-          />
-        </div>
-
-        <div class="mb-3">
-          <label class="k-label">Kata sandi</label>
-          <input
-            type="password"
-            class="form-control k-input"
-            placeholder="Masukkan kata sandi"
-            [ngModel]="loginPassword()"
-            (ngModelChange)="loginPassword.set($event)"
-          />
-        </div>
-
-        <div class="mb-4">
-          <div class="small text-muted mb-1" style="font-size: 0.75rem;">
-            Pilih akun untuk mencoba aplikasi
-          </div>
-          <div class="d-flex flex-wrap gap-1">
-            <button
-              type="button"
-              class="btn-k-light btn-sm py-1 px-2"
-              style="font-size: 0.75rem;"
-              (click)="loginEmail.set('raka.wijaya@karsa.id')"
-            >
-              Peserta (Raka)
-            </button>
-            <button
-              type="button"
-              class="btn-k-light btn-sm py-1 px-2"
-              style="font-size: 0.75rem;"
-              (click)="loginEmail.set('nadia.putri@student.ac.id')"
-            >
-              Peserta Baru (Nadia)
-            </button>
-            <button
-              type="button"
-              class="btn-k-light btn-sm py-1 px-2"
-              style="font-size: 0.75rem;"
-              (click)="loginEmail.set('bagas.adi@karsa.id')"
-            >
-              Pengajar
-            </button>
-            <button
-              type="button"
-              class="btn-k-light btn-sm py-1 px-2"
-              style="font-size: 0.75rem;"
-              (click)="loginEmail.set('admin@karsa.id')"
-            >
-              Admin
-            </button>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          class="btn-k-primary w-100 py-2 mb-3"
-          (click)="handleModalLogin()"
-        >
-          <i class="bi bi-box-arrow-in-right"></i>
-          <span>Masuk</span>
-        </button>
-
-        <div class="pt-3 border-top text-center">
-          <div class="small text-secondary mb-2">
-            Belum punya akun?
-          </div>
-          <button
-            type="button"
-            class="btn-k-light btn-sm w-100"
-            (click)="switchModalMode('REGISTER')"
-          >
-            <i class="bi bi-person-plus"></i>
-            <span>Buat akun</span>
-          </button>
-        </div>
+        <form (submit)="$event.preventDefault(); handleLogin(email.value, password.value)">
+          <fieldset [disabled]="busy()">
+            <div class="mb-3">
+              <label for="login-email" class="k-label">Email</label>
+              <input #email id="login-email" name="email" type="email" autocomplete="username" class="form-control k-input" [value]="loginEmail()" required />
+            </div>
+            <div class="mb-3">
+              <label for="login-password" class="k-label">Kata sandi</label>
+              <input #password id="login-password" name="password" type="password" autocomplete="current-password" class="form-control k-input" required />
+            </div>
+            @if (modalError()) { <p role="alert" class="alert alert-danger small">{{ modalError() }}</p> }
+            <button type="submit" class="btn-k-primary w-100 py-2 mb-3">{{ busy() ? 'Sedang masuk…' : 'Masuk' }}</button>
+            <div class="pt-3 border-top text-center">
+              <p class="small text-secondary mb-2">Belum punya akun?</p>
+              <button type="button" class="btn-k-light btn-sm w-100" (click)="switchModalMode('REGISTER')">Buat akun</button>
+            </div>
+          </fieldset>
+        </form>
       } @else {
-        <div class="text-center mb-3">
-          <div
-            class="brand-mark mx-auto mb-2"
-            style="width: 44px; height: 44px; font-size: 1.15rem;"
-          >
-            <i class="bi bi-person-plus"></i>
-          </div>
+        <div class="text-center mb-4">
           <h2 class="h4 fw-bold mb-1">Buat akun peserta</h2>
-          <p class="text-secondary small mb-0">
-            Buat akun baru untuk mendaftar kelas tatap muka.
-          </p>
+          <p class="text-secondary small mb-0">Daftar untuk mengikuti kelas tatap muka.</p>
         </div>
-
-        @if (modalError(); as err) {
-          <div class="p-3 rounded-4 mb-3 small" style="background: #FFE4E0; color: #C22A12;">
-            {{ err }}
-          </div>
-        }
-
-        <div class="mb-3">
-          <label class="k-label">Nama Lengkap</label>
-          <input
-            type="text"
-            class="form-control k-input"
-            placeholder="Nama lengkap Anda"
-            [ngModel]="regName()"
-            (ngModelChange)="regName.set($event)"
-          />
-        </div>
-
-        <div class="mb-3">
-          <label class="k-label">Email</label>
-          <input
-            type="email"
-            class="form-control k-input"
-            placeholder="nama@email.com"
-            [ngModel]="regEmail()"
-            (ngModelChange)="regEmail.set($event)"
-          />
-        </div>
-
-        <div class="mb-4">
-          <label class="k-label">Kata sandi</label>
-          <input
-            type="password"
-            class="form-control k-input"
-            placeholder="Minimal 6 karakter"
-            [ngModel]="regPassword()"
-            (ngModelChange)="regPassword.set($event)"
-          />
-        </div>
-
-        <button
-          type="button"
-          class="btn-k-coral w-100 py-2 mb-3"
-          (click)="handleModalRegister()"
-        >
-          <i class="bi bi-check2-circle"></i>
-          <span>Buat Akun Sekarang</span>
-        </button>
-
-        <div class="pt-3 border-top text-center">
-          <div class="small text-secondary mb-2">
-            Sudah memiliki akun?
-          </div>
-          <button
-            type="button"
-            class="btn-k-light btn-sm w-100"
-            (click)="switchModalMode('LOGIN')"
-          >
-            <i class="bi bi-box-arrow-in-right"></i>
-            <span>Kembali untuk masuk</span>
-          </button>
-        </div>
+        <form (submit)="$event.preventDefault(); handleRegister(name.value, email.value, password.value)">
+          <fieldset [disabled]="busy()">
+            <div class="mb-3">
+              <label for="register-name" class="k-label">Nama lengkap</label>
+              <input #name id="register-name" name="fullName" autocomplete="name" class="form-control k-input" maxlength="150" required />
+            </div>
+            <div class="mb-3">
+              <label for="register-email" class="k-label">Email</label>
+              <input #email id="register-email" name="email" type="email" autocomplete="email" class="form-control k-input" maxlength="255" required />
+            </div>
+            <div class="mb-3">
+              <label for="register-password" class="k-label">Kata sandi</label>
+              <input #password id="register-password" name="password" type="password" autocomplete="new-password" class="form-control k-input" minlength="8" maxlength="255" aria-describedby="password-hint" required />
+              <small id="password-hint" class="text-secondary">Gunakan minimal 8 karakter.</small>
+            </div>
+            @if (modalError()) { <p role="alert" class="alert alert-danger small">{{ modalError() }}</p> }
+            <button type="submit" class="btn-k-coral w-100 py-2 mb-3">{{ busy() ? 'Membuat akun…' : 'Buat akun' }}</button>
+            <div class="pt-3 border-top text-center">
+              <p class="small text-secondary mb-2">Sudah punya akun?</p>
+              <button type="button" class="btn-k-light btn-sm w-100" (click)="switchModalMode('LOGIN')">Masuk</button>
+            </div>
+          </fieldset>
+        </form>
       }
     </div>
   </div>

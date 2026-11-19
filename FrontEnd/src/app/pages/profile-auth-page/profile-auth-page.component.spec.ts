@@ -1,3 +1,4 @@
+import { AuthService } from '../../services/auth.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { CourseSystemService } from '../../services/course-system.service';
@@ -5,9 +6,8 @@ import { ProfileAuthPageComponent } from './profile-auth-page.component';
 
 describe('Student profile form', () => {
   it('blocks an invalid phone and saves a formatted number on a partial profile', () => {
-    TestBed.configureTestingModule({ providers: [provideRouter([])] });
+    TestBed.configureTestingModule({ providers: [provideRouter([]), { provide: AuthService, useValue: { user: () => ({ id: -2, role: 'Student', fullName: 'Peserta', email: 'peserta@example.test' }) } }] });
     const svc = TestBed.inject(CourseSystemService);
-    svc.switchDemoUser(2);
     const fixture = TestBed.createComponent(ProfileAuthPageComponent);
     fixture.detectChanges();
     const form: HTMLFormElement = fixture.nativeElement.querySelector('form');
@@ -29,6 +29,6 @@ describe('Student profile form', () => {
     submit('+62 812-3456-7890');
     expect(form.querySelector('#profile-phone-error')).toBeNull();
     expect(svc.currentStudentProfile()!.phoneNumber).toBe('+62 812-3456-7890');
-    expect(svc.isStudentProfileComplete(2)).toBeFalse();
+    expect(svc.isStudentProfileComplete(-2)).toBeFalse();
   });
 });

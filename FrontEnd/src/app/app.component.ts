@@ -1,20 +1,30 @@
 import { courseLabels } from './models/course-labels';
 import { CommonModule, DOCUMENT, ViewportScroller } from '@angular/common';
-import { Component, computed, inject, signal } from '@angular/core';
-import { FormsModule } from '@angular/forms';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { firstValueFrom } from 'rxjs';
+import { AuthService } from './services/auth.service';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { CourseSystemService } from './services/course-system.service';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [CommonModule, RouterOutlet, RouterLink, RouterLinkActive],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
 })
 export class AppComponent {
   readonly labels = courseLabels;
   constructor() {
+    let signedIn = false;
+    effect(() => {
+      const user = this.svc.currentUser();
+      if (signedIn && !user && this.router.url !== '/courses') {
+        void this.router.navigate(['/courses']);
+      }
+      signedIn = !!user;
+    });
     const document = inject(DOCUMENT);
     inject(ViewportScroller).setOffset(() => [0, document.querySelector('header.k-header')?.clientHeight ?? 0]);
   }
@@ -23,13 +33,10 @@ export class AppComponent {
   private readonly router = inject(Router);
   readonly mobileMenuOpen = signal(false);
 
-  readonly loginEmail = signal('raka.wijaya@karsa.id');
-  readonly loginPassword = signal('karsa123');
-
-  readonly regName = signal('');
-  readonly regEmail = signal('');
-  readonly regPassword = signal('');
-
+  private readonly auth = inject(AuthService);
+  readonly busy = signal(false);
+  readonly loginEmail = signal('');
+  readonly registrationNotice = signal('');
   readonly modalError = signal<string | null>(null);
 
   readonly unpaidCartCount = computed(() => {
@@ -39,70 +46,72 @@ export class AppComponent {
   });
 
   openSignInModal(): void {
-    this.modalError.set(null);
-    this.svc.openAuthModal('LOGIN');
+    this.switchModalMode('LOGIN');
     this.closeMobileMenu();
   }
 
   switchModalMode(mode: 'LOGIN' | 'REGISTER'): void {
+    if (this.busy()) return;
     this.modalError.set(null);
+    this.registrationNotice.set('');
     this.svc.openAuthModal(mode);
   }
 
-  handleModalLogin(): void {
+  closeModal(): void {
+    if (this.busy()) return;
     this.modalError.set(null);
-    const res = this.svc.loginUser(this.loginEmail(), this.loginPassword());
-    if (!res.success) {
-      this.modalError.set(res.message);
-      return;
-    }
-
+    this.registrationNotice.set('');
+    this.loginEmail.set('');
     this.svc.closeAuthModal();
-    if (res.user?.role === 'Instructor') {
-      this.router.navigate(['/teaching-schedule']);
-    } else if (res.user?.role === 'Admin') {
-      this.router.navigate(['/admin/dashboard']);
-    } else {
-      this.router.navigate(['/courses']);
+  }
+
+  async handleLogin(email: string, password: string): Promise<void> {
+    if (this.busy()) return;
+    this.busy.set(true);
+    this.modalError.set(null);
+    try {
+      const role = await firstValueFrom(this.auth.login(email, password));
+      this.svc.closeAuthModal();
+      this.loginEmail.set('');
+      this.registrationNotice.set('');
+      const destination = role === 'Instructor' ? '/teaching-schedule' : role === 'Admin' ? '/admin/dashboard' : '/courses';
+      await this.router.navigate([destination]);
+    } catch (error) {
+      this.showAuthError(error);
+    } finally {
+      this.busy.set(false);
     }
   }
 
-  handleModalRegister(): void {
+  async handleRegister(name: string, email: string, password: string): Promise<void> {
+    if (this.busy()) return;
     this.modalError.set(null);
-    if (!this.regName().trim() || !this.regEmail().trim() || !this.regPassword().trim()) {
-      this.modalError.set('Isi nama lengkap, email, dan kata sandi.');
+    if (!name.trim()) {
+      this.modalError.set('Isi nama lengkap Anda.');
       return;
     }
-
-    const res = this.svc.registerUser({
-      fullName: this.regName(),
-      email: this.regEmail(),
-      password: this.regPassword(),
-    });
-
-    if (!res.success) {
-      this.modalError.set(res.message);
-      return;
+    this.busy.set(true);
+    try {
+      const user = await firstValueFrom(this.auth.register(name, email, password));
+      this.loginEmail.set(user.email);
+      this.registrationNotice.set('Akun berhasil dibuat. Masuk dengan kata sandi yang baru Anda daftarkan.');
+      this.svc.openAuthModal('LOGIN');
+    } catch (error) {
+      this.showAuthError(error);
+    } finally {
+      this.busy.set(false);
     }
-
-    this.regName.set('');
-    this.regEmail.set('');
-    this.regPassword.set('');
-    this.svc.closeAuthModal();
-    this.router.navigate(['/profile']);
   }
 
-  switchAccount(userId: number): void {
-    const switchedUser = this.svc.switchDemoUser(userId);
-    if (!switchedUser) return;
-
-    if (switchedUser.role === 'Instructor') {
-      this.router.navigate(['/teaching-schedule']);
-    } else if (switchedUser.role === 'Admin') {
-      this.router.navigate(['/admin/dashboard']);
-    } else {
-      this.router.navigate(['/courses']);
-    }
+  private showAuthError(error: unknown): void {
+    const status = error instanceof HttpErrorResponse ? error.status : undefined;
+    const messages: Record<number, string> = {
+      0: 'Server belum dapat dihubungi. Periksa koneksi Anda lalu coba lagi.',
+      400: 'Periksa kembali isian formulir Anda.',
+      401: 'Email atau kata sandi salah.',
+      409: 'Email ini sudah terdaftar. Silakan masuk atau gunakan email lain.',
+    };
+    this.modalError.set(messages[status ?? -1] ?? 'Permintaan belum berhasil. Silakan coba lagi.');
   }
 
   handleSignOut(): void {
