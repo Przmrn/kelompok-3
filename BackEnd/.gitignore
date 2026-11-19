@@ -1,13 +1,16 @@
 # Build output
 bin/
 obj/
+publish/
+artifacts/
 
 # Visual Studio
 .vs/
-*.user
 *.suo
+*.user
 *.userosscache
 *.sln.docstates
+*.rsuser
 
 # Visual Studio Code
 .vscode/
@@ -16,34 +19,25 @@ obj/
 .idea/
 *.sln.iml
 
-# User-specific files
-*.rsuser
-
-# Environment variables and secrets
+# Local and environment configuration
 .env
 .env.*
 !.env.example
-
-# Local configuration
+appsettings.Development.json
 appsettings.Local.json
 appsettings.*.Local.json
 
-# Logs
-*.log
+# Logs and temporary files
 logs/
+*.log
+*.tmp
+*.temp
+*.bak
+
+# Test output
+TestResults/
 
 # OS generated files
 .DS_Store
 Thumbs.db
 desktop.ini
-
-# Test results
-TestResults/
-
-# Publish output
-publish/
-artifacts/
-
-# Temporary files
-*.tmp
-*.bak
