@@ -9,13 +9,16 @@ namespace BackEnd.Services
     {
         private readonly IRepository<Registration> _registrationRepository;
         private readonly IRepository<InstallmentSchedule> _installmentRepository;
+        private readonly IRepository<CourseBatch> _batchRepository;
 
         public PaymentService(
             IRepository<Registration> registrationRepository,
-            IRepository<InstallmentSchedule> installmentRepository)
+            IRepository<InstallmentSchedule> installmentRepository,
+            IRepository<CourseBatch> batchRepository)
         {
             _registrationRepository = registrationRepository;
             _installmentRepository = installmentRepository;
+            _batchRepository = batchRepository;
         }
 
         public async Task<PaymentResponseDto?> GetByRegistrationIdAsync(long registrationId)
@@ -123,8 +126,9 @@ namespace BackEnd.Services
 
         public async Task ProcessOverdueRegistrationsAsync()
         {
-            var registrations = await _registrationRepository.GetAllAsync("InstallmentSchedules");
+            var registrations = await _registrationRepository.GetAllAsync("Batch,InstallmentSchedules");
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var affectedBatchIds = new HashSet<long>();
 
             foreach (var registration in registrations)
             {
@@ -156,6 +160,7 @@ namespace BackEnd.Services
                 {
                     registration.RegistrationStatus = RegistrationStatus.CANCELLED;
                     registration.PaymentStatus = PaymentStatus.OVERDUE;
+                    affectedBatchIds.Add(registration.BatchId);
                 }
                 else if (hasOverdueInstallment)
                 {
@@ -178,6 +183,27 @@ namespace BackEnd.Services
             }
 
             await _registrationRepository.SaveChangesAsync();
+
+            foreach (var batchId in affectedBatchIds)
+            {
+                var batch = await _batchRepository.GetByIdAsync(batchId);
+
+                if (batch == null)
+                    continue;
+
+                int activeCount = await _registrationRepository.CountAsync(r =>
+                    r.BatchId == batchId &&
+                    (r.RegistrationStatus == RegistrationStatus.PENDING ||
+                     r.RegistrationStatus == RegistrationStatus.CONFIRMED));
+
+                batch.CourseStatus = activeCount >= batch.MaxSeats
+                    ? CourseBatchStatus.FULL
+                    : CourseBatchStatus.OPEN;
+
+                _batchRepository.Update(batch);
+            }
+
+            await _batchRepository.SaveChangesAsync();
         }
 
         private static void ValidatePaidAmount(decimal amount, decimal maximumAmount)

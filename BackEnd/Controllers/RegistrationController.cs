@@ -1,6 +1,7 @@
 ﻿
 using BackEnd.DTOs;
 using BackEnd.DTOs.Registration;
+using BackEnd.DTOs.Payment;
 using BackEnd.Models;
 using BackEnd.Services;
 using BackEnd.Repositories;
@@ -84,6 +85,37 @@ namespace BackEnd.Controllers
             return Ok(registration);
         }
 
+        // Mengambil detail payment dan jadwal cicilan berdasarkan pendaftaran
+        [HttpGet("{id:long}/payment")]
+        [Authorize(Roles = "STUDENT,ADMIN")]
+        public async Task<ActionResult<PaymentResponseDto>> GetPayment(long id)
+        {
+            var registration = await _registrationService.GetByIdAsync(id);
+
+            if (registration == null)
+                return NotFound(new
+                {
+                    message = "Pendaftaran tidak ditemukan."
+                });
+
+            if (User.IsInRole("STUDENT"))
+            {
+                var studentId = await GetCurrentStudentIdAsync();
+
+                if (studentId == null)
+                    return Unauthorized();
+
+                if (registration.StudentId != studentId.Value)
+                    return Forbid();
+            }
+
+            var payment = await _paymentService.GetByRegistrationIdAsync(id);
+
+            return payment == null
+                ? NotFound(new { message = "Data payment tidak ditemukan." })
+                : Ok(payment);
+        }
+
         // Membuat pendaftaran kursus
         [HttpPost]
         [Authorize(Roles = "STUDENT")]
@@ -115,9 +147,13 @@ namespace BackEnd.Controllers
         // Mengonfirmasi pembayaran Upfront
         [HttpPost("{id:long}/confirm-upfront")]
         [Authorize(Roles = "ADMIN")]
-        public async Task<IActionResult> ConfirmUpfrontPayment(long id)
+        public async Task<IActionResult> ConfirmUpfrontPayment(
+            long id,
+            [FromBody] PaymentConfirmationRequestDto? request = null)
         {
-            var payment = await _paymentService.ConfirmUpfrontPaymentAsync(id, null);
+            var payment = await _paymentService.ConfirmUpfrontPaymentAsync(
+                id,
+                request?.PaidAmount);
 
             return Ok(new
             {
@@ -130,11 +166,12 @@ namespace BackEnd.Controllers
         [HttpPost("installments/{scheduleId:long}/confirm")]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> ConfirmInstallmentPayment(
-            long scheduleId)
+            long scheduleId,
+            [FromBody] PaymentConfirmationRequestDto? request = null)
         {
             var payment = await _paymentService.ConfirmInstallmentPaymentAsync(
                 scheduleId,
-                null
+                request?.PaidAmount
             );
 
             return Ok(new
