@@ -1,18 +1,26 @@
-﻿
-using BackEnd.Models;
+﻿using BackEnd.DTOs.BatchInstructor;
 
 namespace BackEnd.Services
 {
     public interface IBatchInstructorService
     {
-        Task<IEnumerable<BatchInstructor>> GetAllAsync();
+        Task<IEnumerable<BatchInstructorResponseDto>> GetAllAsync();
 
-        Task<IEnumerable<BatchInstructor>> GetByBatchIdAsync(long batchId);
+        Task<IEnumerable<BatchInstructorResponseDto>> GetByBatchIdAsync(
+            long batchId
+        );
 
-        Task<IEnumerable<BatchInstructor>> GetByInstructorIdAsync(long instructorId);
+        Task<IEnumerable<BatchInstructorResponseDto>> GetByInstructorIdAsync(
+            long instructorId
+        );
 
-        Task<BatchInstructor> AssignInstructorAsync(long batchId, long instructorId);
+        Task<BatchInstructorResponseDto> AssignInstructorAsync(
+            BatchInstructorCreateDto dto
+        );
 
-        Task<bool> RemoveInstructorAsync(long batchId, long instructorId);
+        Task<bool> RemoveInstructorAsync(
+            long batchId,
+            long instructorId
+        );
     }
 }
