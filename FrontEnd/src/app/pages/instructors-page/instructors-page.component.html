@@ -25,7 +25,13 @@
             Pilih pengajar dan jadwal kelas. Setiap pengajar hanya bisa ditugaskan sekali pada jadwal yang sama.
           </div>
         </div>
-
+        <button
+          type="button"
+          class="btn-k-light btn-sm"
+          (click)="testScheduleConflict()"
+        >
+          Coba jadwal yang bentrok
+        </button>
       </div>
 
       @if (conflictingBatches().length) {
@@ -41,7 +47,6 @@
       }
       @if (!conflictingBatches().length && feedbackMessage(); as fb) {
         <div
-          [attr.role]="fb.success ? 'status' : 'alert'"
           class="p-3 rounded-4 mb-3 small"
           [style.background-color]="fb.success ? 'var(--brand-forest-light)' : '#FFE4E0'"
           [style.color]="fb.success ? 'var(--brand-forest)' : '#C22A12'"
@@ -52,10 +57,8 @@
 
       <div class="row g-3 align-items-end">
         <div class="col-md-5">
-          <label class="k-label" for="assignment-instructor">Pengajar</label>
+          <label class="k-label">Pengajar</label>
           <select
-            id="assignment-instructor"
-            [disabled]="svc.saving()"
             class="form-select k-select"
             [ngModel]="selectedInstructorId()"
             (ngModelChange)="selectedInstructorId.set($event); feedbackMessage.set(null)"
@@ -67,11 +70,8 @@
           </select>
         </div>
         <div class="col-md-5">
-          <label class="k-label" for="assignment-batch">Jadwal kelas</label>
+          <label class="k-label">Jadwal kelas</label>
           <select
-            id="assignment-batch"
-            [disabled]="svc.saving()"
-            [attr.aria-describedby]="conflictingBatches().length ? 'assignment-conflict' : null"
             class="form-select k-select"
             [ngModel]="selectedBatchId()"
             (ngModelChange)="selectedBatchId.set($event); feedbackMessage.set(null)"
@@ -85,7 +85,7 @@
           </select>
         </div>
         <div class="col-md-2">
-          <button type="button" class="btn-k-coral w-100" [disabled]="!selectedInstructorId() || !selectedBatchId() || conflictingBatches().length > 0 || svc.saving()" (click)="submitAssignment()">
+          <button type="button" class="btn-k-coral w-100" (click)="submitAssignment()">
             Tugaskan
           </button>
         </div>
@@ -230,7 +230,7 @@
                       type="button"
                       class="btn btn-sm text-danger p-0 border-0"
                       title="Lepaskan penugasan"
-                      (click)="svc.removeInstructorAssignment(item.assignment)"
+                      (click)="svc.removeInstructorAssignment(item.assignment.id)"
                     >
                       <i class="bi bi-x-circle"></i>
                     </button>

@@ -1,14 +1,14 @@
-<div class="k-card p-4 mb-4">
-  <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+<article class="panel mb-4">
+  <div class="panel-head" style="margin-bottom: 12px;">
     <div>
-      <div class="small text-muted mb-1">
+      <div class="ops-code mb-1">
         {{ reg.registrationNumber }} · Pendaftar ke-<strong>{{ reg.queueNumber }}</strong>
       </div>
       @if (svc.getBatchById(reg.batchId); as batch) {
-        <h2 class="h5 fw-bold mb-1">
+        <h2 class="panel-title" style="font-size: 1.2rem;">
           {{ svc.getCourseById(batch.courseId)?.title }}
         </h2>
-        <div class="small text-secondary">
+        <div class="cart-card-meta">
           {{ batch.batchName }} · Mulai {{ batch.startDate | date: 'd MMM yyyy' }}
         </div>
       }
@@ -39,17 +39,17 @@
     </div>
   </div>
 
-  <div class="small text-secondary pb-3 mb-3 border-bottom d-flex flex-wrap gap-3">
+  <div class="cart-card-meta pb-3 mb-3 border-bottom">
     <span>Metode: <strong>{{ labels.method[reg.paymentMethod] }}{{ reg.installmentTenor ? ' (' + reg.installmentTenor + ' Bulan)' : '' }}</strong></span>
     <span>Total Tagihan: <strong>Rp{{ reg.totalAmount | number: '1.0-0' }}</strong></span>
     <span>Sudah Dibayar: <strong class="text-success">Rp{{ svc.getTotalPaidForRegistration(reg) | number: '1.0-0' }}</strong></span>
-    <span>Sisa tagihan: <strong style="color: var(--brand-coral);">Rp{{ svc.getRemainingObligationForRegistration(reg) | number: '1.0-0' }}</strong></span>
+    <span>Sisa tagihan: <strong style="color: var(--ui-ember);">Rp{{ svc.getRemainingObligationForRegistration(reg) | number: '1.0-0' }}</strong></span>
   </div>
 
-  <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+  <div class="card-actions">
     <div class="d-flex flex-wrap gap-2">
       <a
-        class="k-chip py-1 px-3 small"
+        class="k-chip"
         routerLink="/my-courses/jadwal"
         routerLinkActive="active"
         ariaCurrentWhenActive="page"
@@ -58,7 +58,7 @@
       </a>
       @if (reg.registrationStatus !== 'Cancelled' && reg.registrationStatus !== 'Completed') {
         <a
-          class="k-chip py-1 px-3 small"
+          class="k-chip"
           [routerLink]="['/my-courses', reg.id, 'refund']"
           routerLinkActive="active"
           ariaCurrentWhenActive="page"
@@ -70,10 +70,13 @@
 
     <a
       [routerLink]="['/payments', reg.id]"
-      class="btn-k-primary btn-sm py-1 px-3"
+      class="btn-k-primary btn-sm"
     >
-      Rincian pembayaran <i class="bi bi-arrow-right"></i>
+      Rincian pembayaran <i class="bi bi-arrow-right" aria-hidden="true"></i>
     </a>
   </div>
-  <ng-content></ng-content>
-</div>
+
+  <div class="mt-3">
+    <ng-content></ng-content>
+  </div>
+</article>

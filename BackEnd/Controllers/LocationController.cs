@@ -18,10 +18,8 @@ namespace BackEnd.Controllers
 
         [HttpGet]
         [AllowAnonymous]
-        public async Task<ActionResult<IEnumerable<LocationResponseDto>>> GetAll()
-        {
-            return Ok(await _service.GetAllAsync());
-        }
+        public async Task<ActionResult<IEnumerable<LocationResponseDto>>> GetAll([FromQuery] string? city)
+            => Ok(await _service.GetAllAsync(city));
 
         [HttpGet("{id:long}")]
         [AllowAnonymous]
@@ -35,8 +33,8 @@ namespace BackEnd.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<LocationResponseDto>> Create(LocationCreateDto dto)
         {
-            var location = await _service.CreateAsync(dto);
-            return CreatedAtAction(nameof(GetById), new { id = location.Id }, location);
+            var created = await _service.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
         [HttpPut("{id:long}")]
@@ -51,15 +49,8 @@ namespace BackEnd.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(long id)
         {
-            try
-            {
-                var deleted = await _service.DeleteAsync(id);
-                return deleted ? NoContent() : NotFound();
-            }
-            catch (InvalidOperationException exception)
-            {
-                return Conflict(new { message = exception.Message });
-            }
+            await _service.DeleteAsync(id);
+            return NoContent();
         }
     }
 }

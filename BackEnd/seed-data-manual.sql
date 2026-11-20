@@ -8,8 +8,6 @@
 -- Tujuan: Data dummy untuk pengujian aplikasi.
 -- =====================================================
 
-BEGIN;
-
 -- =============================================
 -- 1. USERS
 -- =============================================
@@ -358,5 +356,3 @@ SELECT setval(
     pg_get_serial_sequence('"InstallmentSchedules"', 'Id'),
     (SELECT MAX("Id") FROM "InstallmentSchedules")
 );
-
-COMMIT;

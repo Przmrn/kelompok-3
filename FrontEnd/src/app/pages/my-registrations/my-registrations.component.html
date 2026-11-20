@@ -1,61 +1,60 @@
-<section class="py-5">
-  <div class="container" style="max-width: 840px;">
+<section class="k-page">
+  <div class="shell">
     @if (!svc.currentUser()) {
-      <div class="k-card p-5 text-center anim-fade-up">
-        <div
-          class="brand-mark mx-auto mb-3"
-          style="width: 48px; height: 48px; font-size: 1.25rem;"
-        >
-          <i class="bi bi-journal-bookmark-fill"></i>
+      <div class="panel anim-fade-up" style="max-width: 560px; margin-inline: auto;">
+        <div class="empty-state">
+          <div class="empty-icon"><i class="bi bi-journal-bookmark-fill" aria-hidden="true"></i></div>
+          <h1 class="h4 fw-bold">Kelas saya</h1>
+          <p>Masuk untuk melihat jadwal dan lokasi kelas yang sudah Anda beli.</p>
+          <button
+            type="button"
+            class="btn-k-primary"
+            (click)="svc.openAuthModal('LOGIN')"
+          >
+            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+            <span>Masuk</span>
+          </button>
         </div>
-        <h1 class="h4 fw-bold mb-2">Kelas saya</h1>
-        <p class="text-secondary small mb-4">
-          Masuk untuk melihat jadwal dan lokasi kelas yang sudah Anda beli.
-        </p>
-        <button
-          type="button"
-          class="btn-k-primary"
-          (click)="svc.openAuthModal('LOGIN')"
-        >
-          <i class="bi bi-box-arrow-in-right"></i>
-          <span>Masuk</span>
-        </button>
       </div>
     } @else {
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 anim-fade-up">
-        <div>
-          <span class="k-pill k-pill-green mb-2">Kelas yang sudah dibeli</span>
-          <h1 class="h2 fw-bold mb-1">Kelas saya ({{ paidCourses().length }})</h1>
-          <p class="text-secondary small mb-0">
+      <header class="page-head anim-fade-up">
+        <div class="page-head-copy">
+          <span class="kicker">Kelas yang sudah dibeli</span>
+          <h1 class="page-title">Kelas saya ({{ paidCourses().length }})</h1>
+          <p class="page-lede">
             Lihat jadwal, lokasi, dan rincian cicilan untuk kelas yang sudah Anda beli.
           </p>
         </div>
 
-        <div class="d-flex gap-2">
+        <div class="page-actions">
           @if (unpaidCount() > 0) {
-            <a routerLink="/cart" class="btn-k-coral btn-sm">
-              <i class="bi bi-cart3"></i>
+            <a routerLink="/cart" class="btn-k-coral">
+              <i class="bi bi-cart3" aria-hidden="true"></i>
               <span>Keranjang Belum Dibayar ({{ unpaidCount() }})</span>
             </a>
           }
-          <a routerLink="/courses" class="btn-k-primary btn-sm">
+          <a routerLink="/courses" class="btn-k-primary">
             + Pilih Kelas Lain
           </a>
         </div>
-      </div>
+      </header>
 
       @if (paidCourses().length) {
         <router-outlet></router-outlet>
       } @else {
-        <div class="k-card p-5 text-center">
-          <p class="text-secondary mb-3">Anda belum membeli kelas.</p>
-          <div class="d-flex justify-content-center gap-2">
-            @if (unpaidCount() > 0) {
-              <a routerLink="/cart" class="btn-k-coral btn-sm">
-                Bayar Tagihan di Keranjang ({{ unpaidCount() }})
-              </a>
-            }
-            <a routerLink="/courses" class="btn-k-primary btn-sm">Lihat Semua Kelas</a>
+        <div class="panel anim-fade-up">
+          <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-calendar2-week" aria-hidden="true"></i></div>
+            <h2>Anda belum membeli kelas</h2>
+            <p>Pilih jadwal dari katalog, lalu selesaikan pembayaran pertama untuk membuka kelas.</p>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+              @if (unpaidCount() > 0) {
+                <a routerLink="/cart" class="btn-k-coral btn-sm">
+                  Bayar Tagihan di Keranjang ({{ unpaidCount() }})
+                </a>
+              }
+              <a routerLink="/courses" class="btn-k-primary btn-sm">Lihat Semua Kelas</a>
+            </div>
           </div>
         </div>
       }

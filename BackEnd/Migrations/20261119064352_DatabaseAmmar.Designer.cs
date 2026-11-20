@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace BackEnd.Migrations
 {
     [DbContext(typeof(CourseDbContext))]
-    [Migration("20261119040259_AddPaidAmountAndPaidAtToRegistration")]
-    partial class AddPaidAmountAndPaidAtToRegistration
+    [Migration("20261119064352_DatabaseAmmar")]
+    partial class DatabaseAmmar
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -279,12 +279,6 @@ namespace BackEnd.Migrations
 
                     b.Property<int?>("InstallmentTenor")
                         .HasColumnType("integer");
-
-                    b.Property<decimal>("PaidAmount")
-                        .HasColumnType("decimal(15,2)");
-
-                    b.Property<DateTime?>("PaidAt")
-                        .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("PaymentMethod")
                         .IsRequired()

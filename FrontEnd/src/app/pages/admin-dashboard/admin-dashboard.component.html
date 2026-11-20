@@ -1,74 +1,59 @@
-<section class="py-5">
-  <div class="container" style="max-width: 980px;">
-    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
-      <div>
-        <span class="k-pill k-pill-green mb-2">Admin</span>
-        <h1 class="h2 fw-bold mb-1">Ringkasan Operasional</h1>
-        <p class="text-secondary small mb-0">
+<section class="k-page">
+  <div class="shell">
+    <header class="page-head anim-fade-up">
+      <div class="page-head-copy">
+        <span class="kicker">Admin</span>
+        <h1 class="page-title">Ringkasan operasional</h1>
+        <p class="page-lede">
           Ringkasan jumlah kelas, jadwal, pendaftaran, dan informasi operasional.
         </p>
       </div>
-      <div class="d-flex gap-2">
-        <button class="btn-k-light btn-sm" type="button" [disabled]="svc.saving()" (click)="svc.processOverdue()">Periksa tagihan terlambat</button>
-        <a routerLink="/admin/courses" class="btn-k-light btn-sm">Kelola Kelas</a>
-        <a routerLink="/admin/batches" class="btn-k-light btn-sm">Kelola jadwal kelas</a>
-        <a routerLink="/admin/instructors" class="btn-k-primary btn-sm">Kelola Pengajar</a>
+  <div class="page-actions">
+    <button class="btn-k-light" type="button" [disabled]="svc.saving()" (click)="svc.processOverdue()">Periksa tagihan terlambat</button>
+    <a routerLink="/admin/courses" class="btn-k-light">Kelola kelas</a>
+    <a routerLink="/admin/batches" class="btn-k-light">Kelola jadwal</a>
+    <a routerLink="/admin/instructors" class="btn-k-primary">Kelola pengajar</a>
       </div>
+    </header>
+
+<div class="stat-grid anim-fade-up">
+  <div class="stat-tile stat-tile--mist">
+    <span class="stat-label">Total kelas</span>
+    <span class="stat-value">{{ svc.courses().length }}</span>
+    <span class="stat-note">{{ svc.categories().length }} kategori kelas</span>
+  </div>
+  <div class="stat-tile stat-tile--ice">
+    <span class="stat-label">Total jadwal kelas</span>
+    <span class="stat-value">{{ svc.batches().length }}</span>
+    <span class="stat-note">{{ openBatchCount() }} dibuka · {{ fullBatchCount() }} penuh</span>
+  </div>
+  <div class="stat-tile">
+    <span class="stat-label">Total pendaftaran</span>
+    <span class="stat-value">{{ svc.registrations().length }}</span>
+    <span class="stat-note">{{ confirmedRegCount() }} dikonfirmasi</span>
+  </div>
+  <div class="stat-tile stat-tile--ink">
+    <span class="stat-label">Total dana masuk</span>
+    <span class="stat-value">Rp{{ totalRevenuePaid() | number: '1.0-0' }}</span>
+    <span class="stat-note">{{ svc.instructors().length }} pengajar aktif</span>
+  </div>
     </div>
 
-    <div class="row g-3 mb-4">
-      <div class="col-6 col-md-3">
-        <div class="k-card p-4 h-100">
-          <div class="small text-secondary mb-1">Total Kelas</div>
-          <div class="display-6 fw-bold">{{ svc.courses().length }}</div>
-          <div class="small text-muted mt-1">{{ svc.categories().length }} kategori kelas</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="k-card p-4 h-100">
-          <div class="small text-secondary mb-1">Total jadwal kelas</div>
-          <div class="display-6 fw-bold">{{ svc.batches().length }}</div>
-          <div class="small text-success mt-1">{{ openBatchCount() }} Dibuka · {{ fullBatchCount() }} Penuh</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="k-card p-4 h-100">
-          <div class="small text-secondary mb-1">Total pendaftaran</div>
-          <div class="display-6 fw-bold">{{ svc.registrations().length }}</div>
-          <div class="small text-muted mt-1">{{ confirmedRegCount() }} dikonfirmasi</div>
-        </div>
-      </div>
-      <div class="col-6 col-md-3">
-        <div class="k-card p-4 h-100">
-          <div class="small text-secondary mb-1">Total Dana Masuk</div>
-          <div class="h4 fw-bold mt-2 mb-1" style="color: var(--brand-forest);">
-            Rp{{ totalRevenuePaid() | number: '1.0-0' }}
-          </div>
-          <div class="small text-muted">{{ svc.instructors().length }} Pengajar aktif</div>
-        </div>
-      </div>
-    </div>
-
-    <app-reference-editor kind="course-categories"></app-reference-editor>
-
-    <div class="k-card p-4">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h2 class="h5 fw-bold mb-0">Informasi Operasional &amp; Pendaftaran Peserta</h2>
         <span class="k-pill k-pill-neutral">{{ svc.registrations().length }} pendaftaran</span>
       </div>
 
-      <div class="d-flex flex-column gap-3">
+      <div>
         @for (reg of svc.registrations(); track reg.id) {
-          <div class="p-3 rounded-4 k-surface-soft d-flex flex-wrap justify-content-between align-items-center gap-3">
-            <div>
-              <div class="small text-muted">
+          <div class="ops-row">
+            <div class="ops-row-main">
+              <div class="ops-code">
                 {{ reg.registrationNumber }} · Pendaftar ke-{{ reg.queueNumber }}
               </div>
               @if (svc.getBatchById(reg.batchId); as b) {
-                <div class="fw-bold">
+                <div class="ops-row-title">
                   {{ svc.getStudentById(reg.studentId)?.fullName }} — {{ svc.getCourseById(b.courseId)?.title }}
                 </div>
-                <div class="small text-secondary">
+                <div class="text-secondary">
                   {{ b.batchName }} ·
                   Cara bayar: {{ labels.method[reg.paymentMethod] }}{{ reg.installmentTenor ? ' (' + reg.installmentTenor + ' Bulan)' : '' }} ·
                   Sudah dibayar: <strong>Rp{{ svc.getTotalPaidForRegistration(reg) | number: '1.0-0' }}</strong> / Rp{{ reg.totalAmount | number: '1.0-0' }}
@@ -76,8 +61,8 @@
               }
             </div>
 
-            <div class="d-flex gap-2">
-              <a [routerLink]="['/payments', reg.id]" class="btn-k-light btn-sm">Rincian pembayaran</a>
+<div class="d-flex flex-wrap gap-2">
+  <a [routerLink]="['/payments', reg.id]" class="btn-k-light btn-sm">Rincian pembayaran</a>
               <span
                 class="k-pill"
                 [ngClass]="{

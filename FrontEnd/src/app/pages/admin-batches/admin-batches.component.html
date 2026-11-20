@@ -1,27 +1,30 @@
-<section class="py-5">
-  <div class="container" style="max-width: 960px;">
-    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
-      <div>
-        <span class="k-pill k-pill-green mb-2">Admin</span>
-        <h1 class="h2 fw-bold mb-1">Kelola jadwal kelas</h1>
-        <p class="text-secondary small mb-0">
+<section class="k-page">
+  <div class="shell">
+    <header class="page-head anim-fade-up">
+      <div class="page-head-copy">
+        <span class="kicker">Admin</span>
+        <h1 class="page-title">Kelola jadwal kelas</h1>
+        <p class="page-lede">
           Atur waktu, lokasi, dan ketersediaan kursi untuk setiap jadwal kelas.
         </p>
       </div>
-      <button
-        type="button"
-        class="btn-k-primary btn-sm"
-        (click)="openNewBatchForm()"
-      >
-        {{ showForm() ? 'Tutup formulir' : '+ Tambah jadwal' }}
-      </button>
-    </div>
+      <div class="page-actions">
+        <span class="k-pill k-pill-neutral">{{ svc.batches().length }} jadwal</span>
+        <button
+          type="button"
+          class="btn-k-primary"
+          (click)="openNewBatchForm()"
+        >
+          {{ showForm() ? 'Tutup formulir' : '+ Tambah jadwal' }}
+        </button>
+      </div>
+    </header>
 
     <app-reference-editor kind="locations"></app-reference-editor>
 
     @if (showForm()) {
-      <div class="k-card p-4 mb-4 anim-pop">
-        <h2 class="h5 fw-bold mb-3">
+      <div class="panel panel--bone mb-4 anim-pop">
+        <h2 class="panel-title mb-3">
           {{ editingBatchId() ? 'Ubah jadwal kelas' : 'Tambah jadwal kelas' }}
         </h2>
 
@@ -67,8 +70,8 @@
         </div>
 
         <div class="d-flex gap-2">
-          <button type="button" class="btn-k-coral btn-sm" (click)="saveBatch()">
-            {{ editingBatchId() ? 'Simpan Perubahan' : 'Simpan jadwal' }}
+          <button type="button" class="btn-k-primary btn-sm" (click)="saveBatch()">
+            {{ editingBatchId() ? 'Simpan perubahan' : 'Simpan jadwal' }}
           </button>
           <button type="button" class="btn-k-light btn-sm" (click)="showForm.set(false)">
             Batal
@@ -77,60 +80,60 @@
       </div>
     }
 
-    <div class="row g-3">
-      @for (b of svc.batches(); track b.id) {
-        <div class="col-md-6">
-          <div class="k-card p-4 h-100 d-flex flex-column justify-content-between">
-            <div>
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="k-pill k-pill-neutral">Jadwal {{ b.id }} · Kapasitas {{ b.maxSeats }} kursi</span>
-                <span
-                  class="k-pill"
-                  [ngClass]="b.status === 'Open' ? 'k-pill-green' : 'k-pill-red'"
-                >
-                  Status: {{ labels.batch[b.status] }} ({{ svc.getUsedSeatsForBatch(b.id) }}/{{ b.maxSeats }})
-                </span>
-              </div>
+    <div class="admin-grid">
+      @for (b of svc.batches(); track b.id; let idx = $index) {
+        <article
+          class="admin-card"
+          [class.tone-mist]="idx % 2 === 0"
+          [class.tone-ice]="idx % 2 === 1"
+        >
+          <div class="admin-card-top">
+            <span class="k-pill k-pill-neutral">Jadwal {{ b.id }} · {{ b.maxSeats }} kursi</span>
+            <span
+              class="k-pill"
+              [ngClass]="b.status === 'Open' ? 'k-pill-green' : 'k-pill-red'"
+            >
+              {{ labels.batch[b.status] }} ({{ svc.getUsedSeatsForBatch(b.id) }}/{{ b.maxSeats }})
+            </span>
+          </div>
 
-              <h3 class="h5 fw-bold mb-1">{{ svc.getCourseById(b.courseId)?.title }}</h3>
-              <div class="small fw-semibold text-secondary mb-2">{{ b.batchName }}</div>
+          <h3>{{ svc.getCourseById(b.courseId)?.title }}</h3>
+          <p class="panel-sub mb-3">{{ b.batchName }}</p>
 
-              <div class="small text-secondary">
-                <div>
-                  <i class="bi bi-calendar3 me-1"></i>
-                  {{ b.startDate | date: 'd MMM yyyy' }} s/d {{ b.endDate | date: 'd MMM yyyy' }} · Jam {{ b.startTime }} – {{ b.endTime }} WIB
-                </div>
-                <div class="mt-1">
-                  <i class="bi bi-geo-alt me-1"></i>
-                  {{ svc.getLocationById(b.locationId)?.name }} ({{ svc.getLocationById(b.locationId)?.roomName }}, {{ svc.getLocationById(b.locationId)?.city }})
-                </div>
-              </div>
-            </div>
+          <div class="admin-facts flex-column gap-1">
+            <span>
+              <i class="bi bi-calendar3" aria-hidden="true"></i>
+              {{ b.startDate | date: 'd MMM yyyy' }} s/d {{ b.endDate | date: 'd MMM yyyy' }} · Jam {{ b.startTime }} – {{ b.endTime }} WIB
+            </span>
+            <span>
+              <i class="bi bi-geo-alt" aria-hidden="true"></i>
+              {{ svc.getLocationById(b.locationId)?.name }} ({{ svc.getLocationById(b.locationId)?.roomName }}, {{ svc.getLocationById(b.locationId)?.city }})
+            </span>
+          </div>
 
-            <div class="pt-3 mt-3 border-top d-flex justify-content-between align-items-center">
-              <span class="small text-muted">
-                Sisa {{ svc.getRemainingSeatsForBatch(b.id) }} kursi · Pendaftar berikutnya ke-{{ svc.getNextQueueNumberForBatch(b.id) }}
-              </span>
+          <div class="admin-card-foot">
+            <span class="admin-note">
+              Sisa {{ svc.getRemainingSeatsForBatch(b.id) }} kursi · pendaftar berikutnya ke-{{ svc.getNextQueueNumberForBatch(b.id) }}
+            </span>
 
-              <div class="d-flex gap-2">
-                <button
-                  type="button"
-                  class="btn-k-light btn-sm py-1 px-3"
-                  (click)="editBatch(b)"
-                >
-                  Ubah
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                  (click)="svc.deleteBatchByAdmin(b.id)"
-                >
-                  Hapus
-                </button>
-              </div>
+            <div class="d-flex gap-2">
+              <button
+                type="button"
+                class="btn-k-light btn-sm"
+                (click)="editBatch(b)"
+              >
+                Ubah
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm text-danger border-0 p-2"
+                (click)="svc.deleteBatchByAdmin(b.id)"
+              >
+                Hapus
+              </button>
             </div>
           </div>
-        </div>
+        </article>
       }
     </div>
   </div>

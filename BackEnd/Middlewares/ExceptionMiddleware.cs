@@ -28,7 +28,15 @@ namespace BackEnd.Middlewares
             catch (DbUpdateException ex)
             {
                 _logger.LogWarning(ex, "Perubahan data ditolak oleh database.");
-                await WriteResponse(context, 409, "Perubahan tidak dapat disimpan. Periksa data terkait.");
+                await WriteResponse(context, StatusCodes.Status409Conflict,
+                    "Perubahan tidak dapat disimpan. Periksa data terkait.");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Unhandled exception pada {Method} {Path}",
+                    context.Request.Method, context.Request.Path);
+                await WriteResponse(context, StatusCodes.Status500InternalServerError,
+                    "Terjadi kesalahan server.");
             }
         }
 

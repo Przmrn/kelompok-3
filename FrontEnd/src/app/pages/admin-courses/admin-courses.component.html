@@ -1,27 +1,30 @@
-<section class="py-5">
-  <div class="container" style="max-width: 960px;">
-    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
-      <div>
-        <span class="k-pill k-pill-green mb-2">Admin</span>
-        <h1 class="h2 fw-bold mb-1">Kelola kelas</h1>
-        <p class="text-secondary small mb-0">
-          Atur kategori, harga, durasi, dan materi yang akan dipelajari.
+<section class="k-page">
+  <div class="shell">
+    <header class="page-head anim-fade-up">
+      <div class="page-head-copy">
+        <span class="kicker">Admin</span>
+        <h1 class="page-title">Kelola kelas</h1>
+        <p class="page-lede">
+          Atur nama kelas, harga, durasi, dan materi yang akan dipelajari.
         </p>
       </div>
-      <button
-        type="button"
-        class="btn-k-primary btn-sm"
-        (click)="openNewCourseForm()"
-      >
-        {{ showForm() ? 'Tutup formulir' : '+ Tambah kelas' }}
-      </button>
-    </div>
+      <div class="page-actions">
+        <span class="k-pill k-pill-neutral">{{ svc.courses().length }} kelas</span>
+        <button
+          type="button"
+          class="btn-k-primary"
+          (click)="openNewCourseForm()"
+        >
+          {{ showForm() ? 'Tutup formulir' : '+ Tambah kelas' }}
+        </button>
+      </div>
+    </header>
 
     <app-reference-editor kind="course-categories"></app-reference-editor>
 
     @if (showForm()) {
-      <div class="k-card p-4 mb-4 anim-pop">
-        <h2 class="h5 fw-bold mb-3">
+      <div class="panel panel--bone mb-4 anim-pop">
+        <h2 class="panel-title mb-3">
           {{ editingCourseId() ? 'Ubah kelas' : 'Tambah kelas' }}
         </h2>
 
@@ -44,14 +47,14 @@
           </div>
 
           <div class="col-md-6">
-            <label class="k-label">Materi kelas (Satu baris per topik)</label>
+            <label class="k-label">Materi kelas (satu baris per topik)</label>
             <textarea rows="3" class="form-control k-input" [(ngModel)]="form.syllabus" placeholder="1. Konsep Inti&#10;2. Praktikum Studio"></textarea>
           </div>
         </div>
 
         <div class="d-flex gap-2">
-          <button type="button" class="btn-k-coral btn-sm" (click)="saveCourse()">
-            {{ editingCourseId() ? 'Simpan Perubahan' : 'Simpan kelas' }}
+          <button type="button" class="btn-k-primary btn-sm" (click)="saveCourse()">
+            {{ editingCourseId() ? 'Simpan perubahan' : 'Simpan kelas' }}
           </button>
           <button type="button" class="btn-k-light btn-sm" (click)="showForm.set(false)">
             Batal
@@ -60,48 +63,46 @@
       </div>
     }
 
-    <div class="row g-3">
-      @for (course of svc.courses(); track course.id) {
-        <div class="col-md-6">
-          <div class="k-card p-4 h-100 d-flex flex-column justify-content-between">
-            <div>
-              <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="k-pill k-pill-neutral">
-                  {{ svc.getCategoryById(course.categoryId)?.name }}
-                </span>
-                <span class="small text-muted">
-                  {{ course.durationHours }} Jam Belajar
-                </span>
-              </div>
+    <div class="admin-grid">
+      @for (course of svc.courses(); track course.id; let idx = $index) {
+        <article
+          class="admin-card"
+          [class.tone-mist]="idx % 2 === 0"
+          [class.tone-ice]="idx % 2 === 1"
+        >
+          <div class="admin-card-top">
+            <span class="k-pill k-pill-neutral">
+              {{ svc.getCategoryById(course.categoryId)?.name }}
+            </span>
+            <span class="admin-note">
+              {{ course.durationHours }} jam belajar
+            </span>
+          </div>
 
-              <h3 class="h5 fw-bold mb-1">{{ course.title }}</h3>
-              <p class="small text-secondary mb-3">{{ course.description }}</p>
-            </div>
+          <h3>{{ course.title }}</h3>
+          <p class="panel-sub">{{ course.description }}</p>
 
-            <div class="pt-3 border-top d-flex justify-content-between align-items-center">
-              <div class="fs-5 fw-bold" style="color: var(--brand-forest);">
-                Rp{{ course.basePrice | number: '1.0-0' }}
-              </div>
+          <div class="admin-card-foot">
+            <div class="admin-price">Rp{{ course.basePrice | number: '1.0-0' }}</div>
 
-              <div class="d-flex gap-2">
-                <button
-                  type="button"
-                  class="btn-k-light btn-sm py-1 px-3"
-                  (click)="editCourse(course)"
-                >
-                  Ubah
-                </button>
-                <button
-                  type="button"
-                  class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                  (click)="svc.deleteCourseByAdmin(course.id)"
-                >
-                  Hapus
-                </button>
-              </div>
+            <div class="d-flex gap-2">
+              <button
+                type="button"
+                class="btn-k-light btn-sm"
+                (click)="editCourse(course)"
+              >
+                Ubah
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm text-danger border-0 p-2"
+                (click)="svc.deleteCourseByAdmin(course.id)"
+              >
+                Hapus
+              </button>
             </div>
           </div>
-        </div>
+        </article>
       }
     </div>
   </div>

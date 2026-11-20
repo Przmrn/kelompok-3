@@ -2,23 +2,34 @@
   <app-course-registration-card [reg]="reg">
     @if (preview(); as refPrev) {
       <div class="k-surface-soft p-3 small">
+        <div class="d-flex flex-wrap gap-1 mb-3">
+          <button type="button" class="btn-k-light btn-sm py-1" (click)="daysBefore.set(16)">
+            ≥14 Hari (100% − Rp25.000)
+          </button>
+          <button type="button" class="btn-k-light btn-sm py-1" (click)="daysBefore.set(10)">
+            7–13 Hari (50%)
+          </button>
+          <button type="button" class="btn-k-light btn-sm py-1" (click)="daysBefore.set(4)">
+            3–6 Hari (25%)
+          </button>
+          <button type="button" class="btn-k-light btn-sm py-1" (click)="daysBefore.set(1)">
+            &lt;3 Hari (0% Hangus)
+          </button>
+        </div>
 
-
-        <div class="d-flex justify-content-between align-items-center mb-2">
+        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2" style="font-size: 12.5px;">
           <span>Ketentuan pembatalan ({{ refPrev.daysDifference }} hari sebelum kelas mulai):</span>
           <strong>{{ refPrev.tierLabel }}</strong>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-3 pt-2 border-top">
+        <div class="cost-row cost-row--total">
           <span>Perkiraan dana yang dikembalikan</span>
-          <strong class="fs-6 text-success">
-            Rp{{ refPrev.estimatedRefundAmount | number: '1.0-0' }}
-          </strong>
+          <span class="text-success">Rp{{ refPrev.estimatedRefundAmount | number: '1.0-0' }}</span>
         </div>
 
         <button
           type="button"
-          class="btn-k-coral btn-sm"
+          class="btn-k-coral btn-sm mt-3"
           [disabled]="!refPrev.canCancel"
           (click)="confirmCancel()"
         >
@@ -28,7 +39,7 @@
     }
   </app-course-registration-card>
 } @else {
-  <div class="k-card p-4">
+  <div class="panel">
     <p>Kursus ini tidak tersedia untuk pembatalan.</p>
     <a routerLink="/my-courses/jadwal" class="btn-k-light">Kembali ke kelas saya</a>
   </div>

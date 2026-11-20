@@ -1,9 +1,10 @@
 using BackEnd.Data;
+using BackEnd.Middlewares;
 using BackEnd.Repositories;
 using BackEnd.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -66,11 +67,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "BackEnd API v1");
-        options.RoutePrefix = "swagger";
-    });
-}
-
-app.UseMiddleware<BackEnd.Middlewares.ExceptionMiddleware>();
+app.UseMiddleware<ExceptionMiddleware>();
 app.UseWhen(context =>
 {
     var peer = context.Connection.RemoteIpAddress;
@@ -83,6 +80,10 @@ app.UseWhen(context =>
 app.UseCors("AngularDevelopment");
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapControllers();
 
+app.UseHttpsRedirection();
+app.UseCors("AngularDevelopment");
+app.UseAuthentication();
+app.UseAuthorization();
+app.MapControllers();
 app.Run();

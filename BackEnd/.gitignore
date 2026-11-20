@@ -23,6 +23,9 @@ artifacts/
 .env
 .env.*
 !.env.example
+
+# Local configuration
+appsettings.json
 appsettings.Development.json
 appsettings.Local.json
 appsettings.*.Local.json
@@ -41,6 +44,12 @@ TestResults/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Publish output
+publish/
+artifacts/
+
+Diskusi Kelompok 3.md
 
 # Ignore all appsettings files because they may contain local secrets
 **/appsettings*.json
