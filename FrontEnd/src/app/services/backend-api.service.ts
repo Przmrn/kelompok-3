@@ -1,7 +1,7 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { catchError, forkJoin, map, of, throwError } from 'rxjs';
-import { BatchInstructor, Course, CourseBatch, CourseCategory, InstallmentSchedule, Instructor, Location, PaymentStatus, Registration, Student } from '../models/course-system.models';
+import { BatchInstructor, Course, CourseBatch, CourseCategory, InstallmentSchedule, Instructor, Location, PaymentDetail, PaymentStatus, Registration, Student } from '../models/course-system.models';
 
 interface CourseRow extends Omit<Course, 'title' | 'description'> { categoryName: string }
 interface BatchRow extends Omit<CourseBatch, 'status'> { courseStatus: number }
@@ -17,6 +17,9 @@ interface RegistrationRow extends Omit<Registration, 'paymentMethod' | 'registra
 const registrationStatuses: Registration['registrationStatus'][] = ['Pending', 'Confirmed', 'Cancelled', 'Completed'];
 const paymentStatuses: PaymentStatus[] = ['Pending', 'PartiallyPaid', 'Paid', 'Overdue', 'Failed'];
 const installmentStatuses: InstallmentSchedule['status'][] = ['Pending', 'Paid', 'Overdue'];
+type PaymentRow = Omit<PaymentDetail, 'paymentMethod' | 'registrationStatus' | 'paymentStatus' | 'installmentSchedules'>
+  & Pick<RegistrationRow, 'paymentMethod' | 'registrationStatus' | 'paymentStatus'>
+  & { installmentSchedules: (RegistrationRow['installmentSchedules'][number] & { remainingAmount: number })[] };
 type Resource = 'courses' | 'course-categories' | 'locations' | 'instructors' | 'CourseBatch';
 
 @Injectable({ providedIn: 'root' })
@@ -70,9 +73,24 @@ export class BackendApiService {
   }
 
   cancelRegistration(id: number) { return this.http.delete('/api/Registration/' + id); }
-  confirmUpfront(id: number) { return this.http.post('/api/Registration/' + id + '/confirm-upfront', {}); }
-  confirmInstallment(id: number) { return this.http.post('/api/Registration/installments/' + id + '/confirm', {}); }
-  processOverdue() { return this.http.post('/api/Registration/process-overdue', {}); }
+
+  paymentDetail(id: number) {
+    return this.http.get<PaymentRow>(`/api/Payment/registration/${id}`).pipe(map((row): PaymentDetail => ({
+      ...row,
+      paymentMethod: row.paymentMethod === 'UPFRONT' ? 'Upfront' : 'Installment',
+      registrationStatus: registrationStatuses[row.registrationStatus],
+      paymentStatus: paymentStatuses[row.paymentStatus],
+      installmentSchedules: row.installmentSchedules.map(({ installmentStatus, ...schedule }) => ({
+        ...schedule, status: installmentStatuses[installmentStatus],
+      })),
+    })));
+  }
+
+  confirmUpfront(id: number) { return this.http.post<PaymentRow>(`/api/Payment/registration/${id}/confirm-upfront`, {}); }
+  confirmInstallment(id: number, paidAmount: number) {
+    return this.http.post<PaymentRow>(`/api/Payment/installments/${id}/confirm`, { paidAmount });
+  }
+  processOverdue() { return this.http.post('/api/Payment/process-overdue', {}); }
 
   assignment(batchId: number, instructorId: number, remove: boolean) {
     return this.http.request(remove ? 'DELETE' : 'POST', '/api/BatchInstructor', { params: { batchId, instructorId } });

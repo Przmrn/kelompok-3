@@ -536,8 +536,8 @@ export class CourseSystemService {
     return this.change(this.api.confirmUpfront(id), 'Pembayaran dikonfirmasi.');
   }
 
-  payInstallmentSchedule(id: number) {
-    return this.change(this.api.confirmInstallment(id), 'Pembayaran cicilan dikonfirmasi.');
+  payInstallmentSchedule(id: number, paidAmount: number) {
+    return this.change(this.api.confirmInstallment(id, paidAmount), 'Pembayaran cicilan dikonfirmasi.');
   }
 
   processOverdue() {

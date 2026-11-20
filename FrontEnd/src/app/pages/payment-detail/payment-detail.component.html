@@ -33,21 +33,21 @@
             <div class="k-surface-soft p-3 h-100">
               <div class="d-flex justify-content-between gap-2 py-1">
                 <span>Harga kelas</span>
-                <span>Rp{{ reg.basePrice | number: '1.0-0' }}</span>
+                <span>Rp{{ reg.basePrice | number: '1.0-2' }}</span>
               </div>
               @if (reg.earlyBirdDiscount > 0) {
                 <div class="d-flex justify-content-between gap-2 py-1 text-success">
                   <span>Diskon pendaftar awal</span>
-                  <span>−Rp{{ reg.earlyBirdDiscount | number: '1.0-0' }}</span>
+                  <span>−Rp{{ reg.earlyBirdDiscount | number: '1.0-2' }}</span>
                 </div>
               }
               <div class="d-flex justify-content-between gap-2 py-1">
                 <span>Pajak (PPN {{ reg.taxRate | number }}%)</span>
-                <span>Rp{{ reg.taxAmount | number: '1.0-0' }}</span>
+                <span>Rp{{ reg.taxAmount | number: '1.0-2' }}</span>
               </div>
               <div class="d-flex justify-content-between gap-2 border-top mt-2 pt-2 fw-bold">
                 <span>Total biaya kelas</span>
-                <span>Rp{{ reg.totalAmount | number: '1.0-0' }}</span>
+                <span>Rp{{ reg.totalAmount | number: '1.0-2' }}</span>
               </div>
             </div>
           </div>
@@ -59,11 +59,17 @@
               </div>
               <div class="d-flex justify-content-between gap-2 py-1">
                 <span>Sudah dibayar</span>
-                <strong>Rp{{ svc.getTotalPaidForRegistration(reg) | number: '1.0-0' }}</strong>
+                <strong>Rp{{ reg.paidAmount | number: '1.0-2' }}</strong>
               </div>
+              @if (reg.paidAt) {
+                <div class="d-flex justify-content-between gap-2 py-1">
+                  <span>Pembayaran terakhir</span>
+                  <span>{{ reg.paidAt | date: 'd MMM yyyy, HH:mm' : '+0700' }} WIB</span>
+                </div>
+              }
               <div class="d-flex flex-wrap justify-content-between gap-2 border-top mt-2 pt-2 fw-bold fs-6" style="color: var(--iris);">
-                <span>Sisa tagihan</span>
-                <span>Rp{{ svc.getRemainingObligationForRegistration(reg) | number: '1.0-0' }}</span>
+                <span>{{ reg.registrationStatus === 'Cancelled' ? 'Sisa saat dibatalkan' : 'Sisa tagihan' }}</span>
+                <span>Rp{{ reg.remainingAmount | number: '1.0-2' }}</span>
               </div>
             </div>
           </div>
@@ -74,7 +80,7 @@
         @if (reg.paymentMethod === 'Upfront') {
           <h2 class="h5 fw-bold mb-3">Pembayaran penuh</h2>
           <div class="d-flex flex-wrap align-items-center justify-content-between gap-2 k-surface-soft p-3">
-            <strong>Rp{{ reg.totalAmount | number: '1.0-0' }}</strong>
+            <strong>Rp{{ reg.totalAmount | number: '1.0-2' }}</strong>
             @if (reg.paymentStatus === 'Paid') {
               <span class="k-pill k-pill-green">Lunas</span>
             } @else if (svc.isAdmin() && reg.registrationStatus === 'Pending') {
@@ -86,32 +92,38 @@
         } @else {
           <h2 class="h5 fw-bold mb-3">Jadwal cicilan</h2>
           <ul class="list-unstyled d-flex flex-column gap-2 mb-0">
-            @for (sch of schedules(); track sch.id) {
+            @for (sch of reg.installmentSchedules; track sch.id) {
               <li class="k-surface-soft p-3 d-flex flex-wrap justify-content-between align-items-center gap-3 small">
                 <div>
                   <strong>Cicilan ke-{{ sch.installmentNumber }}</strong>
                   <div class="text-secondary">Jatuh tempo {{ sch.dueDate | date: 'd MMMM yyyy' }}</div>
                   @if (sch.paidAt) {
                     <div class="text-success">
-                      Dibayar {{ sch.paidAt | date: 'd MMMM yyyy, HH:mm' : '+0700' }} WIB
-                      @if (sch.paidAmount !== sch.amount) {
-                        · Rp{{ sch.paidAmount | number: '1.0-0' }}
-                      }
+                      Pembayaran terakhir {{ sch.paidAt | date: 'd MMMM yyyy, HH:mm' : '+0700' }} WIB
                     </div>
+                  }
+                  @if (sch.paidAmount > 0 && sch.remainingAmount > 0) {
+                    <div>Sudah dibayar Rp{{ sch.paidAmount | number: '1.0-2' }} · Sisa Rp{{ sch.remainingAmount | number: '1.0-2' }}</div>
                   }
                 </div>
                 <div class="d-flex flex-wrap align-items-center gap-2">
-                  <strong class="fs-6">Rp{{ sch.amount | number: '1.0-0' }}</strong>
+                  <strong class="fs-6">Rp{{ sch.amount | number: '1.0-2' }}</strong>
                   @if (sch.status === 'Paid') {
                     <span class="k-pill k-pill-green">Lunas</span>
                   } @else if (reg.registrationStatus !== 'Cancelled') {
                     @if (sch.status === 'Overdue') {
                       <span class="k-pill k-pill-red">Terlambat</span>
                     }
-                    @if (svc.isAdmin()) {
-                    <button type="button" class="btn-k-primary btn-sm" [disabled]="svc.saving()" (click)="svc.payInstallmentSchedule(sch.id)">
-                      Konfirmasi cicilan ke-{{ sch.installmentNumber }}
-                    </button>
+                    @if (svc.isAdmin() && nextInstallment()?.id === sch.id) {
+                      <form class="d-flex flex-column gap-2" (submit)="$event.preventDefault(); confirmInstallment(amount)">
+                        <label [for]="'jumlah-' + sch.id">Jumlah yang diterima (Rp)</label>
+                        <input #amount class="form-control k-input" type="number" inputmode="decimal" required
+                          [id]="'jumlah-' + sch.id" min="0.01" step="0.01" [max]="sch.remainingAmount"
+                          [value]="sch.remainingAmount" [disabled]="svc.saving()">
+                        <button type="submit" class="btn-k-primary btn-sm" [disabled]="svc.saving()">
+                          Konfirmasi cicilan ke-{{ sch.installmentNumber }}
+                        </button>
+                      </form>
                     }
                   }
                 </div>
@@ -124,6 +136,13 @@
       </div>
     </div>
   </section>
+} @else if (error()) {
+  <div class="container py-5 text-center" role="alert">
+    <p>{{ error() }}</p>
+    <button class="btn-k-light" type="button" (click)="retry()">Coba lagi</button>
+  </div>
+} @else if (record() || svc.accountLoading()) {
+  <div class="container py-5 text-center" role="status">Memuat rincian pembayaran…</div>
 } @else {
   <div class="container py-5 text-center">
     <p class="text-secondary">Rincian pembayaran tidak ditemukan.</p>

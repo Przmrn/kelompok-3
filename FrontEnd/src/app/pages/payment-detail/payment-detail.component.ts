@@ -1,8 +1,13 @@
 import { courseLabels } from '../../models/course-labels';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { HttpErrorResponse } from '@angular/common/http';
+import { Component, computed, effect, inject, signal } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { CourseSystemService } from '../../services/course-system.service';
+import { BackendApiService } from '../../services/backend-api.service';
+import { PaymentDetail, Registration } from '../../models/course-system.models';
 
 @Component({
   selector: 'app-payment-detail',
@@ -10,33 +15,57 @@ import { CourseSystemService } from '../../services/course-system.service';
   imports: [CommonModule, RouterLink],
   templateUrl: './payment-detail.component.html',
 })
-export class PaymentDetailPageComponent implements OnInit {
+export class PaymentDetailPageComponent {
   readonly labels = courseLabels;
   readonly svc = inject(CourseSystemService);
-  private readonly route = inject(ActivatedRoute);
+  private readonly api = inject(BackendApiService);
+  private readonly registrationId = toSignal(inject(ActivatedRoute).paramMap.pipe(
+    map(params => Number(params.get('registrationId')))
+  ), { requireSync: true });
 
-  readonly registrationId = signal<number>(1);
-
-  readonly registration = computed(() => {
+  readonly record = computed(() => {
     const studentId = this.svc.currentStudentProfile()?.id;
     return this.svc.registrations().find(reg =>
       reg.id === this.registrationId() && (reg.studentId === studentId || this.svc.isAdmin())
     ) ?? null;
   });
 
-  readonly schedules = computed(() => {
-    const reg = this.registration();
-    if (!reg) return [];
-    return this.svc
-      .installmentSchedules()
-      .filter((s) => s.registrationId === reg.id)
-      .sort((a, b) => a.installmentNumber - b.installmentNumber);
+  private readonly attempt = signal(0);
+  private readonly result = signal<{ record: Registration; payment?: PaymentDetail; error?: string } | null>(null);
+  readonly registration = computed(() => {
+    const result = this.result();
+    return result?.payment && result.record === this.record() ? { ...result.record, ...result.payment } : null;
   });
+  readonly error = computed(() => {
+    const result = this.result();
+    return result && result.record === this.record() ? result.error : null;
+  });
+  readonly nextInstallment = computed(() => this.registration()?.installmentSchedules.find(s => s.remainingAmount > 0));
 
-  ngOnInit(): void {
-    this.route.paramMap.subscribe((params) => {
-      const id = Number(params.get('registrationId'));
-      this.registrationId.set(id);
-    });
+  constructor() {
+    effect(onCleanup => {
+      const record = this.record();
+      this.attempt();
+      this.result.set(null);
+      if (!record) return;
+      const request = this.api.paymentDetail(record.id).subscribe({
+        next: payment => this.result.set({ record, payment }),
+        error: (error: HttpErrorResponse) => this.result.set({ record, error:
+          error.status === 403 || error.status === 404 ? 'Rincian pembayaran ini tidak tersedia untuk akun Anda.' :
+          'Rincian pembayaran belum berhasil dimuat.' }),
+      });
+      onCleanup(() => request.unsubscribe());
+    }, { allowSignalWrites: true });
+  }
+
+  retry(): void {
+    this.attempt.update(value => value + 1);
+  }
+
+  async confirmInstallment(amount: HTMLInputElement): Promise<void> {
+    const schedule = this.nextInstallment();
+    if (!schedule || !this.svc.isAdmin() || this.svc.saving() || !amount.reportValidity()) return;
+    const result = await this.svc.payInstallmentSchedule(schedule.id, amount.valueAsNumber);
+    if (!result.success) this.retry();
   }
 }
