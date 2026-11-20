@@ -1,5 +1,8 @@
+
 <section class="k-page">
   <div class="shell">
+
+    <!-- HEADER -->
     <header class="page-head anim-fade-up">
       <div class="page-head-copy">
         <span class="kicker">Admin</span>
@@ -8,90 +11,118 @@
           Ringkasan jumlah kelas, jadwal, pendaftaran, dan informasi operasional.
         </p>
       </div>
+
       <div class="page-actions">
-        <button class="btn-k-light" type="button" [disabled]="svc.saving()" (click)="svc.processOverdue()">Periksa tagihan terlambat</button>
         <a routerLink="/admin/courses" class="btn-k-light">Kelola kelas</a>
         <a routerLink="/admin/batches" class="btn-k-light">Kelola jadwal</a>
         <a routerLink="/admin/instructors" class="btn-k-primary">Kelola pengajar</a>
       </div>
     </header>
 
+    <!-- STATISTICS -->
     <div class="stat-grid anim-fade-up">
       <div class="stat-tile stat-tile--mist">
         <span class="stat-label">Total kelas</span>
         <span class="stat-value">{{ svc.courses().length }}</span>
         <span class="stat-note">{{ svc.categories().length }} kategori kelas</span>
       </div>
+
       <div class="stat-tile stat-tile--ice">
         <span class="stat-label">Total jadwal kelas</span>
         <span class="stat-value">{{ svc.batches().length }}</span>
-        <span class="stat-note">{{ openBatchCount() }} dibuka · {{ fullBatchCount() }} penuh</span>
+        <span class="stat-note">
+          {{ openBatchCount() }} dibuka · {{ fullBatchCount() }} penuh
+        </span>
       </div>
+
       <div class="stat-tile">
         <span class="stat-label">Total pendaftaran</span>
         <span class="stat-value">{{ svc.registrations().length }}</span>
         <span class="stat-note">{{ confirmedRegCount() }} dikonfirmasi</span>
       </div>
+
       <div class="stat-tile stat-tile--ink">
         <span class="stat-label">Total dana masuk</span>
-        <span class="stat-value">Rp{{ totalRevenuePaid() | number: '1.0-0' }}</span>
+        <span class="stat-value">Rp{{ totalRevenuePaid() | number:'1.0-0' }}</span>
         <span class="stat-note">{{ svc.instructors().length }} pengajar aktif</span>
       </div>
     </div>
 
-    <app-reference-editor kind="course-categories"></app-reference-editor>
+    <!-- CATEGORY MANAGEMENT -->
+    <div class="mt-5">
+      <app-reference-editor kind="course-categories"></app-reference-editor>
+    </div>
 
-    <div class="panel mt-4 anim-fade-up delay-1">
+    <!-- REGISTRATION LIST -->
+    <section class="panel mt-5 anim-fade-up delay-1">
       <div class="panel-head">
         <h2 class="panel-title">Pendaftaran peserta</h2>
-        <span class="k-pill k-pill-neutral">{{ svc.registrations().length }} pendaftaran</span>
+        <span class="k-pill k-pill-neutral">
+          {{ svc.registrations().length }} pendaftaran
+        </span>
       </div>
 
       <div>
-        @for (reg of svc.registrations(); track reg.id) {
-          <div class="ops-row">
-            <div class="ops-row-main">
-              <div class="ops-code">
-                {{ reg.registrationNumber }} · Pendaftar ke-{{ reg.queueNumber }}
-              </div>
-              @if (svc.getBatchById(reg.batchId); as b) {
-                <div class="ops-row-title">
-                  {{ svc.getStudentById(reg.studentId)?.fullName }} — {{ svc.getCourseById(b.courseId)?.title }}
+        @if (svc.registrations().length > 0) {
+          @for (reg of svc.registrations(); track reg.id) {
+            <div class="ops-row">
+              <div class="ops-row-main">
+                <div class="ops-code">
+                  {{ reg.registrationNumber }} · Pendaftar ke-{{ reg.queueNumber }}
                 </div>
-                <div class="text-secondary">
-                  {{ b.batchName }} ·
-                  Cara bayar: {{ labels.method[reg.paymentMethod] }}{{ reg.installmentTenor ? ' (' + reg.installmentTenor + ' Bulan)' : '' }} ·
-                  Sudah dibayar: <strong>Rp{{ svc.getTotalPaidForRegistration(reg) | number: '1.0-0' }}</strong> / Rp{{ reg.totalAmount | number: '1.0-0' }}
-                </div>
-              }
-            </div>
 
-            <div class="d-flex flex-wrap gap-2">
-              <a [routerLink]="['/payments', reg.id]" class="btn-k-light btn-sm">Rincian pembayaran</a>
-              <span
-                class="k-pill"
-                [ngClass]="{
+                @if (svc.getBatchById(reg.batchId); as b) {
+                  <div class="ops-row-title">
+                    {{ svc.getStudentById(reg.studentId)?.fullName }}
+                    — {{ svc.getCourseById(b.courseId)?.title }}
+                  </div>
+
+                  <div class="text-secondary">
+                    {{ b.batchName }} · Cara bayar:
+                    {{ labels.method[reg.paymentMethod] }}
+                    {{ reg.installmentTenor ? ' (' + reg.installmentTenor + ' Bulan)' : '' }}
+                    · Sudah dibayar:
+                    <strong>
+                      Rp{{ svc.getTotalPaidForRegistration(reg) | number:'1.0-0' }}
+                    </strong>
+                    / Rp{{ reg.totalAmount | number:'1.0-0' }}
+                  </div>
+                }
+              </div>
+
+              <div class="d-flex flex-wrap align-items-center gap-2">
+                <a [routerLink]="['/payments', reg.id]" class="btn-k-light btn-sm">
+                  Rincian pembayaran
+                </a>
+
+                <span class="k-pill" [ngClass]="{
                   'k-pill-green': reg.registrationStatus === 'Confirmed' || reg.registrationStatus === 'Completed',
                   'k-pill-amber': reg.registrationStatus === 'Pending',
                   'k-pill-red': reg.registrationStatus === 'Cancelled'
-                }"
-              >
-                {{ labels.registration[reg.registrationStatus] }}
-              </span>
-              <span
-                class="k-pill"
-                [ngClass]="{
+                }">
+                  {{ labels.registration[reg.registrationStatus] }}
+                </span>
+
+                <span class="k-pill" [ngClass]="{
                   'k-pill-green': reg.paymentStatus === 'Paid',
                   'k-pill-amber': reg.paymentStatus === 'PartiallyPaid' || reg.paymentStatus === 'Pending',
                   'k-pill-red': reg.paymentStatus === 'Failed' || reg.paymentStatus === 'Overdue'
-                }"
-              >
-                {{ labels.payment[reg.paymentStatus] }}
-              </span>
+                }">
+                  {{ labels.payment[reg.paymentStatus] }}
+                </span>
+              </div>
             </div>
+          }
+        } @else {
+          <div class="text-center py-5">
+            <h3 class="h5">Belum ada pendaftaran</h3>
+            <p class="text-secondary mb-0">
+              Data pendaftaran peserta akan muncul di sini.
+            </p>
           </div>
         }
       </div>
-    </div>
+    </section>
+
   </div>
 </section>

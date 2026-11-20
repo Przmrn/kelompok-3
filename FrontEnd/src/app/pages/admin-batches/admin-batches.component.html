@@ -1,33 +1,27 @@
+
 <section class="k-page">
   <div class="shell">
     <header class="page-head anim-fade-up">
       <div class="page-head-copy">
         <span class="kicker">Admin</span>
         <h1 class="page-title">Kelola jadwal kelas</h1>
-        <p class="page-lede">
-          Atur waktu, lokasi, dan ketersediaan kursi untuk setiap jadwal kelas.
-        </p>
+        <p class="page-lede">Atur waktu, lokasi, dan ketersediaan kursi setiap jadwal kelas.</p>
       </div>
       <div class="page-actions">
         <span class="k-pill k-pill-neutral">{{ svc.batches().length }} jadwal</span>
-        <button
-          type="button"
-          class="btn-k-primary"
-          (click)="openNewBatchForm()"
-        >
+        <button type="button" class="btn-k-primary" (click)="openNewBatchForm()">
           {{ showForm() ? 'Tutup formulir' : '+ Tambah jadwal' }}
         </button>
       </div>
     </header>
 
-    <app-reference-editor kind="locations"></app-reference-editor>
+    <div class="mt-4">
+      <app-reference-editor kind="locations"></app-reference-editor>
+    </div>
 
     @if (showForm()) {
-      <div class="panel panel--bone mb-4 anim-pop">
-        <h2 class="panel-title mb-3">
-          {{ editingBatchId() ? 'Ubah jadwal kelas' : 'Tambah jadwal kelas' }}
-        </h2>
-
+      <div class="panel panel--bone mt-4 p-4 anim-pop">
+        <h2 class="panel-title mb-3">{{ editingBatchId() ? 'Ubah jadwal kelas' : 'Tambah jadwal kelas' }}</h2>
         <div class="row g-3 mb-3">
           <div class="col-md-4">
             <label class="k-label">Kelas</label>
@@ -47,9 +41,8 @@
           </div>
           <div class="col-md-4">
             <label class="k-label">Nama jadwal</label>
-            <input type="text" class="form-control k-input" [(ngModel)]="form.batchName" placeholder="BCH-BE-04 — Batch 4 Reguler" />
+            <input class="form-control k-input" [(ngModel)]="form.batchName" placeholder="Nama batch" />
           </div>
-
           <div class="col-md-3">
             <label class="k-label">Tanggal mulai</label>
             <input type="date" class="form-control k-input" [(ngModel)]="form.startDate" />
@@ -58,83 +51,92 @@
             <label class="k-label">Tanggal selesai</label>
             <input type="date" class="form-control k-input" [(ngModel)]="form.endDate" />
           </div>
-          <div class="col-md-2">
+          <div class="col-md-3">
             <label class="k-label">Jam mulai</label>
             <input type="time" class="form-control k-input" [(ngModel)]="form.startTime" />
           </div>
-          <div class="col-md-2">
+          <div class="col-md-3">
             <label class="k-label">Jam selesai</label>
             <input type="time" class="form-control k-input" [(ngModel)]="form.endTime" />
           </div>
-
         </div>
-
-        <div class="d-flex gap-2">
-          <button type="button" class="btn-k-primary btn-sm" (click)="saveBatch()">
-            {{ editingBatchId() ? 'Simpan perubahan' : 'Simpan jadwal' }}
-          </button>
-          <button type="button" class="btn-k-light btn-sm" (click)="showForm.set(false)">
-            Batal
-          </button>
-        </div>
+        <button class="btn-k-primary btn-sm" type="button" (click)="saveBatch()">
+          {{ editingBatchId() ? 'Simpan perubahan' : 'Simpan jadwal' }}
+        </button>
+        <button class="btn-k-light btn-sm ms-2" type="button" (click)="showForm.set(false)">Batal</button>
       </div>
     }
 
-    <div class="admin-grid">
-      @for (b of svc.batches(); track b.id; let idx = $index) {
-        <article
-          class="admin-card"
-          [class.tone-mist]="idx % 2 === 0"
-          [class.tone-ice]="idx % 2 === 1"
-        >
-          <div class="admin-card-top">
-            <span class="k-pill k-pill-neutral">Jadwal {{ b.id }} · {{ b.maxSeats }} kursi</span>
-            <span
-              class="k-pill"
-              [ngClass]="b.status === 'Open' ? 'k-pill-green' : 'k-pill-red'"
-            >
-              {{ labels.batch[b.status] }} ({{ svc.getUsedSeatsForBatch(b.id) }}/{{ b.maxSeats }})
-            </span>
+    <section class="panel mt-4 anim-fade-up">
+      <div class="panel-head">
+        <h2 class="panel-title">Kalender jadwal kelas</h2>
+        <span class="k-pill k-pill-neutral">{{ svc.batches().length }} agenda</span>
+      </div>
+
+      <div class="p-3">
+        @if (svc.batches().length) {
+          <div class="row g-3">
+            @for (b of svc.batches(); track b.id; let i = $index) {
+              <div class="col-12 col-lg-6">
+                <article class="h-100 p-3 rounded-3 border"
+                         [class.bg-light]="i % 2 === 0">
+                  <div class="d-flex gap-3 align-items-start">
+                    <div class="text-center rounded-3 bg-white border p-2" style="min-width:65px;">
+                      <div class="small text-secondary">{{ b.startDate | date:'MMM' }}</div>
+                      <div class="fs-2 fw-bold">{{ b.startDate | date:'dd' }}</div>
+                      <div class="small text-secondary">{{ b.startDate | date:'yyyy' }}</div>
+                    </div>
+
+                    <div class="flex-grow-1 min-width-0">
+                      <div class="d-flex justify-content-between flex-wrap gap-2">
+                        <span class="small text-secondary">Jadwal #{{ b.id }}</span>
+                        <span class="k-pill" [ngClass]="b.status === 'Open' ? 'k-pill-green' : 'k-pill-red'">
+                          {{ labels.batch[b.status] }}
+                        </span>
+                      </div>
+
+                      <h3 class="h5 mt-2 mb-1">{{ svc.getCourseById(b.courseId)?.title }}</h3>
+                      <p class="small text-secondary mb-2">{{ b.batchName }}</p>
+
+                      <div class="small text-secondary mb-1">
+                        <i class="bi bi-calendar3 me-1"></i>
+                        {{ b.startDate | date:'d MMM yyyy' }} – {{ b.endDate | date:'d MMM yyyy' }}
+                      </div>
+                      <div class="small text-secondary mb-1">
+                        <i class="bi bi-clock me-1"></i>
+                        {{ b.startTime }} – {{ b.endTime }} WIB
+                      </div>
+                      <div class="small text-secondary">
+                        <i class="bi bi-geo-alt me-1"></i>
+                        {{ svc.getLocationById(b.locationId)?.name }}
+                        ({{ svc.getLocationById(b.locationId)?.roomName }}, {{ svc.getLocationById(b.locationId)?.city }})
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-3 pt-3 border-top">
+                    <span class="small fw-semibold">
+                      <i class="bi bi-people me-1"></i>
+                      {{ svc.getUsedSeatsForBatch(b.id) }}/{{ b.maxSeats }} peserta
+                      · Sisa {{ svc.getRemainingSeatsForBatch(b.id) }} kursi
+                    </span>
+                    <div class="d-flex gap-2">
+                      <button class="btn-k-light btn-sm" type="button" (click)="editBatch(b)">Ubah</button>
+                      <button class="btn btn-sm text-danger" type="button" (click)="svc.deleteBatchByAdmin(b.id)">Hapus</button>
+                    </div>
+                  </div>
+                </article>
+              </div>
+            }
           </div>
-
-          <h3>{{ svc.getCourseById(b.courseId)?.title }}</h3>
-          <p class="panel-sub mb-3">{{ b.batchName }}</p>
-
-          <div class="admin-facts flex-column gap-1">
-            <span>
-              <i class="bi bi-calendar3" aria-hidden="true"></i>
-              {{ b.startDate | date: 'd MMM yyyy' }} s/d {{ b.endDate | date: 'd MMM yyyy' }} · Jam {{ b.startTime }} – {{ b.endTime }} WIB
-            </span>
-            <span>
-              <i class="bi bi-geo-alt" aria-hidden="true"></i>
-              {{ svc.getLocationById(b.locationId)?.name }} ({{ svc.getLocationById(b.locationId)?.roomName }}, {{ svc.getLocationById(b.locationId)?.city }})
-            </span>
+        } @else {
+          <div class="text-center py-5">
+            <i class="bi bi-calendar2-week fs-1 text-secondary"></i>
+            <h3 class="h5 mt-3">Belum ada jadwal kelas</h3>
+            <p class="text-secondary mb-0">Tambahkan jadwal untuk menampilkannya di sini.</p>
           </div>
-
-          <div class="admin-card-foot">
-            <span class="admin-note">
-              Sisa {{ svc.getRemainingSeatsForBatch(b.id) }} kursi · pendaftar berikutnya ke-{{ svc.getNextQueueNumberForBatch(b.id) }}
-            </span>
-
-            <div class="d-flex gap-2">
-              <button
-                type="button"
-                class="btn-k-light btn-sm"
-                (click)="editBatch(b)"
-              >
-                Ubah
-              </button>
-              <button
-                type="button"
-                class="btn btn-sm text-danger border-0 p-2"
-                (click)="svc.deleteBatchByAdmin(b.id)"
-              >
-                Hapus
-              </button>
-            </div>
-          </div>
-        </article>
-      }
-    </div>
+        }
+      </div>
+    </section>
   </div>
 </section>

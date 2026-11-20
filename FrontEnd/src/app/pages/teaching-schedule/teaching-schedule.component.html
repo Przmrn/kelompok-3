@@ -1,74 +1,69 @@
+
 <section class="k-page">
   <div class="shell">
-    <header class="page-head anim-fade-up">
-      <div class="page-head-copy">
-        <span class="kicker">Akun pengajar</span>
-        <h1 class="page-title">Jadwal mengajar saya</h1>
-        @if (instructorProfile(); as ins) {
-          <p class="page-lede">
-            Jadwal kelas untuk <strong>{{ ins.fullName }}</strong> ({{ ins.email }}).
-          </p>
-        } @else {
-          <p class="page-lede">Berikut jadwal kelas yang Anda ajar.</p>
-        }
-      </div>
-      <div class="page-actions">
-        <span class="k-pill k-pill-neutral">{{ myAssignedBatches().length }} jadwal</span>
-      </div>
-    </header>
+  <header class="page-head">
+    <div class="page-head-copy">
+      <span class="kicker">Akun pengajar</span>
+      <h1 class="page-title">Jadwal mengajar saya</h1>
+      @if (instructorProfile(); as ins) {
+        <p class="page-lede">
+          Jadwal kelas untuk <strong>{{ ins.fullName }}</strong> ({{ ins.email }}).
+        </p>
+      } @else {
+        <p class="page-lede">Berikut jadwal kelas yang Anda ajar.</p>
+      }
+    </div>
+    <span class="k-pill k-pill-neutral">{{ myAssignedBatches().length }} jadwal</span>
+  </header>
 
     @if (myAssignedBatches().length) {
-      <div class="admin-grid">
-        @for (item of myAssignedBatches(); track item.assignment.id; let idx = $index) {
-          <article
-            class="admin-card"
-            [class.tone-mist]="idx % 2 === 0"
-            [class.tone-ice]="idx % 2 === 1"
-            style="animation: springUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;"
-            [style.animation-delay.ms]="idx * 60"
-          >
-            <div class="admin-card-top">
-              <span class="k-pill k-pill-neutral">Jadwal {{ item.batch.id }}</span>
-              <span
-                class="k-pill"
-                [ngClass]="{
-                  'k-pill-green': item.batch.status === 'Open',
-                  'k-pill-red': item.batch.status === 'Full'
-                }"
-              >
-                {{ labels.batch[item.batch.status] }} · {{ svc.getUsedSeatsForBatch(item.batch.id) }}/{{ item.batch.maxSeats }} kursi
-              </span>
-            </div>
-
-            <h3>{{ item.course.title }}</h3>
-            <p class="panel-sub">{{ item.batch.batchName }}</p>
-
-            <div class="fact-grid">
-              <div>
-                <span class="fact-label">Tanggal pelaksanaan</span>
-                <span class="fact-value">
-                  {{ item.batch.startDate | date: 'd MMM yyyy' }} – {{ item.batch.endDate | date: 'd MMM yyyy' }}
-                </span>
+      <div class="admin-grid mt-4">
+        @for (item of myAssignedBatches(); track item.assignment.id; let i = $index) {
+          <article class="admin-card" [class.tone-mist]="i % 2 === 0" [class.tone-ice]="i % 2 !== 0">
+            <div class="d-flex gap-3 align-items-start">
+              <div class="text-center rounded-3 p-2 bg-white" style="min-width:65px;">
+                <div class="small text-secondary">{{ item.batch.startDate | date:'MMM' }}</div>
+                <div class="fs-3 fw-bold">{{ item.batch.startDate | date:'dd' }}</div>
+                <div class="small text-secondary">{{ item.batch.startDate | date:'yyyy' }}</div>
               </div>
-              <div>
-                <span class="fact-label">Jam kelas</span>
-                <span class="fact-value">{{ item.batch.startTime }} – {{ item.batch.endTime }} WIB</span>
-              </div>
-              <div>
-                <span class="fact-label">Lokasi</span>
-                <span class="fact-value">{{ item.location.name }}</span>
-                <span class="admin-note d-block">{{ item.location.roomName }}, {{ item.location.city }}</span>
+
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between flex-wrap gap-2">
+                  <span class="k-pill k-pill-neutral">{{ item.batch.batchName }}</span>
+                  <span class="k-pill" [ngClass]="{
+                    'k-pill-green': item.batch.status === 'Open',
+                    'k-pill-red': item.batch.status === 'Full'
+                  }">{{ labels.batch[item.batch.status] }}</span>
+                </div>
+
+                <h3 class="mt-3 mb-1">{{ item.course.title }}</h3>
+                <div class="small text-secondary">
+                  <i class="bi bi-calendar3 me-1"></i>
+                  {{ item.batch.startDate | date:'d MMM yyyy' }} – {{ item.batch.endDate | date:'d MMM yyyy' }}
+                </div>
+                <div class="small text-secondary mt-1">
+                  <i class="bi bi-clock me-1"></i>
+                  {{ item.batch.startTime }} – {{ item.batch.endTime }} WIB
+                </div>
+                <div class="small text-secondary mt-1">
+                  <i class="bi bi-geo-alt me-1"></i>
+                  {{ item.location.name }} · {{ item.location.roomName }}, {{ item.location.city }}
+                </div>
+                <div class="small fw-semibold mt-2">
+                  <i class="bi bi-people me-1"></i>
+                  {{ svc.getUsedSeatsForBatch(item.batch.id) }}/{{ item.batch.maxSeats }} peserta
+                </div>
               </div>
             </div>
           </article>
         }
       </div>
     } @else {
-      <div class="panel anim-fade-up">
+      <div class="panel mt-4">
         <div class="empty-state">
-          <div class="empty-icon"><i class="bi bi-calendar2-week" aria-hidden="true"></i></div>
+          <div class="empty-icon"><i class="bi bi-calendar2-week"></i></div>
           <h2>Belum ada jadwal mengajar</h2>
-          <p>Jadwal akan muncul di sini setelah admin menugaskan Anda ke sebuah batch.</p>
+          <p>Jadwal akan muncul setelah admin menugaskan Anda ke sebuah batch.</p>
         </div>
       </div>
     }
