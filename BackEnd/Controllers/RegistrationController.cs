@@ -17,13 +17,17 @@ namespace BackEnd.Controllers
     public class RegistrationController : ControllerBase
     {
         private readonly IRegistrationService _registrationService;
+        private readonly IPaymentService _paymentService;
 
         private readonly IRepository<Student> _students;
 
         public RegistrationController(
-            IRegistrationService registrationService, IRepository<Student> students)
+            IRegistrationService registrationService,
+            IPaymentService paymentService,
+            IRepository<Student> students)
         {
             _registrationService = registrationService;
+            _paymentService = paymentService;
             _students = students;
         }
 
@@ -113,18 +117,12 @@ namespace BackEnd.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> ConfirmUpfrontPayment(long id)
         {
-            var result =
-                await _registrationService.ConfirmUpfrontPaymentAsync(id);
-
-            if (!result)
-                return BadRequest(new
-                {
-                    message = "Pembayaran Upfront tidak dapat dikonfirmasi."
-                });
+            var payment = await _paymentService.ConfirmUpfrontPaymentAsync(id, null);
 
             return Ok(new
             {
-                message = "Pembayaran Upfront berhasil dikonfirmasi."
+                message = "Pembayaran Upfront berhasil dikonfirmasi.",
+                payment
             });
         }
 
@@ -134,20 +132,15 @@ namespace BackEnd.Controllers
         public async Task<IActionResult> ConfirmInstallmentPayment(
             long scheduleId)
         {
-            var result =
-                await _registrationService.ConfirmInstallmentPaymentAsync(
-                    scheduleId
-                );
-
-            if (!result)
-                return BadRequest(new
-                {
-                    message = "Pembayaran cicilan tidak dapat dikonfirmasi."
-                });
+            var payment = await _paymentService.ConfirmInstallmentPaymentAsync(
+                scheduleId,
+                null
+            );
 
             return Ok(new
             {
-                message = "Pembayaran cicilan berhasil dikonfirmasi."
+                message = "Pembayaran cicilan berhasil dikonfirmasi.",
+                payment
             });
         }
 
@@ -194,7 +187,7 @@ namespace BackEnd.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> ProcessOverdueRegistrations()
         {
-            await _registrationService.ProcessOverdueRegistrationsAsync();
+            await _paymentService.ProcessOverdueRegistrationsAsync();
 
             return Ok(new
             {
