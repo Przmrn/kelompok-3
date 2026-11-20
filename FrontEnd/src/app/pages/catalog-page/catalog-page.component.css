@@ -613,7 +613,7 @@
   background: var(--bone);
 }
 
-.method-karsa {
+.method-studio {
   background: var(--ink);
   color: var(--paper);
 }
@@ -626,7 +626,7 @@
   text-transform: uppercase;
 }
 
-.method-karsa .method-label {
+.method-studio .method-label {
   color: var(--lime);
 }
 
@@ -671,7 +671,7 @@
   line-height: 1.55;
 }
 
-.method-karsa li {
+.method-studio li {
   color: var(--stone);
 }
 
@@ -680,7 +680,7 @@
   font-weight: 600;
 }
 
-.method-karsa li strong {
+.method-studio li strong {
   color: var(--paper);
 }
 
@@ -694,7 +694,7 @@
   color: var(--ui-error);
 }
 
-.method-karsa li i {
+.method-studio li i {
   color: var(--lime);
 }
 
@@ -707,7 +707,7 @@
   line-height: 1.5;
 }
 
-.method-karsa .method-note {
+.method-studio .method-note {
   border-top-color: rgba(255, 255, 255, 0.18);
   color: var(--stone);
 }

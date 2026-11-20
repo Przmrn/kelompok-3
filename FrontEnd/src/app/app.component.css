@@ -7,17 +7,7 @@
 }
 
 .brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px;
-  background-color: var(--iris);
-  color: white;
-  font-family: var(--ui-font);
-  font-weight: 700;
-  font-size: 1.25rem;
+  flex: none;
   transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -231,14 +221,31 @@
   max-width: 1200px;
 }
 
-.brand-dot {
-  color: var(--ui-ember);
-}
-
 .brand-wordmark {
   font-family: var(--ui-font);
-  color: var(--ui-ink) !important;
+  color: var(--ui-ink);
+  font-size: 1.375rem;
   font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.k-footer .brand-wordmark {
+  font-size: 1.125rem;
+}
+
+@media (max-width: 420px) {
+  .navbar-brand .brand-wordmark {
+    font-size: 1.125rem;
+  }
+
+  .navbar-brand .brand-mark {
+    width: 30px;
+    height: 30px;
+  }
+
+  .k-signin-btn.btn-sm {
+    padding-inline: 0.5rem;
+  }
 }
 
 @media (max-width: 991.98px) {
