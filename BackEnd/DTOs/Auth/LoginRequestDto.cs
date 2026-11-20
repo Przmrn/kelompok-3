@@ -8,7 +8,7 @@ namespace BackEnd.DTOs.Auth
         [EmailAddress]
         public string Email { get; set; } = string.Empty;
 
-        [Required]
+        [Required, MinLength(1)]
         public string Password { get; set; } = string.Empty;
     }
 }

@@ -7,6 +7,7 @@ namespace BackEnd.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [Authorize]
     public class BatchInstructorController : ControllerBase
     {
         private readonly IBatchInstructorService _batchInstructorService;

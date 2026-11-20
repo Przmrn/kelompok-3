@@ -4,8 +4,7 @@ namespace BackEnd.DTOs.Auth
 {
     public class RegisterRequestDto
     {
-        [Required]
-        [MaxLength(150)]
+        [Required, MinLength(1), MaxLength(150)]
         public string FullName { get; set; } = string.Empty;
 
         [Required]

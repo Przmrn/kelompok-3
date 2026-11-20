@@ -1,4 +1,6 @@
-﻿using BackEnd.DTOs.Registration;
+﻿using BackEnd.Data;
+using BackEnd.DTOs.Registration;
+using BackEnd.Exceptions;
 using BackEnd.Models;
 using BackEnd.Repositories;
 
@@ -12,6 +14,7 @@ namespace BackEnd.Services
         private readonly IRepository<Course> _courseRepository;
         private readonly IRepository<Location> _locationRepository;
         private readonly IRepository<InstallmentSchedule> _installmentRepository;
+        private readonly CourseDbContext _context;
 
         public RegistrationService(
             IRepository<Registration> registrationRepository,
@@ -19,7 +22,8 @@ namespace BackEnd.Services
             IRepository<CourseBatch> batchRepository,
             IRepository<Course> courseRepository,
             IRepository<Location> locationRepository,
-            IRepository<InstallmentSchedule> installmentRepository
+            IRepository<InstallmentSchedule> installmentRepository,
+            CourseDbContext context
         )
         {
             _registrationRepository = registrationRepository;
@@ -28,6 +32,7 @@ namespace BackEnd.Services
             _courseRepository = courseRepository;
             _locationRepository = locationRepository;
             _installmentRepository = installmentRepository;
+            _context = context;
         }
 
         public async Task<RegistrationDetailDto> CreateAsync(
@@ -35,15 +40,17 @@ namespace BackEnd.Services
             RegistrationCreateDto dto
         )
         {
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+
             var students = await _studentRepository.FindAsync(
                 s => s.UserId == userId
             );
 
             var student = students.FirstOrDefault()
-                ?? throw new Exception("Student tidak ditemukan.");
+                ?? throw new NotFoundException("Student tidak ditemukan.");
 
             if (!Enum.IsDefined(dto.PaymentMethod))
-                throw new Exception("Metode pembayaran tidak valid.");
+                throw new AppException("Metode pembayaran tidak valid.");
 
             var paymentMethod = dto.PaymentMethod;
 
@@ -53,28 +60,28 @@ namespace BackEnd.Services
                     dto.InstallmentTenor != 6 &&
                     dto.InstallmentTenor != 12)
                 {
-                    throw new Exception(
+                    throw new AppException(
                         "Tenor cicilan harus 3, 6, atau 12 bulan."
                     );
                 }
             }
             else if (dto.InstallmentTenor != null)
             {
-                throw new Exception(
+                throw new AppException(
                     "Pembayaran UPFRONT tidak menggunakan tenor."
                 );
             }
 
             var batch = await _batchRepository.GetByIdAsync(dto.BatchId)
-                ?? throw new Exception("Batch tidak ditemukan.");
+                ?? throw new NotFoundException("Batch tidak ditemukan.");
 
             if (batch.CourseStatus != CourseBatchStatus.OPEN)
             {
-                throw new Exception("Batch tidak tersedia.");
+                throw new AppException("Batch tidak tersedia.");
             }
 
             var course = await _courseRepository.GetByIdAsync(batch.CourseId)
-                ?? throw new Exception("Course tidak ditemukan.");
+                ?? throw new NotFoundException("Course tidak ditemukan.");
 
             var existingRegistrations =
                 await _registrationRepository.FindAsync(r =>
@@ -86,8 +93,9 @@ namespace BackEnd.Services
 
             if (existingRegistrations.Any())
             {
-                throw new Exception(
-                    "Anda sudah terdaftar pada batch ini."
+                throw new AppException(
+                    "Anda sudah terdaftar pada batch ini.",
+                    StatusCodes.Status409Conflict
                 );
             }
 
@@ -110,7 +118,7 @@ namespace BackEnd.Services
                 _batchRepository.Update(batch);
                 await _batchRepository.SaveChangesAsync();
 
-                throw new Exception("Kapasitas batch sudah penuh.");
+                throw new AppException("Kapasitas batch sudah penuh.", StatusCodes.Status409Conflict);
             }
 
             int queueNumber = batchRegistrations
@@ -194,6 +202,7 @@ namespace BackEnd.Services
                 await _batchRepository.SaveChangesAsync();
             }
 
+            await transaction.CommitAsync();
             return await BuildDetailAsync(registration);
         }
 
@@ -311,7 +320,7 @@ namespace BackEnd.Services
         {
             var registration =
                 await _registrationRepository.GetByIdAsync(registrationId)
-                ?? throw new Exception("Registration tidak ditemukan.");
+                ?? throw new NotFoundException("Registration tidak ditemukan.");
 
             if (!isAdmin)
             {
@@ -320,11 +329,11 @@ namespace BackEnd.Services
                 );
 
                 var student = students.FirstOrDefault()
-                    ?? throw new Exception("Student tidak ditemukan.");
+                    ?? throw new NotFoundException("Student tidak ditemukan.");
 
                 if (registration.StudentId != student.Id)
                 {
-                    throw new UnauthorizedAccessException(
+                    throw new UnauthorizedException(
                         "Anda tidak memiliki akses ke registration ini."
                     );
                 }
@@ -336,22 +345,22 @@ namespace BackEnd.Services
         public async Task<bool> CancelAsync(long registrationId, long userId, bool isAdmin)
         {
             var registration = await _registrationRepository.GetByIdAsync(registrationId)
-                ?? throw new Exception("Registration tidak ditemukan.");
+                ?? throw new NotFoundException("Registration tidak ditemukan.");
 
             if (!isAdmin)
             {
                 var student = (await _studentRepository.FindAsync(s => s.UserId == userId)).FirstOrDefault()
-                    ?? throw new Exception("Student tidak ditemukan.");
+                    ?? throw new NotFoundException("Student tidak ditemukan.");
 
                 if (registration.StudentId != student.Id)
-                    throw new UnauthorizedAccessException("Anda tidak memiliki akses ke registration ini.");
+                    throw new UnauthorizedException("Anda tidak memiliki akses ke registration ini.");
             }
 
             if (registration.RegistrationStatus == RegistrationStatus.CANCELLED)
                 return false;
 
             if (registration.RegistrationStatus == RegistrationStatus.COMPLETED)
-                throw new Exception("Registration yang sudah selesai tidak dapat dibatalkan.");
+                throw new AppException("Registration yang sudah selesai tidak dapat dibatalkan.", StatusCodes.Status409Conflict);
 
             registration.RegistrationStatus = RegistrationStatus.CANCELLED;
             _registrationRepository.Update(registration);
@@ -395,15 +404,15 @@ namespace BackEnd.Services
         {
             var batch = await _batchRepository.GetByIdAsync(
                 registration.BatchId
-            ) ?? throw new Exception("Batch tidak ditemukan.");
+            ) ?? throw new NotFoundException("Batch tidak ditemukan.");
 
             var course = await _courseRepository.GetByIdAsync(
                 batch.CourseId
-            ) ?? throw new Exception("Course tidak ditemukan.");
+            ) ?? throw new NotFoundException("Course tidak ditemukan.");
 
             var location = await _locationRepository.GetByIdAsync(
                 batch.LocationId
-            ) ?? throw new Exception("Location tidak ditemukan.");
+            ) ?? throw new NotFoundException("Location tidak ditemukan.");
 
             var schedules = await _installmentRepository.FindAsync(
                 s => s.RegistrationId == registration.Id
@@ -437,7 +446,7 @@ namespace BackEnd.Services
 
                 PaidAmount = registration.PaidAmount,
 
-                PaymentMethod = registration.PaymentMethod.ToString(),
+                PaymentMethod = registration.PaymentMethod,
 
                 InstallmentTenor = registration.InstallmentTenor,
 
@@ -488,15 +497,15 @@ namespace BackEnd.Services
             );
 
             var student = students.FirstOrDefault()
-                ?? throw new Exception("Student tidak ditemukan.");
+                ?? throw new NotFoundException("Student tidak ditemukan.");
 
             var registration =
                 await _registrationRepository.GetByIdAsync(registrationId)
-                ?? throw new Exception("Registration tidak ditemukan.");
+                ?? throw new NotFoundException("Registration tidak ditemukan.");
 
             if (registration.StudentId != student.Id)
             {
-                throw new UnauthorizedAccessException(
+                throw new UnauthorizedException(
                     "Anda tidak memiliki akses ke registration ini."
                 );
             }
@@ -504,12 +513,12 @@ namespace BackEnd.Services
             if (registration.RegistrationStatus != RegistrationStatus.PENDING &&
                 registration.RegistrationStatus != RegistrationStatus.CONFIRMED)
             {
-                throw new Exception("Registration tidak dapat menerima pembayaran.");
+                throw new AppException("Registration tidak dapat menerima pembayaran.", StatusCodes.Status409Conflict);
             }
 
             if (dto.Amount <= 0)
             {
-                throw new Exception("Nominal pembayaran tidak valid.");
+                throw new AppException("Nominal pembayaran tidak valid.");
             }
 
             if (registration.PaymentMethod == PaymentMethods.UPFRONT)
@@ -518,7 +527,7 @@ namespace BackEnd.Services
 
                 if (dto.Amount != remaining)
                 {
-                    throw new Exception(
+                    throw new AppException(
                         $"Pembayaran UPFRONT harus sebesar Rp{remaining:N0}."
                     );
                 }
@@ -545,7 +554,7 @@ namespace BackEnd.Services
 
                 if (nextInstallment == null)
                 {
-                    throw new Exception("Semua cicilan sudah dibayar.");
+                    throw new AppException("Semua cicilan sudah dibayar.", StatusCodes.Status409Conflict);
                 }
 
                 decimal remainingInstallment =
@@ -553,7 +562,7 @@ namespace BackEnd.Services
 
                 if (dto.Amount != remainingInstallment)
                 {
-                    throw new Exception(
+                    throw new AppException(
                         $"Pembayaran cicilan harus sebesar Rp{remainingInstallment:N0}."
                     );
                 }

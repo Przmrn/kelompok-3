@@ -35,45 +35,24 @@ namespace BackEnd.Controllers
         [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<CourseCategoryResponseDto>> Create(CourseCategoryCreateDto dto)
         {
-            try
-            {
-                var category = await _service.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
-            }
-            catch (InvalidOperationException exception)
-            {
-                return Conflict(new { message = exception.Message });
-            }
+            var category = await _service.CreateAsync(dto);
+            return CreatedAtAction(nameof(GetById), new { id = category.Id }, category);
         }
 
         [HttpPut("{id:long}")]
         [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<CourseCategoryResponseDto>> Update(long id, CourseCategoryUpdateDto dto)
         {
-            try
-            {
-                var category = await _service.UpdateAsync(id, dto);
-                return category == null ? NotFound() : Ok(category);
-            }
-            catch (InvalidOperationException exception)
-            {
-                return Conflict(new { message = exception.Message });
-            }
+            var category = await _service.UpdateAsync(id, dto);
+            return category == null ? NotFound() : Ok(category);
         }
 
         [HttpDelete("{id:long}")]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(long id)
         {
-            try
-            {
-                var deleted = await _service.DeleteAsync(id);
-                return deleted ? NoContent() : NotFound();
-            }
-            catch (InvalidOperationException exception)
-            {
-                return Conflict(new { message = exception.Message });
-            }
+            var deleted = await _service.DeleteAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
     }
 }

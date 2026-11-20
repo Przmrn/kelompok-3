@@ -1,5 +1,6 @@
 using BackEnd.Data;
 using BackEnd.DTOs.CourseCategory;
+using BackEnd.Exceptions;
 using BackEnd.Models;
 using BackEnd.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -35,7 +36,7 @@ namespace BackEnd.Services
         {
             var normalizedName = dto.Name.Trim();
             if (await _repository.ExistsAsync(c => c.Name.ToLower() == normalizedName.ToLower()))
-                throw new InvalidOperationException("Course category name already exists.");
+                throw new AppException("Course category name already exists.", StatusCodes.Status409Conflict);
 
             var category = new CourseCategory
             {
@@ -56,7 +57,7 @@ namespace BackEnd.Services
 
             var normalizedName = dto.Name.Trim();
             if (await _repository.ExistsAsync(c => c.Id != id && c.Name.ToLower() == normalizedName.ToLower()))
-                throw new InvalidOperationException("Course category name already exists.");
+                throw new AppException("Course category name already exists.", StatusCodes.Status409Conflict);
 
             category.Name = normalizedName;
             category.Description = dto.Description.Trim();
@@ -72,7 +73,7 @@ namespace BackEnd.Services
                 return false;
 
             if (await _context.Courses.AnyAsync(c => c.CategoryId == id))
-                throw new InvalidOperationException("Course category cannot be deleted because courses are using it.");
+                throw new AppException("Course category cannot be deleted because courses are using it.", StatusCodes.Status409Conflict);
 
             _repository.Delete(category);
             await _context.SaveChangesAsync();

@@ -4,10 +4,10 @@ namespace BackEnd.DTOs.BatchInstructor
 {
     public class BatchInstructorCreateDto
     {
-        [Required]
+        [Range(1, long.MaxValue)]
         public long BatchId { get; set; }
 
-        [Required]
+        [Range(1, long.MaxValue)]
         public long InstructorId { get; set; }
     }
 }

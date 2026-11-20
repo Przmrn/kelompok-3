@@ -1,5 +1,6 @@
 using BackEnd.Data;
 using BackEnd.DTOs.Auth;
+using BackEnd.Exceptions;
 using BackEnd.Models;
 using BackEnd.Repositories;
 using Microsoft.IdentityModel.Tokens;
@@ -32,7 +33,7 @@ namespace BackEnd.Services
         {
             var email = dto.Email.Trim().ToLowerInvariant();
             if (await _userRepository.ExistsAsync(u => u.Email.ToLower() == email))
-                throw new InvalidOperationException("Email is already registered.");
+                throw new AppException("Email is already registered.", StatusCodes.Status409Conflict);
 
             var user = new User
             {
@@ -48,7 +49,8 @@ namespace BackEnd.Services
             var student = new Student
             {
                 UserId = user.Id,
-                FullName = dto.FullName.Trim()
+                FullName = dto.FullName.Trim(),
+                PhoneNumber = string.Empty
             };
 
             await _studentRepository.AddAsync(student);
