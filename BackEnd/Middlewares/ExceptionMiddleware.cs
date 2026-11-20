@@ -1,10 +1,6 @@
 ﻿using System.Text.Json;
 using BackEnd.Exceptions;
-<<<<<<< HEAD
-using OpenTelemetry.Trace;
-=======
 using Microsoft.EntityFrameworkCore;
->>>>>>> rafie
 
 namespace BackEnd.Middlewares
 {
@@ -29,19 +25,17 @@ namespace BackEnd.Middlewares
             {
                 await WriteResponse(context, ex.StatusCode, ex.Message);
             }
-<<<<<<< HEAD
+            catch (DbUpdateException ex)
+            {
+                _logger.LogWarning(ex, "Perubahan data ditolak oleh database.");
+                await WriteResponse(context, 409, "Perubahan tidak dapat disimpan. Periksa data terkait.");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unhandled exception pada {Method} {path}",
                     context.Request.Method, context.Request.Path);
                 await WriteResponse(context, StatusCodes.Status500InternalServerError,
                     "Terjadi kesalahan server.");
-=======
-            catch (DbUpdateException ex)
-            {
-                _logger.LogWarning(ex, "Perubahan data ditolak oleh database.");
-                await WriteResponse(context, 409, "Perubahan tidak dapat disimpan. Periksa data terkait.");
->>>>>>> rafie
             }
         }
 

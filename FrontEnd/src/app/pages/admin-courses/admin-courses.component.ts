@@ -17,20 +17,11 @@ export class AdminCoursesComponent {
   readonly showForm = signal(false);
   readonly editingCourseId = signal<number | undefined>(undefined);
 
-<<<<<<< HEAD
-  form = this.newCourse();
+form = this.newCourse();
 
-  private newCourse() {
-    return { categoryId: this.svc.categories()[0]?.id ?? 0, syllabus: '', durationHours: 0, basePrice: 0 };
-  }
-=======
-  form = {
-    categoryId: this.svc.categories()[0]?.id ?? 0,
-    syllabus: '1. Konsep Dasar & Arsitektur\n2. Praktikum Studio & Studi Kasus',
-    durationHours: 42,
-    basePrice: 1200000,
-  };
->>>>>>> rafie
+private newCourse() {
+  return { categoryId: this.svc.categories()[0]?.id ?? 0, syllabus: '', durationHours: 0, basePrice: 0 };
+}
 
   openNewCourseForm(): void {
     if (this.showForm()) {
@@ -38,16 +29,7 @@ export class AdminCoursesComponent {
       return;
     }
     this.editingCourseId.set(undefined);
-<<<<<<< HEAD
     this.form = this.newCourse();
-=======
-    this.form = {
-      categoryId: this.svc.categories()[0]?.id ?? 0,
-      syllabus: '1. Konsep Dasar & Arsitektur\n2. Praktikum Studio & Studi Kasus',
-      durationHours: 42,
-      basePrice: 1200000,
-    };
->>>>>>> rafie
     this.showForm.set(true);
   }
 

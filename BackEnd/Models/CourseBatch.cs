@@ -28,16 +28,12 @@ namespace BackEnd.Models
         [NotMapped] public int UsedSeats => Registrations.Count(r => r.RegistrationStatus == RegistrationStatus.PENDING || r.RegistrationStatus == RegistrationStatus.CONFIRMED);
         [NotMapped] public int NextQueue => Registrations.Select(r => r.QueueNumber).DefaultIfEmpty(0).Max() + 1;
 
-        [System.Text.Json.Serialization.JsonIgnore]
         public Location Location { get; set; } = null!;
 
-        [System.Text.Json.Serialization.JsonIgnore]
         public Course Course { get; set; } = null!;
 
-        [System.Text.Json.Serialization.JsonIgnore]
         public ICollection<Registration> Registrations { get; set; } = new List<Registration>();
 
-        [System.Text.Json.Serialization.JsonIgnore]
         public ICollection<BatchInstructor> BatchInstructors { get; set; } = new List<BatchInstructor>();
     }
 }

@@ -81,21 +81,5 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-<<<<<<< HEAD
-=======
-app.UseMiddleware<BackEnd.Middlewares.ExceptionMiddleware>();
-app.UseWhen(context =>
-{
-    var peer = context.Connection.RemoteIpAddress;
-    var localProxy = app.Environment.IsDevelopment()
-        && context.Request.Host.Host == "127.0.0.1"
-        && peer != null
-        && System.Net.IPAddress.IsLoopback(peer.IsIPv4MappedToIPv6 ? peer.MapToIPv4() : peer);
-    return !localProxy;
-}, pipeline => pipeline.UseHttpsRedirection());
-app.UseCors("AngularDevelopment");
-app.UseAuthentication();
-app.UseAuthorization();
->>>>>>> rafie
 app.MapControllers();
 app.Run();

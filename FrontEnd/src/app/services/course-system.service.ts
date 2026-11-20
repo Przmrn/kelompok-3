@@ -1,14 +1,7 @@
-<<<<<<< HEAD
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Observable, catchError, finalize, firstValueFrom, forkJoin, of, tap } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BackendApiService, StudentProfileFields } from './backend-api.service';
-=======
-import { Injectable, computed, inject, signal } from '@angular/core';
-import { Observable, catchError, finalize, firstValueFrom, forkJoin, of, tap } from 'rxjs';
-import { HttpErrorResponse } from '@angular/common/http';
-import { BackendApiService } from './backend-api.service';
->>>>>>> rafie
 import { AuthService } from './auth.service';
 import {
   BatchInstructor,
@@ -40,7 +33,6 @@ export class CourseSystemService {
   private readonly auth = inject(AuthService);
 
   private readonly api = inject(BackendApiService);
-<<<<<<< HEAD
   private readonly profileResult = signal<{
     owner: User;
     status: 'ready' | 'missing' | 'error';
@@ -56,8 +48,6 @@ export class CourseSystemService {
 
   readonly profileChecked = computed(() => this.profileStatus() === 'ready' || this.profileStatus() === 'missing');
 
-=======
->>>>>>> rafie
   readonly categories = signal<CourseCategory[]>([]);
   readonly locations = signal<Location[]>([]);
   readonly courses = signal<Course[]>([]);
@@ -65,27 +55,16 @@ export class CourseSystemService {
   readonly batchInstructors = signal<BatchInstructor[]>([]);
   private readonly publicInstructors = signal<Instructor[]>([]);
   private readonly accountData = signal<{
-<<<<<<< HEAD
-    owner: User; students: Student[]; registrations: Registration[];
-=======
     userId: number; students: Student[]; registrations: Registration[];
->>>>>>> rafie
     schedules: InstallmentSchedule[]; instructors: Instructor[];
   } | null>(null);
   private readonly account = computed(() => {
     const data = this.accountData();
-<<<<<<< HEAD
-    return data?.owner === this.auth.user() ? data : null;
-  });
-  readonly students = computed(() => this.account()?.students ?? []);
-  readonly registrations = computed(() => this.account()?.registrations ?? []);
-  readonly myRegistrations = computed(() => this.isStudent() ? this.registrations() : []);
-=======
     return data?.userId === this.auth.user()?.id ? data : null;
   });
   readonly students = computed(() => this.account()?.students ?? []);
   readonly registrations = computed(() => this.account()?.registrations ?? []);
->>>>>>> rafie
+  readonly myRegistrations = computed(() => this.isStudent() ? this.registrations() : []);
   readonly installmentSchedules = computed(() => this.account()?.schedules ?? []);
   readonly instructors = computed(() => this.isAdmin() ? this.account()?.instructors ?? [] : this.publicInstructors());
   readonly loading = signal(true);
@@ -105,11 +84,7 @@ export class CourseSystemService {
     this.accountLoading.set(participant);
     this.accountError.set('');
     if (!user) this.accountData.set(null);
-<<<<<<< HEAD
-    const currentAccount = () => revision === this.revision && user === this.auth.user();
-=======
     const currentAccount = () => revision === this.revision && user?.id === this.auth.user()?.id;
->>>>>>> rafie
     await firstValueFrom(forkJoin({
       catalog: this.api.catalog().pipe(
         tap(catalog => {
@@ -129,20 +104,12 @@ export class CourseSystemService {
         finalize(() => { if (revision === this.revision) this.loading.set(false); })
       ),
       account: forkJoin({
-<<<<<<< HEAD
-        students: admin ? this.api.students() : of([]),
-=======
         students: participant ? this.api.students(admin) : of([]),
->>>>>>> rafie
         payments: participant ? this.api.registrations(admin) : of({ registrations: [], schedules: [] }),
         instructors: admin ? this.api.instructors() : of([]),
       }).pipe(
         tap(data => {
-<<<<<<< HEAD
-          if (currentAccount() && user) this.accountData.set({ owner: user, students: data.students, ...data.payments, instructors: data.instructors });
-=======
           if (currentAccount() && user) this.accountData.set({ userId: user.id, students: data.students, ...data.payments, instructors: data.instructors });
->>>>>>> rafie
         }),
         catchError(error => {
           if (currentAccount()) this.accountError.set(this.errorMessage(error));
@@ -203,7 +170,6 @@ export class CourseSystemService {
   readonly isInstructor = computed<boolean>(() => this.currentUser()?.role === 'Instructor');
   readonly isStudent = computed<boolean>(() => this.currentUser()?.role === 'Student');
 
-<<<<<<< HEAD
   constructor() {
     effect(onCleanup => {
       const user = this.auth.user();
@@ -226,8 +192,6 @@ export class CourseSystemService {
     this.profileAttempt.update(attempt => attempt + 1);
   }
 
-=======
->>>>>>> rafie
   showNotification(
     type: 'success' | 'warning' | 'danger' | 'info',
     title: string,
@@ -338,36 +302,14 @@ export class CourseSystemService {
     return Math.max(0, reg.totalAmount - this.getTotalPaidForRegistration(reg));
   }
 
-<<<<<<< HEAD
-  readonly unpaidCartRegistrations = computed(() => this.myRegistrations().filter(reg =>
-    reg.registrationStatus !== 'Cancelled' &&
-    (reg.paymentStatus === 'Pending' || (reg.paymentStatus === 'Overdue' && reg.paidAmount === 0))
-  ));
+readonly unpaidCartRegistrations = computed(() => this.myRegistrations().filter(reg =>
+  reg.registrationStatus !== 'Cancelled' &&
+  (reg.paymentStatus === 'Pending' || (reg.paymentStatus === 'Overdue' && reg.paidAmount === 0))
+));
 
-  readonly purchasedCourses = computed(() => this.myRegistrations().filter(reg =>
-    reg.paidAmount > 0 || reg.registrationStatus === 'Confirmed' || reg.registrationStatus === 'Completed'
-  ));
-=======
-  getUnpaidCartRegistrations(studentId: number): Registration[] {
-    return this.registrations().filter(
-      (r) =>
-        r.studentId === studentId &&
-        r.registrationStatus !== 'Cancelled' &&
-        (r.paymentStatus === 'Pending' || (r.paymentStatus === 'Overdue' && r.paidAmount === 0))
-    );
-  }
-
-  getPaidCoursesForStudent(studentId: number): Registration[] {
-    return this.registrations().filter(
-      (r) =>
-        r.studentId === studentId &&
-        (r.paymentStatus === 'Paid' ||
-          r.paymentStatus === 'PartiallyPaid' ||
-          r.registrationStatus === 'Confirmed' ||
-          r.registrationStatus === 'Completed')
-    );
-  }
->>>>>>> rafie
+readonly purchasedCourses = computed(() => this.myRegistrations().filter(reg =>
+  reg.paidAmount > 0 || reg.registrationStatus === 'Confirmed' || reg.registrationStatus === 'Completed'
+));
 
   getSyllabusList(syllabusText: string): string[] {
     return syllabusText
@@ -600,8 +542,7 @@ export class CourseSystemService {
   }
 
 
-<<<<<<< HEAD
-  async updateStudentProfile(profile: StudentProfileFields): Promise<void> {
+async updateStudentProfile(profile: StudentProfileFields): Promise<void> {
     const user = this.auth.user();
     const status = this.profileStatus();
     if (!user || this.savingProfile() || (status !== 'ready' && status !== 'missing')) return;
@@ -640,50 +581,7 @@ export class CourseSystemService {
     return this.change(this.api.confirmUpfront(id), 'Pembayaran dikonfirmasi.');
   }
 
-  payInstallmentSchedule(id: number) {
-    return this.change(this.api.confirmInstallment(id), 'Pembayaran cicilan dikonfirmasi.');
-  }
-
-  processOverdue() {
-    return this.change(this.api.processOverdue(), 'Status tagihan telah diperiksa.');
-  }
-
-  assignInstructorToBatch(payload: { batchId: number; instructorId: number }) {
-    return this.change(this.api.assignment(payload.batchId, payload.instructorId, false), 'Pengajar ditugaskan.');
-  }
-
-  removeInstructorAssignment(assignment: BatchInstructor) {
-    return this.change(this.api.assignment(assignment.batchId, assignment.instructorId, true), 'Penugasan dihapus.');
-  }
-
-  saveInstructor(id: number | undefined, payload: Omit<Instructor, 'id' | 'userId'> & { password?: string }) {
-    return this.change(this.api.save('instructors', id, payload), 'Profil pengajar disimpan.');
-  }
-
-  deleteInstructorByAdmin(id: number) { return this.change(this.api.remove('instructors', id), 'Pengajar dihapus.'); }
-
-  saveCourseByAdmin({ id, categoryId, syllabus, durationHours, basePrice }: Omit<Course, 'id' | 'title' | 'description'> & { id?: number }) {
-    return this.change(this.api.save('courses', id, { categoryId, syllabus, durationHours, basePrice }), 'Kelas disimpan.');
-  }
-
-=======
-  updateStudentProfile(userId: number, profile: Omit<Student, 'id' | 'userId'>) {
-    return this.change(this.api.saveProfile(profile, this.students().some(s => s.userId === userId)), 'Profil Anda sudah disimpan.');
-  }
-
-  submitCourseRegistration(batchId: number, method: PaymentMethodType, tenor: number | null) {
-    return this.change(this.api.createRegistration(batchId, method, tenor), 'Pendaftaran Anda sudah tersimpan.');
-  }
-
-  confirmCancelRegistration(id: number) {
-    return this.change(this.api.cancelRegistration(id), 'Pendaftaran dibatalkan.');
-  }
-
-  confirmUpfrontPayment(id: number) {
-    return this.change(this.api.confirmUpfront(id), 'Pembayaran dikonfirmasi.');
-  }
-
-  payInstallmentSchedule(id: number, paidAmount: number) {
+  payInstallmentSchedule(id: number, paidAmount?: number) {
     return this.change(this.api.confirmInstallment(id, paidAmount), 'Pembayaran cicilan dikonfirmasi.');
   }
 
@@ -709,7 +607,6 @@ export class CourseSystemService {
     return this.change(this.api.save('courses', id, { categoryId, syllabus, durationHours, basePrice }), 'Kelas disimpan.');
   }
 
->>>>>>> rafie
   deleteCourseByAdmin(id: number) { return this.change(this.api.remove('courses', id), 'Kelas dihapus.'); }
 
   saveBatchByAdmin({ id, startTime, endTime, ...fields }: Omit<CourseBatch, 'id' | 'nextQueue' | 'usedSeats' | 'status'> & { id?: number }) {

@@ -22,7 +22,6 @@ namespace BackEnd.Models
 
         [MaxLength(30)]
         public InstallmentStatus InstallmentStatus { get; set; } = InstallmentStatus.PENDING;
-        [System.Text.Json.Serialization.JsonIgnore]
         public Registration Registration { get; set; } = null!;
     }
 }
