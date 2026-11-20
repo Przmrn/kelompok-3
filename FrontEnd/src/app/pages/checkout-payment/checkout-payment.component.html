@@ -53,6 +53,23 @@
                 </button>
               </div>
 
+              @if (paymentMethod() === 'Installment') {
+                <div class="mb-3 anim-pop">
+                  <label class="k-label" for="checkoutTenorDropdown">
+                    Lama cicilan
+                  </label>
+                  <select
+                    id="checkoutTenorDropdown"
+                    class="form-select k-select"
+                    [ngModel]="selectedTenor()"
+                    (ngModelChange)="setTenor(Number($event))"
+                  >
+                    <option [ngValue]="3">3 bulan</option>
+                    <option [ngValue]="6">6 bulan</option>
+                    <option [ngValue]="12">12 bulan</option>
+                  </select>
+                </div>
+
                 @if (selectedInstallmentPreview(); as insPrev) {
                   <div class="k-surface-soft p-3 small anim-pop">
                     <div class="fw-bold mb-2">Jadwal cicilan</div>
@@ -68,7 +85,7 @@
                 <div class="k-surface-soft p-3 small">
                   <div class="fw-bold mb-1">Sekali bayar</div>
                   <div class="text-secondary">
-                    Seluruh biaya kelas dibayar saat pendaftaran.
+                    Admin akan mengonfirmasi pembayaran penuh Anda.
                   </div>
                 </div>
               }
@@ -143,16 +160,6 @@
                 </div>
 
                 @if (!svc.currentUser()) {
-                  <div class="small mt-3" style="color: #fca5a5;">
-                    Masuk untuk mengonfirmasi pendaftaran.
-                  </div>
-                } @else if (!isProfileComplete()) {
-                  <div class="small mt-3" style="color: #fca5a5;">
-                    Lengkapi data diri di halaman <a routerLink="/profile" class="fw-bold" style="color: var(--ui-lime);">Profil</a> sebelum mendaftar.
-                  </div>
-                }
-
-                @if (!svc.currentUser()) {
                   <button
                     type="button"
                     class="btn-k-primary w-100 py-3"
@@ -163,30 +170,16 @@
                   </button>
                 } @else {
                   <div class="d-flex flex-column gap-2">
-                    <button
-                      type="button"
-                      class="btn-k-coral w-100 py-2"
-                      [disabled]="!canSubmit()"
-                      (click)="payImmediately()"
-                    >
-                      @if (b.status === 'Full') {
-                        Kelas penuh
-                      } @else if (isAlreadyRegistered()) {
-                        Anda sudah terdaftar di jadwal ini
-                      } @else {
-                        <i class="bi bi-credit-card-check"></i>
-                        <span>{{ paymentMethod() === 'Installment' ? 'Bayar cicilan pertama' : 'Bayar sekarang' }}</span>
-                      }
-                    </button>
+
 
                     <button
                       type="button"
-                      class="btn-k-light w-100 py-2"
-                      [disabled]="!canSubmit()"
+                      class="btn-k-primary w-100 py-2"
+                      [disabled]="!canSubmit() || svc.saving()"
                       (click)="addToUnpaidCart()"
                     >
                       <i class="bi bi-cart-plus"></i>
-                      <span>Simpan di keranjang dan bayar nanti</span>
+                      <span>Daftar kelas</span>
                     </button>
                   </div>
                 }

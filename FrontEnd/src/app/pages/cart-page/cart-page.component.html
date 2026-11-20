@@ -26,7 +26,7 @@
         <div>
           <h1 class="h2 fw-bold mb-1">Keranjang pembayaran ({{ unpaidRegistrations().length }})</h1>
           <p class="text-secondary small mb-0">
-            Setelah pembayaran pertama, kelas akan muncul di <strong>Kelas saya</strong>.
+            Setelah admin mengonfirmasi pembayaran pertama, kelas akan muncul di <strong>Kelas saya</strong>.
           </p>
         </div>
 
@@ -66,7 +66,7 @@
             </div>
 
             <span class="k-pill k-pill-amber">
-              Menunggu pembayaran
+              {{ reg.paymentStatus === 'Overdue' ? 'Pembayaran terlambat' : 'Menunggu pembayaran' }}
             </span>
           </div>
 
@@ -96,7 +96,7 @@
               </div>
             }
             <div class="d-flex flex-wrap justify-content-between gap-2 border-top mt-2 pt-2 fw-bold fs-6">
-              <span>{{ reg.paymentMethod === 'Upfront' ? 'Total yang perlu dibayar' : 'Bayar sekarang (cicilan pertama)' }}</span>
+              <span>{{ reg.paymentMethod === 'Upfront' ? 'Total yang perlu dibayar' : 'Tagihan cicilan pertama' }}</span>
               <span>Rp{{ getInitialAmountDue(reg.id, reg.totalAmount) | number: '1.0-0' }}</span>
             </div>
           </div>
@@ -118,16 +118,7 @@
               </button>
             </div>
 
-            <button
-              type="button"
-              class="btn-k-coral py-2 px-4"
-              (click)="payNow(reg.id)"
-            >
-              <i class="bi bi-credit-card-check"></i>
-              <span>
-                Bayar Rp{{ getInitialAmountDue(reg.id, reg.totalAmount) | number: '1.0-0' }} sekarang
-              </span>
-            </button>
+            <span class="text-secondary small">Menunggu konfirmasi pembayaran dari admin.</span>
           </div>
         </div>
       } @empty {
