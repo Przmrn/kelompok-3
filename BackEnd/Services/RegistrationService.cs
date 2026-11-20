@@ -42,8 +42,10 @@ namespace BackEnd.Services
             var student = students.FirstOrDefault()
                 ?? throw new Exception("Student tidak ditemukan.");
 
-            if (!Enum.TryParse<PaymentMethods>(dto.PaymentMethod, true, out var paymentMethod))
+            if (!Enum.IsDefined(dto.PaymentMethod))
                 throw new Exception("Metode pembayaran tidak valid.");
+
+            var paymentMethod = dto.PaymentMethod;
 
             if (paymentMethod == PaymentMethods.INSTALLMENT)
             {

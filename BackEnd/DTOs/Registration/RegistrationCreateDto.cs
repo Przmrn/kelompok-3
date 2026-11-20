@@ -9,7 +9,7 @@ namespace BackEnd.DTOs.Registration
         public long BatchId { get; set; }
 
         [Required]
-        public string PaymentMethod { get; set; } = string.Empty;
+        public PaymentMethods PaymentMethod { get; set; }
 
         public int? InstallmentTenor { get; set; }
     }
