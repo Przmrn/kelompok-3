@@ -1,4 +1,4 @@
-﻿
+﻿using BackEnd.DTOs.Registration;
 using BackEnd.Models;
 using BackEnd.Repositories;
 
@@ -9,522 +9,568 @@ namespace BackEnd.Services
         private readonly IRepository<Registration> _registrationRepository;
         private readonly IRepository<Student> _studentRepository;
         private readonly IRepository<CourseBatch> _batchRepository;
+        private readonly IRepository<Course> _courseRepository;
+        private readonly IRepository<Location> _locationRepository;
         private readonly IRepository<InstallmentSchedule> _installmentRepository;
 
         public RegistrationService(
             IRepository<Registration> registrationRepository,
             IRepository<Student> studentRepository,
             IRepository<CourseBatch> batchRepository,
-            IRepository<InstallmentSchedule> installmentRepository)
+            IRepository<Course> courseRepository,
+            IRepository<Location> locationRepository,
+            IRepository<InstallmentSchedule> installmentRepository
+        )
         {
             _registrationRepository = registrationRepository;
             _studentRepository = studentRepository;
             _batchRepository = batchRepository;
+            _courseRepository = courseRepository;
+            _locationRepository = locationRepository;
             _installmentRepository = installmentRepository;
         }
 
-        public async Task<IEnumerable<Registration>> GetAllAsync()
+        // CREATE REGISTRATION
+        public async Task<RegistrationDetailDto> CreateAsync(
+            long userId,
+            RegistrationCreateDto dto
+        )
         {
-            return await _registrationRepository.GetAllAsync(
-                "Student,Batch,Batch.Course,Batch.Location,InstallmentSchedules"
-            );
-        }
-
-        public async Task<Registration?> GetByIdAsync(long id)
-        {
-            var registrations = await _registrationRepository.GetAllAsync(
-                "Student,Batch,Batch.Course,Batch.Location,InstallmentSchedules"
+            // 1. Cari Student berdasarkan UserId dari JWT
+            var students = await _studentRepository.FindAsync(
+                s => s.UserId == userId
             );
 
-            return registrations.FirstOrDefault(r => r.Id == id);
-        }
+            var student = students.FirstOrDefault()
+                ?? throw new Exception("Student tidak ditemukan.");
 
-        public async Task<IEnumerable<Registration>> GetByStudentIdAsync(
-            long studentId)
-        {
-            var registrations = await _registrationRepository.GetAllAsync(
-                "Student,Batch,Batch.Course,Batch.Location,InstallmentSchedules"
-            );
-
-            return registrations.Where(r => r.StudentId == studentId);
-        }
-
-        public async Task<Registration> CreateAsync(
-            long studentId,
-            long batchId,
-            string paymentMethod,
-            int? installmentTenor)
-        {
-            var studentExists = await _studentRepository.ExistsAsync(
-                s => s.Id == studentId
-            );
-
-            if (!studentExists)
-                throw new Exception("Student tidak ditemukan.");
-
-            var batches = await _batchRepository.GetAllAsync("Course");
-
-            var batch = batches.FirstOrDefault(b => b.Id == batchId);
-
-            if (batch == null)
-                throw new Exception("Batch tidak ditemukan.");
-
-            if (batch.Course == null)
-                throw new Exception("Data course pada batch tidak ditemukan.");
-
-            if (batch.MaxSeats <= 0)
-                throw new Exception("Kapasitas batch tidak valid.");
-
-            if (string.IsNullOrWhiteSpace(paymentMethod))
-                throw new Exception("Payment method wajib diisi.");
-
-            var normalizedPaymentMethod =
-                paymentMethod.Trim().ToUpperInvariant();
-
-            if (normalizedPaymentMethod == PaymentMethods.UPFRONT)
-            {
-                if (installmentTenor.HasValue)
-                {
-                    throw new Exception(
-                        "Upfront Payment tidak menggunakan tenor cicilan."
-                    );
-                }
-            }
-            else if (normalizedPaymentMethod == PaymentMethods.INSTALLMENT)
-            {
-                if (installmentTenor != 3 &&
-                    installmentTenor != 6 &&
-                    installmentTenor != 12)
-                {
-                    throw new Exception(
-                        "Tenor cicilan hanya tersedia untuk 3, 6, atau 12 bulan."
-                    );
-                }
-            }
-            else
+            // 2. Validasi payment method
+            if (dto.PaymentMethod != PaymentMethods.UPFRONT &&
+                dto.PaymentMethod != PaymentMethods.INSTALLMENT)
             {
                 throw new Exception("Metode pembayaran tidak valid.");
             }
 
-            var registrations = (await _registrationRepository.GetAllAsync())
-                .ToList();
+            // 3. Validasi tenor
+            if (dto.PaymentMethod == PaymentMethods.INSTALLMENT)
+            {
+                if (dto.InstallmentTenor != 3 &&
+                    dto.InstallmentTenor != 6 &&
+                    dto.InstallmentTenor != 12)
+                {
+                    throw new Exception(
+                        "Tenor cicilan harus 3, 6, atau 12 bulan."
+                    );
+                }
+            }
+            else if (dto.InstallmentTenor != null)
+            {
+                throw new Exception(
+                    "Pembayaran UPFRONT tidak menggunakan tenor."
+                );
+            }
 
-            var batchRegistrations = registrations
-                .Where(r => r.BatchId == batchId)
-                .ToList();
+            // 4. Cari Batch
+            var batch = await _batchRepository.GetByIdAsync(dto.BatchId)
+                ?? throw new Exception("Batch tidak ditemukan.");
+
+            // 5. Pastikan batch masih OPEN
+            if (batch.CourseStatus != CourseBatchStatus.OPEN)
+            {
+                throw new Exception("Batch tidak tersedia.");
+            }
+
+            // 6. Cari Course
+            var course = await _courseRepository.GetByIdAsync(batch.CourseId)
+                ?? throw new Exception("Course tidak ditemukan.");
+
+            // 7. Cek registrasi aktif Student pada Batch yang sama
+            var existingRegistrations =
+                await _registrationRepository.FindAsync(r =>
+                    r.StudentId == student.Id &&
+                    r.BatchId == batch.Id &&
+                    (r.RegistrationStatus == RegistrationStatus.PENDING ||
+                     r.RegistrationStatus == RegistrationStatus.CONFIRMED)
+                );
+
+            if (existingRegistrations.Any())
+            {
+                throw new Exception(
+                    "Anda sudah terdaftar pada batch ini."
+                );
+            }
+
+            // 8. Ambil seluruh registrasi pada Batch
+            var batchRegistrations =
+                await _registrationRepository.FindAsync(
+                    r => r.BatchId == batch.Id
+                );
 
             var activeRegistrations = batchRegistrations
                 .Where(r =>
                     r.RegistrationStatus == RegistrationStatus.PENDING ||
-                    r.RegistrationStatus == RegistrationStatus.CONFIRMED)
+                    r.RegistrationStatus == RegistrationStatus.CONFIRMED
+                )
                 .ToList();
 
+            // 9. Validasi kapasitas
             if (activeRegistrations.Count >= batch.MaxSeats)
             {
+                batch.CourseStatus = CourseBatchStatus.FULL;
+
+                _batchRepository.Update(batch);
+                await _batchRepository.SaveChangesAsync();
+
                 throw new Exception("Kapasitas batch sudah penuh.");
             }
 
-            bool duplicateRegistration = activeRegistrations.Any(
-                r => r.StudentId == studentId
-            );
-
-            if (duplicateRegistration)
-            {
-                throw new Exception(
-                    "Student sudah memiliki pendaftaran aktif pada batch ini."
-                );
-            }
-
-            // Nomor antrean tetap mengikuti nomor tertinggi, termasuk pendaftaran yang dibatalkan.
+            // 10. Generate Queue Number
             int queueNumber = batchRegistrations
                 .Select(r => r.QueueNumber)
                 .DefaultIfEmpty(0)
                 .Max() + 1;
 
-            decimal discountPercentage = 0;
-            decimal maximumDiscount = 0;
+            // 11. Ambil Base Price dari Course
+            decimal basePrice = course.BasePrice;
 
-            if (queueNumber >= 1 && queueNumber <= 3)
-            {
-                discountPercentage = 0.10m;
-                maximumDiscount = 150000m;
-            }
-            else if (queueNumber >= 4 && queueNumber <= 7)
-            {
-                discountPercentage = 0.05m;
-                maximumDiscount = 75000m;
-            }
-
-            decimal basePrice = batch.Course.BasePrice;
-
-            if (basePrice <= 0)
-                throw new Exception("Harga course tidak valid.");
-
-            decimal earlyBirdDiscount = Math.Min(
-                basePrice * discountPercentage,
-                maximumDiscount
+            // 12. Hitung Early Bird Discount
+            decimal discount = CalculateDiscount(
+                queueNumber,
+                basePrice
             );
+
+            // 13. Hitung pajak 11% setelah diskon
+            decimal taxableAmount = basePrice - discount;
 
             decimal taxRate = 11m;
 
-            decimal priceAfterDiscount =
-                basePrice - earlyBirdDiscount;
-
             decimal taxAmount = Math.Round(
-                priceAfterDiscount * taxRate / 100m,
+                taxableAmount * taxRate / 100m,
                 2,
                 MidpointRounding.AwayFromZero
             );
 
-            decimal totalAmount = priceAfterDiscount + taxAmount;
+            // 14. Hitung total
+            decimal totalAmount = taxableAmount + taxAmount;
 
+            // 15. Buat Registration
             var registrationDate = DateTime.UtcNow;
 
             var registration = new Registration
             {
-                StudentId = studentId,
-                BatchId = batchId,
+                StudentId = student.Id,
+                BatchId = batch.Id,
 
-                RegistrationNumber =
-                    $"REG-{registrationDate:yyyyMMdd}-{batchId}-{queueNumber:D3}",
+                RegistrationNumber = GenerateRegistrationNumber(),
 
                 RegistrationDate = registrationDate,
+
                 QueueNumber = queueNumber,
 
                 BasePrice = basePrice,
-                EarlyBirdDiscount = earlyBirdDiscount,
+
+                EarlyBirdDiscount = discount,
+
                 TaxRate = taxRate,
+
                 TaxAmount = taxAmount,
+
                 TotalAmount = totalAmount,
 
-                PaymentMethod = normalizedPaymentMethod,
-                InstallmentTenor = installmentTenor,
+                PaymentMethod = dto.PaymentMethod,
 
-                PaidAmount = 0,
-                PaidAt = null,
+                InstallmentTenor = dto.InstallmentTenor,
 
                 PaymentStatus = PaymentStatus.PENDING,
-                RegistrationStatus = RegistrationStatus.PENDING
+
+                RegistrationStatus = RegistrationStatus.PENDING,
+
+                PaidAmount = 0
             };
 
-            if (normalizedPaymentMethod == PaymentMethods.INSTALLMENT)
+            await _registrationRepository.AddAsync(registration);
+            await _registrationRepository.SaveChangesAsync();
+
+            // 16. Buat jadwal cicilan jika menggunakan INSTALLMENT
+            if (dto.PaymentMethod == PaymentMethods.INSTALLMENT)
             {
-                int tenor = installmentTenor!.Value;
+                var schedules = GenerateInstallmentSchedules(
+                    registration.Id,
+                    totalAmount,
+                    dto.InstallmentTenor!.Value,
+                    registrationDate
+                );
 
-                decimal regularInstallment =
-                    Math.Ceiling((totalAmount / tenor) / 1000m) * 1000m;
+                await _installmentRepository.AddRangeAsync(schedules);
+                await _installmentRepository.SaveChangesAsync();
+            }
 
-                for (int i = 1; i <= tenor; i++)
+            // 17. Update status batch jika kapasitas sudah penuh
+            if (activeRegistrations.Count + 1 >= batch.MaxSeats)
+            {
+                batch.CourseStatus = CourseBatchStatus.FULL;
+
+                _batchRepository.Update(batch);
+                await _batchRepository.SaveChangesAsync();
+            }
+
+            return await BuildDetailAsync(registration);
+        }
+
+        // HITUNG DISKON EARLY BIRD
+        private decimal CalculateDiscount(
+            int queueNumber,
+            decimal basePrice
+        )
+        {
+            decimal discountRate = 0;
+            decimal maxDiscount = 0;
+
+            if (queueNumber >= 1 && queueNumber <= 3)
+            {
+                discountRate = 10m;
+                maxDiscount = 150000m;
+            }
+            else if (queueNumber >= 4 && queueNumber <= 7)
+            {
+                discountRate = 5m;
+                maxDiscount = 75000m;
+            }
+
+            decimal discount = basePrice * discountRate / 100m;
+
+            return Math.Min(discount, maxDiscount);
+        }
+
+        // GENERATE REGISTRATION NUMBER
+        private string GenerateRegistrationNumber()
+        {
+            return $"REG-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
+        }
+
+        // GENERATE INSTALLMENT SCHEDULES
+        private List<InstallmentSchedule> GenerateInstallmentSchedules(
+            long registrationId,
+            decimal totalAmount,
+            int tenor,
+            DateTime registrationDate
+        )
+        {
+            var schedules = new List<InstallmentSchedule>();
+
+            decimal roundedInstallment =
+                Math.Ceiling((totalAmount / tenor) / 1000m) * 1000m;
+
+            decimal remainingAmount = totalAmount;
+
+            for (int i = 1; i <= tenor; i++)
+            {
+                decimal installmentAmount;
+
+                if (i == tenor)
                 {
-                    decimal installmentAmount = i == tenor
-                        ? totalAmount - (regularInstallment * (tenor - 1))
-                        : regularInstallment;
+                    installmentAmount = remainingAmount;
+                }
+                else
+                {
+                    installmentAmount = Math.Min(
+                        roundedInstallment,
+                        remainingAmount
+                    );
+                }
 
-                    var schedule = new InstallmentSchedule
-                    {
-                        InstallmentNumber = i,
+                remainingAmount -= installmentAmount;
 
-                        DueDate = DateOnly
-                            .FromDateTime(registrationDate)
-                            .AddMonths(i),
+                schedules.Add(new InstallmentSchedule
+                {
+                    RegistrationId = registrationId,
 
-                        Amount = installmentAmount,
-                        PaidAmount = 0,
-                        PaidAt = null,
+                    InstallmentNumber = i,
 
-                        InstallmentStatus = InstallmentStatus.PENDING
-                    };
+                    DueDate = DateOnly.FromDateTime(
+                        registrationDate.AddMonths(i - 1)
+                    ),
 
-                    registration.InstallmentSchedules.Add(schedule);
+                    Amount = installmentAmount,
+
+                    PaidAmount = 0,
+
+                    InstallmentStatus = InstallmentStatus.PENDING
+                });
+            }
+
+            return schedules;
+        }
+
+        // GET MY REGISTRATIONS
+        public async Task<IEnumerable<RegistrationDetailDto>>
+            GetMyRegistrationsAsync(long userId)
+        {
+            var students = await _studentRepository.FindAsync(
+                s => s.UserId == userId
+            );
+
+            var student = students.FirstOrDefault()
+                ?? throw new Exception("Student tidak ditemukan.");
+
+            var registrations = await _registrationRepository.FindAsync(
+                r => r.StudentId == student.Id
+            );
+
+            var results = new List<RegistrationDetailDto>();
+
+            foreach (var registration in registrations)
+            {
+                results.Add(await BuildDetailAsync(registration));
+            }
+
+            return results;
+        }
+
+        // GET REGISTRATION BY ID
+        public async Task<RegistrationDetailDto> GetByIdAsync(
+            long registrationId,
+            long userId,
+            bool isAdmin
+        )
+        {
+            var registration =
+                await _registrationRepository.GetByIdAsync(registrationId)
+                ?? throw new Exception("Registration tidak ditemukan.");
+
+            if (!isAdmin)
+            {
+                var students = await _studentRepository.FindAsync(
+                    s => s.UserId == userId
+                );
+
+                var student = students.FirstOrDefault()
+                    ?? throw new Exception("Student tidak ditemukan.");
+
+                if (registration.StudentId != student.Id)
+                {
+                    throw new UnauthorizedAccessException(
+                        "Anda tidak memiliki akses ke registration ini."
+                    );
                 }
             }
 
-            batch.CourseStatus =
-                activeRegistrations.Count + 1 >= batch.MaxSeats
-                    ? CourseBatchStatus.FULL
-                    : CourseBatchStatus.OPEN;
-
-            _batchRepository.Update(batch);
-
-            await _registrationRepository.AddAsync(registration);
-
-            await _registrationRepository.SaveChangesAsync();
-
-            return registration;
+            return await BuildDetailAsync(registration);
         }
 
-        public async Task<bool> ConfirmUpfrontPaymentAsync(long registrationId)
+        // GET ALL REGISTRATIONS (ADMIN)
+        public async Task<IEnumerable<RegistrationDetailDto>> GetAllAsync()
         {
-            var registration = await GetByIdAsync(registrationId);
+            var registrations =
+                await _registrationRepository.GetAllAsync();
 
-            if (registration == null)
-                return false;
+            var results = new List<RegistrationDetailDto>();
 
-            if (registration.PaymentMethod != PaymentMethods.UPFRONT)
+            foreach (var registration in registrations)
             {
-                throw new Exception(
-                    "Pendaftaran ini tidak menggunakan pembayaran Upfront."
-                );
+                results.Add(await BuildDetailAsync(registration));
             }
 
-            if (registration.RegistrationStatus != RegistrationStatus.PENDING)
-                return false;
-
-            if (registration.PaymentStatus == PaymentStatus.PAID)
-                return false;
-
-            registration.PaidAmount = registration.TotalAmount;
-            registration.PaidAt = DateTime.UtcNow;
-
-            registration.PaymentStatus = PaymentStatus.PAID;
-            registration.RegistrationStatus = RegistrationStatus.CONFIRMED;
-
-            _registrationRepository.Update(registration);
-
-            await _registrationRepository.SaveChangesAsync();
-
-            return true;
+            return results;
         }
 
-        public async Task<bool> ConfirmInstallmentPaymentAsync(
-            long installmentScheduleId)
+        // BUILD REGISTRATION DETAIL
+        private async Task<RegistrationDetailDto> BuildDetailAsync(
+            Registration registration
+        )
         {
-            var schedules = await _installmentRepository.GetAllAsync(
-                "Registration,Registration.InstallmentSchedules"
+            var batch = await _batchRepository.GetByIdAsync(
+                registration.BatchId
+            ) ?? throw new Exception("Batch tidak ditemukan.");
+
+            var course = await _courseRepository.GetByIdAsync(
+                batch.CourseId
+            ) ?? throw new Exception("Course tidak ditemukan.");
+
+            var location = await _locationRepository.GetByIdAsync(
+                batch.LocationId
+            ) ?? throw new Exception("Location tidak ditemukan.");
+
+            var schedules = await _installmentRepository.FindAsync(
+                s => s.RegistrationId == registration.Id
             );
 
-            var schedule = schedules.FirstOrDefault(
-                s => s.Id == installmentScheduleId
-            );
-
-            if (schedule == null)
-                return false;
-
-            var registration = schedule.Registration;
-
-            if (registration == null)
-                return false;
-
-            if (registration.PaymentMethod != PaymentMethods.INSTALLMENT)
+            return new RegistrationDetailDto
             {
-                throw new Exception(
-                    "Pendaftaran ini tidak menggunakan pembayaran cicilan."
+                Id = registration.Id,
+
+                RegistrationNumber = registration.RegistrationNumber,
+
+                RegistrationDate = registration.RegistrationDate,
+
+                QueueNumber = registration.QueueNumber,
+
+                BatchId = batch.Id,
+
+                BatchName = batch.BatchName,
+
+                BasePrice = registration.BasePrice,
+
+                EarlyBirdDiscount = registration.EarlyBirdDiscount,
+
+                TaxRate = registration.TaxRate,
+
+                TaxAmount = registration.TaxAmount,
+
+                TotalAmount = registration.TotalAmount,
+
+                PaidAmount = registration.PaidAmount,
+
+                PaymentMethod = registration.PaymentMethod,
+
+                InstallmentTenor = registration.InstallmentTenor,
+
+                PaymentStatus = registration.PaymentStatus,
+
+                RegistrationStatus = registration.RegistrationStatus,
+
+                CourseSyllabus = course.Syllabus,
+
+                DurationHours = course.DurationHours,
+
+                StartDate = batch.StartDate,
+
+                EndDate = batch.EndDate,
+
+                StartTime = batch.StartTime,
+
+                EndTime = batch.EndTime,
+
+                LocationName = location.Name,
+
+                LocationAddress = location.Address,
+
+                Installments = schedules
+                    .OrderBy(s => s.InstallmentNumber)
+                    .Select(s => new InstallmentDetailDto
+                    {
+                        InstallmentNumber = s.InstallmentNumber,
+                        DueDate = s.DueDate,
+                        Amount = s.Amount,
+                        PaidAmount = s.PaidAmount,
+                        PaidAt = s.PaidAt,
+                        InstallmentStatus = s.InstallmentStatus
+                    })
+                    .ToList()
+            };
+        }
+
+        // PAYMENT
+        public async Task<RegistrationDetailDto> PayAsync(
+            long registrationId,
+            long userId,
+            RegistrationPaymentDto dto
+        )
+        {
+            var students = await _studentRepository.FindAsync(
+                s => s.UserId == userId
+            );
+
+            var student = students.FirstOrDefault()
+                ?? throw new Exception("Student tidak ditemukan.");
+
+            var registration =
+                await _registrationRepository.GetByIdAsync(registrationId)
+                ?? throw new Exception("Registration tidak ditemukan.");
+
+            if (registration.StudentId != student.Id)
+            {
+                throw new UnauthorizedAccessException(
+                    "Anda tidak memiliki akses ke registration ini."
                 );
             }
 
             if (registration.RegistrationStatus != RegistrationStatus.PENDING &&
                 registration.RegistrationStatus != RegistrationStatus.CONFIRMED)
             {
-                return false;
+                throw new Exception("Registration tidak dapat menerima pembayaran.");
             }
 
-            if (schedule.InstallmentStatus == InstallmentStatus.PAID ||
-                schedule.PaidAmount >= schedule.Amount)
+            if (dto.Amount <= 0)
             {
-                return false;
+                throw new Exception("Nominal pembayaran tidak valid.");
             }
 
-            // Cicilan harus dibayar sesuai urutan.
-            bool previousInstallmentUnpaid =
-                registration.InstallmentSchedules.Any(s =>
-                    s.InstallmentNumber < schedule.InstallmentNumber &&
-                    s.PaidAmount < s.Amount
-                );
-
-            if (previousInstallmentUnpaid)
+            if (registration.PaymentMethod == PaymentMethods.UPFRONT)
             {
-                throw new Exception(
-                    "Cicilan sebelumnya harus dibayar terlebih dahulu."
-                );
-            }
+                decimal remaining = registration.TotalAmount - registration.PaidAmount;
 
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                if (dto.Amount != remaining)
+                {
+                    throw new Exception(
+                        $"Pembayaran UPFRONT harus sebesar Rp{remaining:N0}."
+                    );
+                }
 
-            if (today > schedule.DueDate.AddDays(14))
-            {
-                throw new Exception(
-                    "Batas pembayaran cicilan telah terlewati."
-                );
-            }
+                registration.PaidAmount += dto.Amount;
 
-            schedule.PaidAmount = schedule.Amount;
-            schedule.PaidAt = DateTime.UtcNow;
-            schedule.InstallmentStatus = InstallmentStatus.PAID;
-
-            // Menghitung ulang total pembayaran berdasarkan seluruh jadwal cicilan.
-            registration.PaidAmount = registration.InstallmentSchedules
-                .Sum(s => s.PaidAmount);
-
-            if (registration.PaidAmount > registration.TotalAmount)
-            {
-                throw new Exception(
-                    "Total pembayaran melebihi tagihan pendaftaran."
-                );
-            }
-
-            bool hasOverdueInstallment =
-                registration.InstallmentSchedules.Any(s =>
-                    s.InstallmentStatus == InstallmentStatus.OVERDUE &&
-                    s.PaidAmount < s.Amount
-                );
-
-            registration.RegistrationStatus = RegistrationStatus.CONFIRMED;
-
-            if (registration.PaidAmount == registration.TotalAmount)
-            {
-                registration.PaidAt = DateTime.UtcNow;
                 registration.PaymentStatus = PaymentStatus.PAID;
+
+                registration.RegistrationStatus = RegistrationStatus.CONFIRMED;
+
+                registration.PaidAt ??= DateTime.UtcNow;
             }
-            else
+            else if (registration.PaymentMethod == PaymentMethods.INSTALLMENT)
             {
-                registration.PaidAt = null;
+                var schedules = await _installmentRepository.FindAsync(
+                    s => s.RegistrationId == registration.Id
+                );
 
-                registration.PaymentStatus = hasOverdueInstallment
-                    ? PaymentStatus.OVERDUE
-                    : PaymentStatus.PARTIALLY_PAID;
-            }
-
-            _installmentRepository.Update(schedule);
-            _registrationRepository.Update(registration);
-
-            await _registrationRepository.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task<bool> CancelAsync(long id)
-        {
-            var registration = await GetByIdAsync(id);
-
-            if (registration == null)
-                return false;
-
-            if (registration.RegistrationStatus == RegistrationStatus.CANCELLED ||
-                registration.RegistrationStatus == RegistrationStatus.COMPLETED)
-            {
-                return false;
-            }
-
-            registration.RegistrationStatus = RegistrationStatus.CANCELLED;
-
-            _registrationRepository.Update(registration);
-
-            // Simpan pembatalan sebelum menghitung ulang kapasitas.
-            await _registrationRepository.SaveChangesAsync();
-
-            await UpdateBatchCapacityAsync(registration.BatchId);
-
-            await _registrationRepository.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task ProcessOverdueRegistrationsAsync()
-        {
-            var registrations = await _registrationRepository.GetAllAsync(
-                "Batch,InstallmentSchedules"
-            );
-
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-
-            var affectedBatchIds = new HashSet<long>();
-
-            foreach (var registration in registrations)
-            {
-                if (registration.RegistrationStatus == RegistrationStatus.CANCELLED ||
-                    registration.RegistrationStatus == RegistrationStatus.COMPLETED)
-                {
-                    continue;
-                }
-
-                if (registration.PaymentMethod != PaymentMethods.INSTALLMENT)
-                    continue;
-
-                bool shouldCancel = false;
-
-                foreach (var schedule in registration.InstallmentSchedules)
-                {
-                    if (schedule.InstallmentStatus == InstallmentStatus.PAID ||
-                        schedule.PaidAmount >= schedule.Amount)
-                    {
-                        continue;
-                    }
-
-                    if (today > schedule.DueDate)
-                    {
-                        schedule.InstallmentStatus = InstallmentStatus.OVERDUE;
-                    }
-
-                    if (today > schedule.DueDate.AddDays(14))
-                    {
-                        shouldCancel = true;
-                    }
-                }
-
-                bool hasOverdueInstallment =
-                    registration.InstallmentSchedules.Any(s =>
-                        s.InstallmentStatus == InstallmentStatus.OVERDUE &&
-                        s.PaidAmount < s.Amount
+                var nextInstallment = schedules
+                    .OrderBy(s => s.InstallmentNumber)
+                    .FirstOrDefault(s =>
+                        s.InstallmentStatus != InstallmentStatus.PAID
                     );
 
-                if (shouldCancel)
+                if (nextInstallment == null)
                 {
-                    registration.RegistrationStatus = RegistrationStatus.CANCELLED;
-                    registration.PaymentStatus = PaymentStatus.OVERDUE;
-
-                    affectedBatchIds.Add(registration.BatchId);
-                }
-                else if (hasOverdueInstallment)
-                {
-                    registration.PaymentStatus = PaymentStatus.OVERDUE;
-                }
-                else if (registration.PaidAmount >= registration.TotalAmount)
-                {
-                    registration.PaymentStatus = PaymentStatus.PAID;
-                }
-                else if (registration.PaidAmount > 0)
-                {
-                    registration.PaymentStatus = PaymentStatus.PARTIALLY_PAID;
-                }
-                else
-                {
-                    registration.PaymentStatus = PaymentStatus.PENDING;
+                    throw new Exception("Semua cicilan sudah dibayar.");
                 }
 
-                _registrationRepository.Update(registration);
+                decimal remainingInstallment =
+                    nextInstallment.Amount - nextInstallment.PaidAmount;
+
+                if (dto.Amount != remainingInstallment)
+                {
+                    throw new Exception(
+                        $"Pembayaran cicilan harus sebesar Rp{remainingInstallment:N0}."
+                    );
+                }
+
+                nextInstallment.PaidAmount += dto.Amount;
+
+                nextInstallment.PaidAt = DateTime.UtcNow;
+
+                nextInstallment.InstallmentStatus = InstallmentStatus.PAID;
+
+                registration.PaidAmount += dto.Amount;
+
+                registration.PaidAt ??= DateTime.UtcNow;
+
+                registration.RegistrationStatus = RegistrationStatus.CONFIRMED;
+
+                bool allPaid = schedules.All(
+                    s => s.InstallmentStatus == InstallmentStatus.PAID ||
+                         s.Id == nextInstallment.Id
+                );
+
+                registration.PaymentStatus = allPaid
+                    ? PaymentStatus.PAID
+                    : PaymentStatus.PARTIALLY_PAID;
+
+                _installmentRepository.Update(nextInstallment);
             }
 
-            // Simpan perubahan status pembayaran dan pendaftaran terlebih dahulu.
-            await _registrationRepository.SaveChangesAsync();
-
-            // Hitung ulang kapasitas untuk batch yang pendaftarannya dibatalkan.
-            foreach (var batchId in affectedBatchIds)
-            {
-                await UpdateBatchCapacityAsync(batchId);
-            }
+            _registrationRepository.Update(registration);
 
             await _registrationRepository.SaveChangesAsync();
-        }
 
-        private async Task UpdateBatchCapacityAsync(long batchId)
-        {
-            var batch = await _batchRepository.GetByIdAsync(batchId);
-
-            if (batch == null)
-                return;
-
-            int activeCount = await _registrationRepository.CountAsync(
-                r =>
-                    r.BatchId == batchId &&
-                    (r.RegistrationStatus == RegistrationStatus.PENDING ||
-                     r.RegistrationStatus == RegistrationStatus.CONFIRMED)
-            );
-
-            batch.CourseStatus = activeCount >= batch.MaxSeats
-                ? CourseBatchStatus.FULL
-                : CourseBatchStatus.OPEN;
-
-            _batchRepository.Update(batch);
+            return await BuildDetailAsync(registration);
         }
     }
 }

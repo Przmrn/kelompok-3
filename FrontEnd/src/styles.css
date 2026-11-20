@@ -1,1 +1,382 @@
-/* You can add global styles to this file, and also import other style files */
+@font-face {
+  font-family: "DM Sans";
+  src: url("/assets/fonts/dm-sans.woff2") format("woff2");
+  font-weight: 100 1000;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Spectral";
+  src: url("/assets/fonts/spectral-bold.woff2") format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Spectral";
+  src: url("/assets/fonts/spectral-semibold-italic.woff2") format("woff2");
+  font-weight: 600;
+  font-style: italic;
+  font-display: swap;
+}
+
+:root {
+  --bg-page: #faf9fd;
+  --bg-subtle: #f0edf6;
+  --bg-card: #fff;
+  --bg-dark: #241b38;
+  --text-main: #272138;
+  --text-secondary: #534c62;
+  --text-muted: #686174;
+  --border-light: #ded9e8;
+  --border-strong: var(--bg-dark);
+
+  --iris: #593c97;
+  --iris-hover: #452a7c;
+  --lavender: #e1d3ff;
+  --lavender-soft: #f0eafa;
+  --mint: #a2efda;
+  --mint-soft: #e4f6ef;
+  --teal: #195c53;
+  --brand-forest: var(--bg-dark);
+  --brand-forest-light: var(--mint-soft);
+  --brand-lime: var(--lavender);
+  --brand-lime-soft: var(--lavender-soft);
+  --brand-coral: var(--iris);
+  --brand-coral-hover: var(--iris-hover);
+  --brand-amber: #c78712;
+  --brand-amber-light: #fef3c7;
+
+  --font-display: "Spectral", Georgia, serif;
+  --font-main: "DM Sans", "Segoe UI", sans-serif;
+  --bs-body-font-family: var(--font-main);
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body {
+  background-color: var(--bg-page);
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-size: 1rem;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+h1, h2, h3, h4, h5, h6, .font-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--text-main);
+}
+
+.font-serif-italic {
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-style: italic;
+}
+
+.font-mono {
+  font-family: var(--font-main);
+  font-variant-numeric: tabular-nums;
+}
+
+
+@keyframes springUp {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes popIn {
+  0% {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes pulseDot {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(89, 60, 151, 0.6);
+  }
+  50% {
+    transform: scale(1.15);
+    box-shadow: 0 0 0 8px rgba(89, 60, 151, 0);
+  }
+}
+
+.anim-fade-up {
+  animation: springUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.anim-pop {
+  animation: popIn 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.anim-float {
+  animation: floatSlow 4s ease-in-out infinite;
+}
+
+.delay-1 { animation-delay: 0.06s; }
+.delay-2 { animation-delay: 0.12s; }
+.delay-3 { animation-delay: 0.18s; }
+.delay-4 { animation-delay: 0.24s; }
+
+.pulse-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--brand-coral);
+  display: inline-block;
+  animation: pulseDot 2s infinite;
+}
+
+
+.k-card {
+  background: var(--bg-card);
+  border: 1.5px solid var(--border-light);
+  border-radius: 12px;
+  position: relative;
+  overflow: hidden;
+  animation: springUp 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  transition:
+    transform 0.26s cubic-bezier(0.22, 1, 0.36, 1),
+    border-color 0.22s ease,
+    box-shadow 0.26s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.k-card-hover:hover {
+  transform: translateY(-6px);
+  border-color: var(--brand-forest);
+  box-shadow: 0 16px 32px -12px rgba(39, 25, 61, 0.14), 0 4px 0px var(--brand-lime);
+}
+
+.k-card-hover .arrow-move {
+  display: inline-block;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.k-card-hover:hover .arrow-move {
+  transform: translateX(4px);
+}
+
+.k-surface-soft {
+  background: var(--bg-subtle);
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+
+.btn-k-primary {
+  background-color: var(--iris);
+  color: white;
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.92rem;
+  border: 1px solid var(--iris);
+  border-radius: 6px;
+  padding: 0.65rem 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-k-primary:hover:not(:disabled) {
+  background-color: var(--iris-hover);
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(39, 25, 61, 0.15);
+}
+
+.btn-k-primary:active:not(:disabled) {
+  transform: translateY(0) scale(0.98);
+}
+
+.btn-k-primary:disabled {
+  background-color: #e7e4ec;
+  border-color: #e7e4ec;
+  color: #615b69;
+  cursor: not-allowed;
+}
+
+.btn-k-coral {
+  background-color: var(--brand-coral);
+  color: #FFFFFF;
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.92rem;
+  border: 1.5px solid var(--brand-coral);
+  border-radius: 6px;
+  padding: 0.65rem 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-k-coral:hover:not(:disabled) {
+  background-color: var(--brand-coral-hover);
+  color: #FFFFFF;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(89, 60, 151, 0.3);
+}
+
+.btn-k-coral:disabled {
+  background-color: #e7e4ec;
+  border-color: #e7e4ec;
+  color: #615b69;
+  cursor: not-allowed;
+}
+
+.btn-k-light {
+  background-color: #FFFFFF;
+  color: var(--text-main);
+  font-family: var(--font-main);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border: 1.5px solid var(--border-light);
+  border-radius: 6px;
+  padding: 0.55rem 1.2rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  text-decoration: none;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.btn-k-light:hover:not(:disabled) {
+  border-color: var(--brand-forest);
+  background-color: var(--brand-lime-soft);
+  color: var(--text-main);
+  transform: translateY(-2px);
+}
+
+
+.k-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-main);
+  font-size: 0.76rem;
+  font-weight: 600;
+  padding: 0.26rem 0.75rem;
+  border-radius: 999px;
+}
+
+.k-pill-green {
+  background-color: #def2e6;
+  color: #185435;
+}
+
+.k-pill-amber {
+  background-color: var(--brand-amber-light);
+  color: #92400E;
+}
+
+.k-pill-red {
+  background-color: #FFE4E0;
+  color: #C22A12;
+}
+
+.k-pill-neutral {
+  background-color: var(--bg-subtle);
+  color: var(--text-secondary);
+}
+
+.k-chip {
+  text-decoration: none;
+  border: 1.5px solid var(--border-light);
+  background: #FFFFFF;
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 0.46rem 1.15rem;
+  font-family: var(--font-main);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.k-chip:hover {
+  border-color: var(--brand-forest);
+  color: var(--text-main);
+  transform: translateY(-2px);
+}
+
+.k-chip.active {
+  background: var(--iris);
+  border-color: var(--iris);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 14px rgba(39, 25, 61, 0.14);
+}
+
+.k-input,
+.k-select {
+  border: 1.5px solid var(--border-light);
+  border-radius: 12px;
+  background-color: #FFFFFF;
+  color: var(--text-main);
+  padding: 0.65rem 0.95rem;
+  font-family: var(--font-main);
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.k-input:focus,
+.k-select:focus {
+  outline: none;
+  border-color: var(--brand-forest);
+  box-shadow: 0 0 0 4px rgba(89, 60, 151, .27);
+}
+
+.k-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 0.35rem;
+  display: block;
+}
+
+:where(a, button, input, select, textarea):focus-visible {
+  outline: 3px solid var(--iris);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: .01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

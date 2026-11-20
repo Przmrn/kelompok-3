@@ -1,0 +1,80 @@
+<section class="py-5">
+  <div class="container" style="max-width: 860px;">
+    <div class="mb-4 anim-fade-up">
+      <span class="k-pill k-pill-green mb-2">Akun pengajar</span>
+      <h1 class="h2 fw-bold mb-1">Jadwal mengajar saya</h1>
+      @if (instructorProfile(); as ins) {
+        <p class="text-secondary mb-0">
+          Jadwal kelas untuk <strong>{{ ins.fullName }}</strong>.
+        </p>
+      } @else {
+        <p class="text-secondary mb-0">
+          Berikut jadwal kelas yang Anda ajar.
+        </p>
+      }
+    </div>
+
+    <div class="row g-3">
+      @for (item of myAssignedBatches(); track item.assignment.id; let idx = $index) {
+        <div class="col-12">
+          <div
+            class="k-card p-4"
+            [style.animation-delay.ms]="idx * 70"
+          >
+            <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
+              <div>
+                <span class="k-pill k-pill-neutral mb-2">Nomor jadwal {{ item.batch.id }}</span>
+                <h2 class="h5 fw-bold mb-1">{{ item.course.title }}</h2>
+                <div class="small text-secondary fw-semibold">
+                  {{ item.batch.batchName }}
+                </div>
+              </div>
+
+              <span
+                class="k-pill"
+                [ngClass]="{
+                  'k-pill-green': item.batch.status === 'Open',
+                  'k-pill-red': item.batch.status === 'Full'
+                }"
+              >
+                Status: {{ labels.batch[item.batch.status] }} · {{ svc.getUsedSeatsForBatch(item.batch.id) }} dari {{ item.batch.maxSeats }} kursi terisi
+              </span>
+            </div>
+
+            <div class="row g-3 mt-2 pt-3 border-top small">
+              <div class="col-md-4">
+                <div class="text-muted">Tanggal pelaksanaan</div>
+                <div class="fw-bold mt-1">
+                  {{ item.batch.startDate | date: 'd MMM yyyy' }} s/d {{ item.batch.endDate | date: 'd MMM yyyy' }}
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="text-muted">Jam kelas</div>
+                <div class="fw-bold mt-1">
+                  Jam {{ item.batch.startTime }} – {{ item.batch.endTime }} WIB
+                </div>
+              </div>
+              <div class="col-md-4">
+                <div class="text-muted">Lokasi</div>
+                <div class="fw-bold mt-1">
+                  {{ item.location.name }}
+                </div>
+                <div class="text-secondary">
+                  {{ item.location.roomName }}, {{ item.location.city }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      } @empty {
+        <div class="col-12">
+          <div class="k-card p-5 text-center">
+            <p class="text-secondary mb-0">
+              Anda belum memiliki jadwal mengajar.
+            </p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</section>

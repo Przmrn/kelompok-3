@@ -4,7 +4,9 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ## Development server
 
-Run `ng serve` for a dev server. Navigate to `http://localhost:4200/`. The application will automatically reload if you change any of the source files.
+Jalankan backend dari folder `BackEnd` dengan `dotnet run --launch-profile http` setelah koneksi PostgreSQL dan pengaturan JWT tersedia. Dari folder `FrontEnd`, jalankan `npm start` lalu buka `http://localhost:4200`. Angular meneruskan permintaan `/api` ke backend di port 5035 melalui `proxy.conf.json`.
+
+Untuk deployment, arahkan `/api/` pada domain frontend ke layanan backend melalui reverse proxy. Gunakan HTTPS untuk halaman dan API autentikasi.
 
 ## Code scaffolding
 

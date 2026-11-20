@@ -1,6 +1,9 @@
-﻿namespace BackEnd.DTOs.Auth
+namespace BackEnd.DTOs.Auth
 {
     public class LoginResponseDto
     {
+        public string Token { get; set; } = string.Empty;
+        public DateTime ExpiresAt { get; set; }
+        public UserResponseDto User { get; set; } = new();
     }
 }

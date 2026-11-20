@@ -1,6 +1,7 @@
 ﻿namespace BackEnd.DTOs.Course
 {
-    public class CourseDetailDto
+    public class CourseDetailDto : CourseResponseDto
     {
+        public int BatchCount { get; set; }
     }
 }
