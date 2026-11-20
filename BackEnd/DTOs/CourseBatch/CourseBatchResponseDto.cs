@@ -21,6 +21,7 @@ namespace BackEnd.DTOs.CourseBatch
         public TimeOnly EndTime { get; set; }
 
         public int MaxSeats { get; set; }
+        public int NextQueue { get; set; }
         public int UsedSeats { get; set; }
         public int AvailableSeats { get; set; }
 

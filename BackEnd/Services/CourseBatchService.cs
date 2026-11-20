@@ -232,6 +232,7 @@ namespace BackEnd.Services
                 EndTime = batch.EndTime,
 
                 MaxSeats = batch.MaxSeats,
+                NextQueue = batch.NextQueue,
                 UsedSeats = batch.UsedSeats,
                 AvailableSeats = batch.MaxSeats - batch.UsedSeats,
 
@@ -261,6 +262,7 @@ namespace BackEnd.Services
                 EndTime = batch.EndTime,
 
                 MaxSeats = batch.MaxSeats,
+                NextQueue = batch.NextQueue,
                 UsedSeats = batch.UsedSeats,
                 AvailableSeats = batch.MaxSeats - batch.UsedSeats,
 

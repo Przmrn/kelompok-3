@@ -4,6 +4,9 @@ namespace BackEnd.DTOs.Registration
 {
     public class RegistrationDetailDto : RegistrationResponseDto
     {
+        public long StudentId { get; set; }
+        public DateTime? PaidAt { get; set; }
+
         public string CourseSyllabus { get; set; } = string.Empty;
 
         public int DurationHours { get; set; }
@@ -25,6 +28,7 @@ namespace BackEnd.DTOs.Registration
 
     public class InstallmentDetailDto
     {
+        public long Id { get; set; }
         public int InstallmentNumber { get; set; }
 
         public DateOnly DueDate { get; set; }

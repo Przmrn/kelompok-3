@@ -94,6 +94,23 @@ namespace BackEnd.Controllers
             }
         }
 
+        [HttpDelete("{id:long}")]
+        [Authorize(Roles = "STUDENT,ADMIN")]
+        public async Task<IActionResult> Cancel(long id)
+        {
+            try
+            {
+                var cancelled = await _registrationService.CancelAsync(id, GetUserId(), User.IsInRole("ADMIN"));
+                return cancelled
+                    ? Ok(new { message = "Pendaftaran dibatalkan." })
+                    : Conflict(new { message = "Pendaftaran sudah dibatalkan." });
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
         [HttpGet]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> GetAll()

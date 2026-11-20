@@ -35,6 +35,15 @@ namespace BackEnd.Services
                 .ToListAsync();
         }
 
+        public async Task<InstructorResponseDto> GetMyProfileAsync(long userId)
+        {
+            var instructor = await _db.Instructors.AsNoTracking()
+                .FirstOrDefaultAsync(i => i.UserId == userId)
+                ?? throw new NotFoundException("Profil pengajar tidak ditemukan.");
+
+            return ToDto(instructor);
+        }
+
         public async Task<InstructorResponseDto> GetByIdAsync(long id)
         {
             var instructor = await _db.Instructors.AsNoTracking()

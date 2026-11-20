@@ -310,8 +310,8 @@ namespace BackEnd.Services
                 s => s.UserId == userId
             );
 
-            var student = students.FirstOrDefault()
-                ?? throw new Exception("Student tidak ditemukan.");
+            var student = students.FirstOrDefault();
+            if (student == null) return Array.Empty<RegistrationDetailDto>();
 
             var registrations = await _registrationRepository.FindAsync(
                 r => r.StudentId == student.Id
@@ -358,6 +358,47 @@ namespace BackEnd.Services
             return await BuildDetailAsync(registration);
         }
 
+        public async Task<bool> CancelAsync(long registrationId, long userId, bool isAdmin)
+        {
+            var registration = await _registrationRepository.GetByIdAsync(registrationId)
+                ?? throw new Exception("Registration tidak ditemukan.");
+
+            if (!isAdmin)
+            {
+                var student = (await _studentRepository.FindAsync(s => s.UserId == userId)).FirstOrDefault()
+                    ?? throw new Exception("Student tidak ditemukan.");
+
+                if (registration.StudentId != student.Id)
+                    throw new UnauthorizedAccessException("Anda tidak memiliki akses ke registration ini.");
+            }
+
+            if (registration.RegistrationStatus == RegistrationStatus.CANCELLED)
+                return false;
+
+            if (registration.RegistrationStatus == RegistrationStatus.COMPLETED)
+                throw new Exception("Registration yang sudah selesai tidak dapat dibatalkan.");
+
+            registration.RegistrationStatus = RegistrationStatus.CANCELLED;
+            _registrationRepository.Update(registration);
+
+            var batch = await _batchRepository.GetByIdAsync(registration.BatchId);
+            if (batch != null && batch.CourseStatus == CourseBatchStatus.FULL)
+            {
+                var activeCount = await _registrationRepository.CountAsync(r =>
+                    r.BatchId == batch.Id &&
+                    (r.RegistrationStatus == RegistrationStatus.PENDING ||
+                     r.RegistrationStatus == RegistrationStatus.CONFIRMED));
+                if (activeCount < batch.MaxSeats)
+                {
+                    batch.CourseStatus = CourseBatchStatus.OPEN;
+                    _batchRepository.Update(batch);
+                }
+            }
+
+            await _registrationRepository.SaveChangesAsync();
+            return true;
+        }
+
         // GET ALL REGISTRATIONS (ADMIN)
         public async Task<IEnumerable<RegistrationDetailDto>> GetAllAsync()
         {
@@ -398,6 +439,8 @@ namespace BackEnd.Services
             return new RegistrationDetailDto
             {
                 Id = registration.Id,
+                StudentId = registration.StudentId,
+                PaidAt = registration.PaidAt,
 
                 RegistrationNumber = registration.RegistrationNumber,
 
@@ -449,6 +492,7 @@ namespace BackEnd.Services
                     .OrderBy(s => s.InstallmentNumber)
                     .Select(s => new InstallmentDetailDto
                     {
+                        Id = s.Id,
                         InstallmentNumber = s.InstallmentNumber,
                         DueDate = s.DueDate,
                         Amount = s.Amount,

@@ -5,6 +5,7 @@ namespace BackEnd.Services
     public interface IInstructorService
     {
         Task<IEnumerable<InstructorResponseDto>> GetAllAsync();
+        Task<InstructorResponseDto> GetMyProfileAsync(long userId);
         Task<InstructorResponseDto> GetByIdAsync(long id);
         Task<InstructorResponseDto> CreateAsync(InstructorCreateDto dto);
         Task<InstructorResponseDto> UpdateAsync(long id, InstructorUpdateDto dto);
