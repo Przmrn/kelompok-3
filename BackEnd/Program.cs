@@ -67,6 +67,10 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(options =>
     {
         options.SwaggerEndpoint("/swagger/v1/swagger.json", "BackEnd API v1");
+        options.RoutePrefix = "swagger";
+    });
+}
+
 app.UseMiddleware<ExceptionMiddleware>();
 app.UseWhen(context =>
 {
@@ -81,9 +85,5 @@ app.UseCors("AngularDevelopment");
 app.UseAuthentication();
 app.UseAuthorization();
 
-app.UseHttpsRedirection();
-app.UseCors("AngularDevelopment");
-app.UseAuthentication();
-app.UseAuthorization();
 app.MapControllers();
 app.Run();
