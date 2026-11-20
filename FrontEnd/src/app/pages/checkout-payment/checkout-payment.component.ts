@@ -46,10 +46,7 @@ export class CheckoutPaymentPageComponent implements OnInit {
     return calc.installmentPreviews.find((p) => p.tenorMonths === this.selectedTenor()) ?? null;
   });
 
-  readonly isProfileComplete = computed(() => {
-    const u = this.currentUser();
-    return u ? this.svc.isStudentProfileComplete(u.id) : false;
-  });
+  readonly isProfileComplete = this.svc.currentProfileComplete;
 
   readonly isAlreadyRegistered = computed(() => {
     const student = this.svc.currentStudentProfile();

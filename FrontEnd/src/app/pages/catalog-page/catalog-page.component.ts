@@ -15,12 +15,6 @@ export class CatalogPageComponent {
   readonly svc = inject(CourseSystemService);
   readonly studioCities = computed(() => [...new Set(this.svc.locations().map(location => location.city).filter(Boolean))].join(', '));
   readonly selectedCategoryId = signal<number>(0);
-  readonly categoryIcons: Record<number, string> = {
-    1: 'bi-database',
-    2: 'bi-window-sidebar',
-    3: 'bi-bar-chart-line',
-    4: 'bi-bezier2',
-  };
 
   readonly filteredCourses = computed<Course[]>(() => {
     const catId = this.selectedCategoryId();
@@ -43,16 +37,16 @@ export class CatalogPageComponent {
     return this.svc.getCategoryById(categoryId)?.name ?? 'Kelas';
   }
 
+  private openBatchesForCourse(courseId: number) {
+    return this.svc.getBatchesByCourseId(courseId).filter(batch => batch.status === 'Open');
+  }
+
   getOpenBatchCount(courseId: number): number {
-    return this.svc
-      .getBatchesByCourseId(courseId)
-      .filter((b) => b.status === 'Open').length;
+    return this.openBatchesForCourse(courseId).length;
   }
 
   getEarlyBirdBadge(courseId: number): string | null {
-    const openBatches = this.svc
-      .getBatchesByCourseId(courseId)
-      .filter((b) => b.status === 'Open');
+    const openBatches = this.openBatchesForCourse(courseId);
     if (openBatches.some((b) => this.svc.getNextQueueNumberForBatch(b.id) <= 3)) {
       return 'Diskon 10%';
     }
@@ -63,7 +57,7 @@ export class CatalogPageComponent {
   }
 
   getLowestMonthly(course: Course): number | null {
-    const openBatches = this.svc.getBatchesByCourseId(course.id).filter(batch => batch.status === 'Open');
+    const openBatches = this.openBatchesForCourse(course.id);
     if (!openBatches.length) return null;
     const queue = Math.min(...openBatches.map(batch => batch.nextQueue));
     return this.svc.calculatePriceBreakdown(course.basePrice, queue)

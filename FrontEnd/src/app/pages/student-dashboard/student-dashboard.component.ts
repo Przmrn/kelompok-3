@@ -15,10 +15,7 @@ export class StudentDashboardComponent {
   readonly svc = inject(CourseSystemService);
   readonly currentUser = this.svc.currentUser;
 
-  readonly isProfileComplete = computed(() => {
-    const u = this.currentUser();
-    return u ? this.svc.isStudentProfileComplete(u.id) : false;
-  });
+  readonly isProfileComplete = this.svc.currentProfileComplete;
 
   readonly myRegistrations = this.svc.myRegistrations;
 

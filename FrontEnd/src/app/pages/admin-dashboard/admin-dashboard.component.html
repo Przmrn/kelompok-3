@@ -8,35 +8,35 @@
           Ringkasan jumlah kelas, jadwal, pendaftaran, dan informasi operasional.
         </p>
       </div>
-  <div class="page-actions">
-    <button class="btn-k-light" type="button" [disabled]="svc.saving()" (click)="svc.processOverdue()">Periksa tagihan terlambat</button>
-    <a routerLink="/admin/courses" class="btn-k-light">Kelola kelas</a>
-    <a routerLink="/admin/batches" class="btn-k-light">Kelola jadwal</a>
-    <a routerLink="/admin/instructors" class="btn-k-primary">Kelola pengajar</a>
+      <div class="page-actions">
+        <button class="btn-k-light" type="button" [disabled]="svc.saving()" (click)="svc.processOverdue()">Periksa tagihan terlambat</button>
+        <a routerLink="/admin/courses" class="btn-k-light">Kelola kelas</a>
+        <a routerLink="/admin/batches" class="btn-k-light">Kelola jadwal</a>
+        <a routerLink="/admin/instructors" class="btn-k-primary">Kelola pengajar</a>
       </div>
     </header>
 
-<div class="stat-grid anim-fade-up">
-  <div class="stat-tile stat-tile--mist">
-    <span class="stat-label">Total kelas</span>
-    <span class="stat-value">{{ svc.courses().length }}</span>
-    <span class="stat-note">{{ svc.categories().length }} kategori kelas</span>
-  </div>
-  <div class="stat-tile stat-tile--ice">
-    <span class="stat-label">Total jadwal kelas</span>
-    <span class="stat-value">{{ svc.batches().length }}</span>
-    <span class="stat-note">{{ openBatchCount() }} dibuka · {{ fullBatchCount() }} penuh</span>
-  </div>
-  <div class="stat-tile">
-    <span class="stat-label">Total pendaftaran</span>
-    <span class="stat-value">{{ svc.registrations().length }}</span>
-    <span class="stat-note">{{ confirmedRegCount() }} dikonfirmasi</span>
-  </div>
-  <div class="stat-tile stat-tile--ink">
-    <span class="stat-label">Total dana masuk</span>
-    <span class="stat-value">Rp{{ totalRevenuePaid() | number: '1.0-0' }}</span>
-    <span class="stat-note">{{ svc.instructors().length }} pengajar aktif</span>
-  </div>
+    <div class="stat-grid anim-fade-up">
+      <div class="stat-tile stat-tile--mist">
+        <span class="stat-label">Total kelas</span>
+        <span class="stat-value">{{ svc.courses().length }}</span>
+        <span class="stat-note">{{ svc.categories().length }} kategori kelas</span>
+      </div>
+      <div class="stat-tile stat-tile--ice">
+        <span class="stat-label">Total jadwal kelas</span>
+        <span class="stat-value">{{ svc.batches().length }}</span>
+        <span class="stat-note">{{ openBatchCount() }} dibuka · {{ fullBatchCount() }} penuh</span>
+      </div>
+      <div class="stat-tile">
+        <span class="stat-label">Total pendaftaran</span>
+        <span class="stat-value">{{ svc.registrations().length }}</span>
+        <span class="stat-note">{{ confirmedRegCount() }} dikonfirmasi</span>
+      </div>
+      <div class="stat-tile stat-tile--ink">
+        <span class="stat-label">Total dana masuk</span>
+        <span class="stat-value">Rp{{ totalRevenuePaid() | number: '1.0-0' }}</span>
+        <span class="stat-note">{{ svc.instructors().length }} pengajar aktif</span>
+      </div>
     </div>
 
     <app-reference-editor kind="course-categories"></app-reference-editor>
@@ -66,8 +66,8 @@
               }
             </div>
 
-<div class="d-flex flex-wrap gap-2">
-  <a [routerLink]="['/payments', reg.id]" class="btn-k-light btn-sm">Rincian pembayaran</a>
+            <div class="d-flex flex-wrap gap-2">
+              <a [routerLink]="['/payments', reg.id]" class="btn-k-light btn-sm">Rincian pembayaran</a>
               <span
                 class="k-pill"
                 [ngClass]="{

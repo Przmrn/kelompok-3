@@ -1,5 +1,5 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
-import { Observable, catchError, finalize, firstValueFrom, forkJoin, of, tap } from 'rxjs';
+import { Observable, catchError, finalize, firstValueFrom, forkJoin, map, of, tap } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
 import { BackendApiService, StudentProfileFields } from './backend-api.service';
 import { AuthService } from './auth.service';
@@ -53,7 +53,7 @@ export class CourseSystemService {
   readonly courses = signal<Course[]>([]);
   readonly batches = signal<CourseBatch[]>([]);
   readonly batchInstructors = signal<BatchInstructor[]>([]);
-  private readonly publicInstructors = signal<Instructor[]>([]);
+  private readonly publicInstructors = signal<Pick<Instructor, 'id' | 'fullName' | 'expertise' | 'bio'>[]>([]);
   private readonly accountData = signal<{
     owner: User; students: Student[]; registrations: Registration[];
     schedules: InstallmentSchedule[]; instructors: Instructor[];
@@ -66,7 +66,7 @@ export class CourseSystemService {
   readonly registrations = computed(() => this.account()?.registrations ?? []);
   readonly myRegistrations = computed(() => this.isStudent() ? this.registrations() : []);
   readonly installmentSchedules = computed(() => this.account()?.schedules ?? []);
-  readonly instructors = computed(() => this.isAdmin() ? this.account()?.instructors ?? [] : this.publicInstructors());
+  readonly instructors = computed(() => this.account()?.instructors ?? []);
   readonly loading = signal(true);
   readonly loadError = signal('');
   readonly accountLoading = signal(false);
@@ -81,7 +81,7 @@ export class CourseSystemService {
     const participant = admin || user?.role === 'Student';
     this.loading.set(true);
     this.loadError.set('');
-    this.accountLoading.set(participant);
+    this.accountLoading.set(!!user);
     this.accountError.set('');
     if (!user) this.accountData.set(null);
     const currentAccount = () => revision === this.revision && user === this.auth.user();
@@ -94,7 +94,9 @@ export class CourseSystemService {
           this.courses.set(catalog.courses);
           this.batches.set(catalog.batches);
           this.batchInstructors.set(catalog.assignments);
-          const profiles = catalog.assignments.map(a => ({ ...a.instructor, email: '', phoneNumber: '' }));
+          const profiles = catalog.assignments.map(a => ({
+            id: a.instructorId, fullName: a.instructorName, expertise: a.expertise, bio: a.bio,
+          }));
           this.publicInstructors.set([...new Map(profiles.map(i => [i.id, i])).values()]);
         }),
         catchError(error => {
@@ -106,7 +108,8 @@ export class CourseSystemService {
       account: forkJoin({
         students: admin ? this.api.students() : of([]),
         payments: participant ? this.api.registrations(admin) : of({ registrations: [], schedules: [] }),
-        instructors: admin ? this.api.instructors() : of([]),
+        instructors: admin ? this.api.instructors() : user?.role === 'Instructor'
+          ? this.api.myInstructorProfile().pipe(map(profile => [profile])) : of([]),
       }).pipe(
         tap(data => {
           if (currentAccount() && user) this.accountData.set({ owner: user, students: data.students, ...data.payments, instructors: data.instructors });
@@ -164,6 +167,11 @@ export class CourseSystemService {
     const u = this.currentUser();
     if (!u || u.role !== 'Student') return null;
     return this.getStudentByUserId(u.id) ?? null;
+  });
+
+  readonly currentProfileComplete = computed(() => {
+    const user = this.currentUser();
+    return !!user && this.isStudentProfileComplete(user.id);
   });
 
   readonly isAdmin = computed<boolean>(() => this.currentUser()?.role === 'Admin');
@@ -323,17 +331,12 @@ export class CourseSystemService {
     return ((parts[0]?.charAt(0) ?? 'I') + (parts[1]?.charAt(0) ?? 'N')).toUpperCase();
   }
 
-  getInstructorsForBatch(batchId: number): {
-    instructor: Instructor;
-    assignment: BatchInstructor;
-  }[] {
+  getInstructorsForBatch(batchId: number) {
     const assignments = this.batchInstructors().filter((bi) => bi.batchId === batchId);
-    return assignments
-      .map((assignment) => {
-        const instructor = this.instructors().find((i) => i.id === assignment.instructorId);
-        return instructor ? { instructor, assignment } : null;
-      })
-      .filter((item): item is { instructor: Instructor; assignment: BatchInstructor } => item !== null);
+    return assignments.flatMap(assignment => {
+      const instructor = this.publicInstructors().find(i => i.id === assignment.instructorId);
+      return instructor ? [{ instructor, assignment }] : [];
+    });
   }
 
   getBatchesForInstructor(instructorId: number): {

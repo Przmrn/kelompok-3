@@ -21,10 +21,7 @@ function phoneNumberValidator(control: AbstractControl<string>): ValidationError
 export class ProfileAuthPageComponent {
   readonly labels = courseLabels;
   readonly svc = inject(CourseSystemService);
-  readonly isProfileComplete = computed(() => {
-    const u = this.svc.currentUser();
-    return u ? this.svc.isStudentProfileComplete(u.id) : false;
-  });
+  readonly isProfileComplete = this.svc.currentProfileComplete;
 
   readonly myRegistrations = this.svc.myRegistrations;
 

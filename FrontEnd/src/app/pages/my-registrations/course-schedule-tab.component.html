@@ -21,9 +21,7 @@
             <span class="fact-label mb-2">Pengajar kelas ini</span>
             <div class="d-flex flex-wrap gap-2">
               @for (item of svc.getInstructorsForBatch(batch.id); track item.assignment.id) {
-<span class="k-pill k-pill-neutral">
-  {{ item.instructor.fullName }}
-</span>
+                <span class="k-pill k-pill-neutral">{{ item.instructor.fullName }}</span>
               }
             </div>
           </div>

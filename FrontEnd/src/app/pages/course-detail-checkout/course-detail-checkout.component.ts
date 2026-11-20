@@ -54,10 +54,7 @@ export class CourseDetailCheckoutComponent implements OnInit {
       .map((line) => line.replace(/^\s*\d+\s*[.)\-]\s*/, '').trim());
   });
 
-  readonly isProfileComplete = computed(() => {
-    const u = this.currentUser();
-    return u ? this.svc.isStudentProfileComplete(u.id) : false;
-  });
+  readonly isProfileComplete = this.svc.currentProfileComplete;
 
   readonly isAlreadyRegisteredInBatch = computed(() => {
     const student = this.svc.currentStudentProfile();

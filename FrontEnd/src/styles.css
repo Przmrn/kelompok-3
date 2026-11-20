@@ -69,7 +69,6 @@
   --font-main: "Inter", "DM Sans", "Segoe UI", sans-serif;
   --bs-body-font-family: var(--font-main);
 
-  /* Karsa 2026 system: the app-wide palette */
   --ui-bolt: #3259e6;
   --ui-bolt-hover: #2748c4;
   --ui-ember: #c2410c;
@@ -126,7 +125,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   font-family: var(--font-main);
   font-variant-numeric: tabular-nums;
 }
-
 
 @keyframes springUp {
   0% {
@@ -196,7 +194,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   animation: pulseDot 2s infinite;
 }
 
-
 .k-card {
   background: var(--bg-card);
   border: 1px solid var(--border-light);
@@ -230,7 +227,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border-radius: 12px;
   transition: background-color 0.2s ease;
 }
-
 
 .btn-k-primary {
   background-color: var(--iris);
@@ -331,7 +327,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   color: var(--text-main);
   transform: translateY(-2px);
 }
-
 
 .k-pill {
   display: inline-flex;
@@ -438,10 +433,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
 .text-success {
   color: #166534 !important;
 }
-
-/* ------------------------------------------------------------------ */
-/* App-wide page system (Karsa 2026)                                   */
-/* ------------------------------------------------------------------ */
 
 .shell {
   width: 100%;
@@ -812,10 +803,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   transform: translateY(-2px);
 }
 
-/* ------------------------------------------------------------------ */
-/* Course detail                                                       */
-/* ------------------------------------------------------------------ */
-
 .detail-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.5fr) minmax(320px, 0.9fr);
@@ -1065,10 +1052,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   font-variant-numeric: tabular-nums;
 }
 
-/* ------------------------------------------------------------------ */
-/* Checkout                                                            */
-/* ------------------------------------------------------------------ */
-
 .checkout-layout {
   display: grid;
   grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
@@ -1209,10 +1192,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   font-variant-numeric: tabular-nums;
 }
 
-/* ------------------------------------------------------------------ */
-/* Cart & cost boxes                                                   */
-/* ------------------------------------------------------------------ */
-
 .cart-list {
   display: flex;
   flex-direction: column;
@@ -1277,10 +1256,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
   font-size: 14px;
 }
 
-/* ------------------------------------------------------------------ */
-/* Profile                                                             */
-/* ------------------------------------------------------------------ */
-
 .profile-form-note {
   display: flex;
   flex-wrap: wrap;
@@ -1321,10 +1296,6 @@ h1, h2, h3, h4, h5, h6, .font-display {
 .activity-row + .activity-row {
   margin-top: 8px;
 }
-
-/* ------------------------------------------------------------------ */
-/* Admin                                                               */
-/* ------------------------------------------------------------------ */
 
 .admin-grid {
   display: grid;
