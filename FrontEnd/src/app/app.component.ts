@@ -30,7 +30,7 @@ export class AppComponent {
   }
 
   readonly svc = inject(CourseSystemService);
-  private readonly router = inject(Router);
+  readonly router = inject(Router);
   readonly mobileMenuOpen = signal(false);
 
   private readonly auth = inject(AuthService);
@@ -94,7 +94,7 @@ export class AppComponent {
     try {
       const user = await firstValueFrom(this.auth.register(name, email, password));
       this.loginEmail.set(user.email);
-      this.registrationNotice.set('Akun berhasil dibuat. Masuk dengan kata sandi yang baru Anda daftarkan.');
+      this.registrationNotice.set('Registrasi berhasil, silahkan Login.');
       this.svc.openAuthModal('LOGIN');
     } catch (error) {
       this.showAuthError(error);
@@ -106,7 +106,7 @@ export class AppComponent {
   private showAuthError(error: unknown): void {
     const status = error instanceof HttpErrorResponse ? error.status : undefined;
     const messages: Record<number, string> = {
-      0: 'Server belum dapat dihubungi. Periksa koneksi Anda lalu coba lagi.',
+      500: 'Server belum dapat dihubungi. Periksa koneksi Anda lalu coba lagi.',
       400: 'Periksa kembali isian formulir Anda.',
       401: 'Email atau kata sandi salah.',
       409: 'Email ini sudah terdaftar. Silakan masuk atau gunakan email lain.',

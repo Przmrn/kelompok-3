@@ -1,29 +1,32 @@
-<section class="py-5">
-  <div class="container" style="max-width: 960px;">
-    <div class="d-flex flex-wrap justify-content-between align-items-end gap-3 mb-4 anim-fade-up">
-      <div>
-        <span class="k-pill k-pill-green mb-2">Admin</span>
-        <h1 class="h2 fw-bold mb-1">Pengajar dan jadwal mengajar</h1>
-        <p class="text-secondary small mb-0">
+<section class="k-page">
+  <div class="shell">
+    <header class="page-head anim-fade-up">
+      <div class="page-head-copy">
+        <span class="kicker">Admin</span>
+        <h1 class="page-title">Pengajar dan jadwal mengajar</h1>
+        <p class="page-lede">
           Kelola profil pengajar dan tentukan kelas yang mereka ajar.
         </p>
       </div>
-      <button
-        type="button"
-        class="btn-k-primary btn-sm"
-        (click)="openNewInstructorForm()"
-      >
-        {{ showForm() ? 'Tutup formulir' : '+ Tambah pengajar' }}
-      </button>
-    </div>
+      <div class="page-actions">
+        <span class="k-pill k-pill-neutral">{{ svc.instructors().length }} pengajar</span>
+        <button
+          type="button"
+          class="btn-k-primary"
+          (click)="openNewInstructorForm()"
+        >
+          {{ showForm() ? 'Tutup formulir' : '+ Tambah pengajar' }}
+        </button>
+      </div>
+    </header>
 
-    <div class="k-card p-4 mb-4">
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
+    <div class="panel mb-4 anim-fade-up">
+      <div class="panel-head">
         <div>
-          <h2 class="h5 fw-bold mb-0">Tugaskan pengajar ke kelas</h2>
-          <div class="small text-secondary">
+          <h2 class="panel-title">Tugaskan pengajar ke kelas</h2>
+          <p class="panel-sub">
             Pilih pengajar dan jadwal kelas. Setiap pengajar hanya bisa ditugaskan sekali pada jadwal yang sama.
-          </div>
+          </p>
         </div>
         <button
           type="button"
@@ -36,9 +39,10 @@
 
       @if (feedbackMessage(); as fb) {
         <div
-          class="p-3 rounded-4 mb-3 small"
-          [style.background-color]="fb.success ? 'var(--brand-forest-light)' : '#FFE4E0'"
-          [style.color]="fb.success ? 'var(--brand-forest)' : '#C22A12'"
+          class="small mb-3"
+          style="padding: 12px 14px; border-radius: 12px; font-weight: 500;"
+          [style.background-color]="fb.success ? 'var(--ui-lime)' : '#fee2e2'"
+          [style.color]="fb.success ? 'var(--ui-ink)' : '#991b1b'"
         >
           {{ fb.message }}
         </div>
@@ -46,8 +50,9 @@
 
       <div class="row g-3 align-items-end">
         <div class="col-md-5">
-          <label class="k-label">Pengajar</label>
+          <label class="k-label" for="assign-instructor">Pengajar</label>
           <select
+            id="assign-instructor"
             class="form-select k-select"
             [ngModel]="selectedInstructorId()"
             (ngModelChange)="selectedInstructorId.set(Number($event))"
@@ -58,21 +63,22 @@
           </select>
         </div>
         <div class="col-md-5">
-          <label class="k-label">Jadwal kelas</label>
+          <label class="k-label" for="assign-batch">Jadwal kelas</label>
           <select
+            id="assign-batch"
             class="form-select k-select"
             [ngModel]="selectedBatchId()"
             (ngModelChange)="selectedBatchId.set(Number($event))"
           >
             @for (b of svc.batches(); track b.id) {
               <option [ngValue]="b.id">
-                {{ b.batchName }} ({{ b.startDate | date: 'd MMM yyyy' }} s/d {{ b.endDate | date: 'd MMM yyyy' }}, {{ b.startTime }}–{{ b.endTime }})
+                {{ b.batchName }} ({{ b.startDate | date: 'd MMM yyyy' }})
               </option>
             }
           </select>
         </div>
         <div class="col-md-2">
-          <button type="button" class="btn-k-coral w-100" (click)="submitAssignment()">
+          <button type="button" class="btn-k-primary w-100" (click)="submitAssignment()">
             Tugaskan
           </button>
         </div>
@@ -80,8 +86,8 @@
     </div>
 
     @if (showForm()) {
-      <div class="k-card p-4 mb-4 anim-pop">
-        <h2 class="h5 fw-bold mb-3">
+      <div class="panel panel--bone mb-4 anim-pop">
+        <h2 class="panel-title mb-3">
           {{ editingInstructorId() ? 'Ubah profil pengajar' : 'Tambah pengajar' }}
         </h2>
         <div class="row g-3 mb-3">
@@ -137,7 +143,7 @@
         </div>
         <div class="d-flex gap-2">
           <button type="button" class="btn-k-primary btn-sm" (click)="saveInstructor()">
-            {{ editingInstructorId() ? 'Simpan Perubahan' : 'Simpan pengajar' }}
+            {{ editingInstructorId() ? 'Simpan perubahan' : 'Simpan pengajar' }}
           </button>
           <button type="button" class="btn-k-light btn-sm" (click)="showForm.set(false)">
             Batal
@@ -146,81 +152,80 @@
       </div>
     }
 
-    <div class="row g-4">
-      @for (ins of svc.instructors(); track ins.id) {
-        <div class="col-md-6">
-          <div class="k-card p-4 h-100 d-flex flex-column justify-content-between">
-            <div>
-              <div class="d-flex flex-wrap gap-2 justify-content-between align-items-start mb-3">
-                <div class="d-flex align-items-center gap-3">
-                  <div
-                    class="rounded-circle d-flex align-items-center justify-content-center text-white fw-bold"
-                    style="width: 46px; height: 46px; flex-shrink: 0; background-color: var(--brand-forest);"
-                  >
-                    {{ svc.getInitials(ins.fullName) }}
-                  </div>
-                  <div>
-                    <h3 class="h6 fw-bold mb-0">{{ ins.fullName }}</h3>
-                    <div class="small text-secondary">{{ ins.email }} · {{ ins.phoneNumber }}</div>
-                  </div>
-                </div>
-
-                <div class="d-flex gap-1">
-                  <button
-                    type="button"
-                    class="btn-k-light btn-sm py-1 px-2"
-                    (click)="editInstructor(ins)"
-                  >
-                    Ubah
-                  </button>
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-outline-danger rounded-pill px-2"
-                    (click)="svc.deleteInstructorByAdmin(ins.id)"
-                  >
-                    Hapus
-                  </button>
-                </div>
+    <div class="admin-grid">
+      @for (ins of svc.instructors(); track ins.id; let idx = $index) {
+        <article
+          class="admin-card"
+          [class.tone-mist]="idx % 2 === 0"
+          [class.tone-ice]="idx % 2 === 1"
+        >
+          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3">
+            <div class="d-flex align-items-center gap-3">
+              <span class="avatar-dot" style="width: 46px; height: 46px; font-size: 13px;">
+                {{ svc.getInitials(ins.fullName) }}
+              </span>
+              <div>
+                <h3 style="margin-bottom: 2px;">{{ ins.fullName }}</h3>
+                <div class="admin-note">{{ ins.email }} · {{ ins.phoneNumber }}</div>
               </div>
-
-              <div class="small fw-semibold mb-2">Keahlian</div>
-              <ul class="skill-list mb-3" aria-label="Keahlian pengajar">
-                @for (skill of splitSkills(ins.expertise); track $index) {
-                  <li class="skill-card">{{ skill }}</li>
-                } @empty {
-                  <li class="small text-secondary">Belum ada keahlian.</li>
-                }
-              </ul>
-              <p class="small text-secondary mb-3">{{ ins.bio }}</p>
             </div>
 
-            <div class="pt-3 border-top">
-              <div class="small fw-semibold text-secondary mb-2">
-                Jadwal mengajar ({{ svc.getBatchesForInstructor(ins.id).length }}):
-              </div>
-              <div class="d-flex flex-column gap-2">
-                @for (item of svc.getBatchesForInstructor(ins.id); track item.assignment.id) {
-                  <div class="p-2 px-3 rounded-3 k-surface-soft d-flex justify-content-between align-items-center small">
-                    <div>
-                      <span class="fw-bold">{{ item.batch.batchName.split('—')[0] }}</span>
-                      <span class="text-secondary ms-1">
-                        ({{ item.batch.startDate | date: 'd MMM yyyy' }} s/d {{ item.batch.endDate | date: 'd MMM yyyy' }} · {{ item.batch.startTime }}–{{ item.batch.endTime }})
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      class="btn btn-sm text-danger p-0 border-0"
-                      title="Lepaskan penugasan"
-                      (click)="svc.removeInstructorAssignment(item.assignment.id)"
-                    >
-                      <i class="bi bi-x-circle"></i>
-                    </button>
-                  </div>
-                }
-              </div>
+            <div class="d-flex gap-1 ms-auto">
+              <button
+                type="button"
+                class="btn-k-light btn-sm"
+                (click)="editInstructor(ins)"
+              >
+                Ubah
+              </button>
+              <button
+                type="button"
+                class="btn btn-sm text-danger border-0 p-2"
+                (click)="svc.deleteInstructorByAdmin(ins.id)"
+              >
+                Hapus
+              </button>
             </div>
           </div>
-        </div>
+
+          <div class="d-flex flex-wrap gap-2 mb-3">
+            @for (skill of splitSkills(ins.expertise); track $index) {
+              <span class="k-pill k-pill-neutral">{{ skill }}</span>
+            } @empty {
+              <span class="admin-note">Belum ada keahlian.</span>
+            }
+          </div>
+
+          <p class="panel-sub mb-3">{{ ins.bio }}</p>
+
+          <div class="mt-auto pt-3 border-top">
+            <div class="admin-note mb-2">
+              Jadwal mengajar ({{ svc.getBatchesForInstructor(ins.id).length }}):
+            </div>
+            <div>
+              @for (item of svc.getBatchesForInstructor(ins.id); track item.assignment.id) {
+                <div class="assignment-row">
+                  <div>
+                    <span class="fw-bold">{{ item.batch.batchName.split('—')[0] }}</span>
+                    <span class="text-secondary ms-1">
+                      ({{ item.batch.startDate | date: 'd MMM yyyy' }} s/d {{ item.batch.endDate | date: 'd MMM yyyy' }} · {{ item.batch.startTime }}–{{ item.batch.endTime }})
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-sm text-danger p-0 border-0"
+                    title="Lepaskan penugasan"
+                    (click)="svc.removeInstructorAssignment(item.assignment.id)"
+                  >
+                    <i class="bi bi-x-circle" aria-hidden="true"></i>
+                  </button>
+                </div>
+              } @empty {
+                <div class="admin-note">Belum ada jadwal yang ditugaskan.</div>
+              }
+            </div>
+          </div>
+        </article>
       }
     </div>
   </div>

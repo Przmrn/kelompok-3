@@ -1,154 +1,148 @@
-<section class="py-5">
-  <div class="container" style="max-width: 840px;">
+<section class="k-page">
+  <div class="shell">
     @if (!svc.currentUser()) {
-      <div class="k-card p-5 text-center anim-fade-up">
-        <div
-          class="brand-mark mx-auto mb-3"
-          style="width: 48px; height: 48px; font-size: 1.25rem;"
-        >
-          <i class="bi bi-cart3"></i>
+      <div class="panel anim-fade-up" style="max-width: 560px; margin-inline: auto;">
+        <div class="empty-state">
+          <div class="empty-icon"><i class="bi bi-cart3" aria-hidden="true"></i></div>
+          <h1 class="h4 fw-bold">Keranjang pembayaran</h1>
+          <p>Masuk untuk melihat kelas yang menunggu pembayaran.</p>
+          <button
+            type="button"
+            class="btn-k-primary"
+            (click)="svc.openAuthModal('LOGIN')"
+          >
+            <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+            <span>Masuk</span>
+          </button>
         </div>
-        <h1 class="h4 fw-bold mb-2">Keranjang pembayaran</h1>
-        <p class="text-secondary small mb-4">
-          Masuk untuk melihat kelas yang menunggu pembayaran.
-        </p>
-        <button
-          type="button"
-          class="btn-k-primary"
-          (click)="svc.openAuthModal('LOGIN')"
-        >
-          <i class="bi bi-box-arrow-in-right"></i>
-          <span>Masuk</span>
-        </button>
       </div>
     } @else {
-      <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-4 anim-fade-up">
-        <div>
-          <h1 class="h2 fw-bold mb-1">Keranjang pembayaran ({{ unpaidRegistrations().length }})</h1>
-          <p class="text-secondary small mb-0">
+      <header class="page-head anim-fade-up">
+        <div class="page-head-copy">
+          <span class="kicker">Tagihan aktif</span>
+          <h1 class="page-title">Keranjang pembayaran ({{ unpaidRegistrations().length }})</h1>
+          <p class="page-lede">
             Setelah pembayaran pertama, kelas akan muncul di <strong>Kelas saya</strong>.
           </p>
         </div>
 
-        <div class="d-flex gap-2">
-          <a routerLink="/my-courses" class="btn-k-light btn-sm">
+        <div class="page-actions">
+          <a routerLink="/my-courses" class="btn-k-light">
             Lihat kelas saya ({{ paidCoursesCount() }})
           </a>
-          <a routerLink="/courses" class="btn-k-primary btn-sm">
+          <a routerLink="/courses" class="btn-k-primary">
             + Pilih Kelas Lain
           </a>
         </div>
-      </div>
+      </header>
 
-      @for (reg of unpaidRegistrations(); track reg.id) {
-        <div class="k-card p-4 mb-4">
-          <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-3 pb-3 border-bottom">
-            <div>
-              <div class="small text-muted mb-1">
-                No. pendaftaran {{ reg.registrationNumber }} · Pendaftar ke-{{ reg.queueNumber }}
+      @if (unpaidRegistrations().length) {
+        <div class="cart-list">
+          @for (reg of unpaidRegistrations(); track reg.id; let idx = $index) {
+            <article class="panel anim-fade-up" [style.animation-delay.ms]="idx * 60">
+              <div class="panel-head">
+                <div>
+                  <div class="ops-code mb-1">
+                    No. pendaftaran {{ reg.registrationNumber }} · Pendaftar ke-{{ reg.queueNumber }}
+                  </div>
+                  @if (svc.getBatchById(reg.batchId); as batch) {
+                    <h2 class="panel-title" style="font-size: 1.25rem;">
+                      {{ svc.getCourseById(batch.courseId)?.title }}
+                    </h2>
+                    <div class="cart-card-meta">
+                      <span>{{ batch.batchName }}</span>
+                      <span>
+                        {{ batch.startDate | date: 'd MMM yyyy' }} – {{ batch.endDate | date: 'd MMM yyyy' }}
+                        · {{ batch.startTime }}–{{ batch.endTime }} WIB
+                      </span>
+                      @if (svc.getLocationById(batch.locationId); as loc) {
+                        <span>{{ loc.name }} ({{ loc.roomName }}, {{ loc.city }})</span>
+                      }
+                    </div>
+                  }
+                </div>
+
+                <span class="k-pill k-pill-amber">
+                  Menunggu pembayaran
+                </span>
               </div>
-              @if (svc.getBatchById(reg.batchId); as batch) {
-                <h2 class="h5 fw-bold mb-1">
-                  {{ svc.getCourseById(batch.courseId)?.title }}
-                </h2>
-                <div class="small text-secondary">
-                  {{ batch.batchName }}
+
+              <div class="cost-box mb-4" style="max-width: 520px;">
+                <div class="d-flex justify-content-between gap-3 mb-2">
+                  <strong>Rincian biaya</strong>
+                  <span>{{ reg.paymentMethod === 'Upfront' ? 'Sekali bayar' : 'Cicilan ' + reg.installmentTenor + ' bulan' }}</span>
                 </div>
-                <div class="small text-secondary">
-                  {{ batch.startDate | date: 'd MMM yyyy' }} – {{ batch.endDate | date: 'd MMM yyyy' }} · {{ batch.startTime }}–{{ batch.endTime }} WIB
+                <div class="cost-row">
+                  <span>Harga kelas</span>
+                  <span>Rp{{ reg.basePrice | number: '1.0-0' }}</span>
                 </div>
-                @if (svc.getLocationById(batch.locationId); as loc) {
-                  <div class="small text-secondary">
-                    Lokasi: {{ loc.name }} ({{ loc.roomName }}, {{ loc.city }})
+                @if (reg.earlyBirdDiscount > 0) {
+                  <div class="cost-row text-success">
+                    <span>Diskon pendaftar awal</span>
+                    <span>−Rp{{ reg.earlyBirdDiscount | number: '1.0-0' }}</span>
                   </div>
                 }
-              }
-            </div>
-
-            <span class="k-pill k-pill-amber">
-              Menunggu pembayaran
-            </span>
-          </div>
-
-          <div class="k-surface-soft p-3 mb-3 small">
-            <div class="d-flex justify-content-between gap-3 mb-2">
-              <strong>Rincian biaya</strong>
-              <span>{{ reg.paymentMethod === 'Upfront' ? 'Sekali bayar' : 'Cicilan ' + reg.installmentTenor + ' bulan' }}</span>
-            </div>
-            <div class="d-flex justify-content-between gap-3 py-1">
-              <span>Harga kelas</span>
-              <span>Rp{{ reg.basePrice | number: '1.0-0' }}</span>
-            </div>
-            @if (reg.earlyBirdDiscount > 0) {
-              <div class="d-flex justify-content-between gap-3 py-1 text-success">
-                <span>Diskon pendaftar awal</span>
-                <span>−Rp{{ reg.earlyBirdDiscount | number: '1.0-0' }}</span>
+                <div class="cost-row">
+                  <span>Pajak (PPN {{ reg.taxRate | number }}%)</span>
+                  <span>Rp{{ reg.taxAmount | number: '1.0-0' }}</span>
+                </div>
+                @if (reg.paymentMethod === 'Installment') {
+                  <div class="cost-row">
+                    <span>Total biaya kelas</span>
+                    <span>Rp{{ reg.totalAmount | number: '1.0-0' }}</span>
+                  </div>
+                }
+                <div class="cost-row cost-row--total">
+                  <span>{{ reg.paymentMethod === 'Upfront' ? 'Total yang perlu dibayar' : 'Bayar sekarang (cicilan pertama)' }}</span>
+                  <span>Rp{{ getInitialAmountDue(reg.id, reg.totalAmount) | number: '1.0-0' }}</span>
+                </div>
               </div>
-            }
-            <div class="d-flex justify-content-between gap-3 py-1">
-              <span>Pajak (PPN {{ reg.taxRate | number }}%)</span>
-              <span>Rp{{ reg.taxAmount | number: '1.0-0' }}</span>
-            </div>
-            @if (reg.paymentMethod === 'Installment') {
-              <div class="d-flex justify-content-between gap-3 py-1">
-                <span>Total biaya kelas</span>
-                <strong>Rp{{ reg.totalAmount | number: '1.0-0' }}</strong>
+
+              <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
+                <div class="d-flex flex-wrap gap-2">
+                  <a
+                    [routerLink]="['/payments', reg.id]"
+                    class="btn-k-light btn-sm"
+                  >
+                    {{ reg.paymentMethod === 'Upfront' ? 'Lihat rincian pembayaran' : 'Lihat jadwal cicilan' }}
+                  </a>
+                  <button
+                    type="button"
+                    class="btn btn-sm text-danger border-0 p-2"
+                    (click)="cancelOrder(reg.id)"
+                  >
+                    Batalkan pesanan
+                  </button>
+                </div>
+
+                <button
+                  type="button"
+                  class="btn-k-coral py-2 px-4"
+                  (click)="payNow(reg.id)"
+                >
+                  <i class="bi bi-credit-card-check" aria-hidden="true"></i>
+                  <span>
+                    Bayar Rp{{ getInitialAmountDue(reg.id, reg.totalAmount) | number: '1.0-0' }} sekarang
+                  </span>
+                </button>
               </div>
-            }
-            <div class="d-flex flex-wrap justify-content-between gap-2 border-top mt-2 pt-2 fw-bold fs-6">
-              <span>{{ reg.paymentMethod === 'Upfront' ? 'Total yang perlu dibayar' : 'Bayar sekarang (cicilan pertama)' }}</span>
-              <span>Rp{{ getInitialAmountDue(reg.id, reg.totalAmount) | number: '1.0-0' }}</span>
-            </div>
-          </div>
-
-          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
-            <div class="d-flex flex-wrap gap-2">
-              <a
-                [routerLink]="['/payments', reg.id]"
-                class="btn-k-light btn-sm"
-              >
-                {{ reg.paymentMethod === 'Upfront' ? 'Lihat rincian pembayaran' : 'Lihat jadwal cicilan' }}
-              </a>
-              <button
-                type="button"
-                class="btn btn-sm btn-outline-danger rounded-pill px-3"
-                (click)="cancelOrder(reg.id)"
-              >
-                Batalkan pesanan
-              </button>
-            </div>
-
-            <button
-              type="button"
-              class="btn-k-coral py-2 px-4"
-              (click)="payNow(reg.id)"
-            >
-              <i class="bi bi-credit-card-check"></i>
-              <span>
-                Bayar Rp{{ getInitialAmountDue(reg.id, reg.totalAmount) | number: '1.0-0' }} sekarang
-              </span>
-            </button>
-          </div>
+            </article>
+          }
         </div>
-      } @empty {
-        <div class="k-card p-5 text-center">
-          <div
-            class="brand-mark mx-auto mb-3"
-            style="width: 48px; height: 48px; font-size: 1.25rem;"
-          >
-            <i class="bi bi-check2-all"></i>
-          </div>
-          <h2 class="h5 fw-bold mb-1">Keranjang Anda kosong</h2>
-          <p class="text-secondary small mb-4">
-            Lihat kelas yang sudah Anda beli di <strong>Kelas saya</strong>.
-          </p>
-          <div class="d-flex justify-content-center gap-2">
-            <a routerLink="/my-courses" class="btn-k-primary btn-sm">
-              Buka kelas saya
-            </a>
-            <a routerLink="/courses" class="btn-k-light btn-sm">
-              Jelajahi Kelas Baru
-            </a>
+      } @else {
+        <div class="panel anim-fade-up">
+          <div class="empty-state">
+            <div class="empty-icon"><i class="bi bi-check2-all" aria-hidden="true"></i></div>
+            <h2>Keranjang Anda kosong</h2>
+            <p>Lihat kelas yang sudah Anda beli di <strong>Kelas saya</strong>.</p>
+            <div class="d-flex flex-wrap justify-content-center gap-2">
+              <a routerLink="/my-courses" class="btn-k-primary btn-sm">
+                Buka kelas saya
+              </a>
+              <a routerLink="/courses" class="btn-k-light btn-sm">
+                Jelajahi Kelas Baru
+              </a>
+            </div>
           </div>
         </div>
       }

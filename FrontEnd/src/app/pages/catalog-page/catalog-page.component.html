@@ -1,73 +1,221 @@
-<section class="studio-hero" aria-labelledby="hero-title">
-  <img class="hero-photo" src="assets/karsa-studio.jpg" alt="" fetchpriority="high" width="1774" height="887">
-  <div class="container hero-inner">
-    <p class="studio-location"><i class="bi bi-geo-alt-fill" aria-hidden="true"></i> Studio Jakarta &amp; Bandung</p>
-    <h1 id="hero-title">Belajar teknologi.<br><span>Langsung praktik.</span></h1>
-    <p class="hero-description">Bangun aplikasi, olah data, atau rancang produk digital lewat kelas tatap muka bersama praktisi industri.</p>
+<section class="landing-hero" aria-labelledby="hero-title">
+  <div class="shell">
+    <p class="hero-eyebrow">
+      <i class="bi bi-geo-alt-fill" aria-hidden="true"></i>
+      <span>Studio Kursus Tatap Muka · Jakarta &amp; Bandung</span>
+    </p>
+
+    <h1 id="hero-title">
+      Belajar teknologi.<br>
+      <span class="hero-line">
+        Langsung praktik di studio.
+        <span class="hero-script" aria-hidden="true">dibimbing praktisi industri</span>
+      </span>
+    </h1>
+
+    <p class="hero-lede">
+      Bangun aplikasi, olah data, atau rancang produk digital lewat kelas tatap muka
+      bersama praktisi industri. Maksimal 30 kursi per jadwal, di Kemang, Sudirman,
+      dan Dago.
+    </p>
+
     <div class="hero-actions">
-      <a routerLink="/courses" fragment="program" class="hero-cta">Jelajahi kelas <i class="bi bi-arrow-down-right" aria-hidden="true"></i></a>
-      <a routerLink="/courses" fragment="belajar" class="hero-secondary">Cara belajar <i class="bi bi-arrow-down" aria-hidden="true"></i></a>
+      <a routerLink="/courses" fragment="program" class="btn-bolt">
+        Jelajahi Kelas Tatap Muka
+        <i class="bi bi-arrow-down" aria-hidden="true"></i>
+      </a>
+      <a routerLink="/courses" fragment="metode" class="btn-ember-outline">
+        Cara Belajar Karsa
+      </a>
     </div>
   </div>
 </section>
 
-<div class="studio-facts">
-  <div class="container facts-inner">
-    <span><i class="bi bi-laptop" aria-hidden="true"></i> Praktik di studio</span>
-    <span><i class="bi bi-wallet2" aria-hidden="true"></i> Cicilan 0%</span>
-    <span><i class="bi bi-ticket-perforated" aria-hidden="true"></i> Diskon awal hingga Rp150.000</span>
-  </div>
-</div>
+<section class="trust-band" aria-label="Komitmen Karsa Studio">
+  <div class="shell">
+    <div class="trust-card">
+      <div class="trust-copy">
+        <span class="trust-kicker">Komitmen Karsa</span>
+        <h2>Bukan rekaman video. Benar-benar hadir tatap muka.</h2>
+        <p>
+          Setiap batch belajar di ruang praktikum tetap: Lab Rekayasa 302 di Kemang,
+          Auditorium Praktikum B-104 di Sudirman, dan Studio Desain A-201 di Dago.
+        </p>
+      </div>
 
-<section id="program" class="program-section container" aria-labelledby="program-title">
-  <div class="program-heading">
-    <h2 id="program-title">Pilihan kelas<span>.</span></h2>
-    <span aria-live="polite">{{ filteredCourses().length }} kelas tersedia</span>
-  </div>
-  <div class="category-list" role="group" aria-label="Filter kategori kelas">
-    <button type="button" class="k-chip" [class.active]="selectedCategoryId() === 0"
-      [attr.aria-pressed]="selectedCategoryId() === 0" (click)="selectedCategoryId.set(0)">Semua kelas</button>
-    @for (cat of svc.categories(); track cat.id) {
-      <button type="button" class="k-chip" [class.active]="selectedCategoryId() === cat.id"
-        [attr.aria-pressed]="selectedCategoryId() === cat.id" (click)="selectedCategoryId.set(cat.id)">{{ cat.name }}</button>
-    }
-  </div>
-
-  <div class="program-grid">
-    @for (course of filteredCourses(); track course.id) {
-      <a [routerLink]="['/courses', course.id]" class="program-card" [attr.aria-label]="'Lihat kelas ' + course.title">
-        <div class="course-cover" [attr.data-category]="course.categoryId">
-          <span>{{ getCategoryName(course.categoryId) }}</span>
-          <i class="bi cover-icon" [ngClass]="categoryIcons[course.categoryId] || 'bi-laptop'" aria-hidden="true"></i>
+      <div class="trust-stats">
+        <div class="trust-stat">
+          <strong>{{ categoryCount() }}</strong>
+          <span>Bidang kelas</span>
         </div>
-        <div class="course-content">
-          <div class="course-meta"><span><i class="bi bi-clock"></i> {{ course.durationHours }} jam</span><span><i class="bi bi-calendar3"></i> {{ getOpenBatchCount(course.id) }} jadwal dibuka</span></div>
-          <h3>{{ course.title }}</h3>
-          <p>{{ course.description }}</p>
-          <div class="course-price">
-            <div>
-              <span class="price-label">Biaya kelas</span>
-              <strong>Rp{{ course.basePrice | number: '1.0-0' }}</strong>
-              <small>Perkiraan cicilan Rp{{ getLowestMonthly(course.basePrice) | number: '1.0-0' }}/bln</small>
-            </div>
-            @if (getEarlyBirdBadge(course.id); as badge) { <span class="offer">{{ badge }}</span> }
-          </div>
-          <span class="course-link">Lihat kelas <i class="bi bi-arrow-up-right" aria-hidden="true"></i></span>
+        <div class="trust-stat">
+          <strong>{{ seatCap() }}</strong>
+          <span>Maks. kursi per kelas</span>
         </div>
-      </a>
-    } @empty {
-      <p class="text-secondary">Belum ada kelas untuk kategori ini.</p>
-    }
+        <div class="trust-stat">
+          <strong>{{ studioCount() }}</strong>
+          <span>Lokasi studio</span>
+        </div>
+        <div class="trust-stat">
+          <strong>0%</strong>
+          <span>Bunga cicilan</span>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
-<section id="belajar" class="study-section">
-  <div class="container">
-    <h2>Belajar di Karsa Studio<span>.</span></h2>
-    <div class="study-grid">
-      <div><i class="bi bi-people" aria-hidden="true"></i><h3>Praktik bersama pengajar</h3><p>Diskusikan kendala dan bedah hasil pekerjaanmu langsung di studio.</p></div>
-      <div><i class="bi bi-ticket-perforated" aria-hidden="true"></i><h3>Harga pendaftar awal</h3><p>Tujuh pendaftar pertama tiap jadwal mendapat potongan sesuai urutan pendaftaran.</p></div>
-      <div><i class="bi bi-calendar2-check" aria-hidden="true"></i><h3>Pengembalian dana</h3><p>Lihat estimasi pengembalian dana di Kelas Saya sebelum mengonfirmasi pembatalan.</p></div>
+<section id="program" class="catalog-section" aria-labelledby="program-title">
+  <div class="shell">
+    <div class="catalog-head">
+      <div>
+        <span class="kicker">Kurikulum 2026</span>
+        <h2 id="program-title">Katalog kelas tatap muka<span class="dot">.</span></h2>
+      </div>
+      <p class="catalog-count" aria-live="polite">
+        {{ filteredCourses().length }} kelas tersedia
+      </p>
+    </div>
+
+    <div class="filter-row" role="group" aria-label="Filter kategori kelas">
+      <button
+        type="button"
+        class="chip"
+        [class.is-active]="selectedCategoryId() === 0"
+        [attr.aria-pressed]="selectedCategoryId() === 0"
+        (click)="selectedCategoryId.set(0)"
+      >
+        Semua topik
+      </button>
+      @for (cat of svc.categories(); track cat.id) {
+        <button
+          type="button"
+          class="chip"
+          [class.is-active]="selectedCategoryId() === cat.id"
+          [attr.aria-pressed]="selectedCategoryId() === cat.id"
+          (click)="selectedCategoryId.set(cat.id)"
+        >
+          {{ cat.name }}
+        </button>
+      }
+    </div>
+
+    <div class="course-grid">
+      @for (course of filteredCourses(); track course.id; let i = $index) {
+        <article
+          class="course-card"
+          [ngClass]="'tone-' + (i % 4)"
+          [attr.aria-labelledby]="'course-' + course.id"
+        >
+          <div class="course-top">
+            <span class="course-tag">{{ getCategoryName(course.categoryId) }}</span>
+            <span class="course-batch">{{ getOpenBatchCount(course.id) }} jadwal</span>
+          </div>
+
+          <h3 [id]="'course-' + course.id">{{ course.title }}</h3>
+          <p>{{ course.description }}</p>
+
+          <div class="course-meta">
+            <span><i class="bi bi-clock" aria-hidden="true"></i> {{ course.durationHours }} jam</span>
+            <span><i class="bi bi-calendar3" aria-hidden="true"></i> {{ getOpenBatchCount(course.id) }} jadwal dibuka</span>
+          </div>
+
+          <div class="course-foot">
+            <div class="price">
+              <span>Biaya kelas</span>
+              <strong>Rp{{ course.basePrice | number: '1.0-0' }}</strong>
+              <small>Cicilan Rp{{ getLowestMonthly(course.basePrice) | number: '1.0-0' }}/bln</small>
+            </div>
+            @if (getEarlyBirdBadge(course.id); as badge) {
+              <span class="offer">{{ badge }}</span>
+            }
+          </div>
+
+          <a
+            [routerLink]="['/courses', course.id]"
+            class="card-cta"
+            [attr.aria-label]="'Pilih jadwal batch untuk ' + course.title"
+          >
+            Pilih jadwal batch
+            <i class="bi bi-arrow-right" aria-hidden="true"></i>
+          </a>
+        </article>
+      } @empty {
+        <p class="catalog-empty">Belum ada kelas untuk kategori ini.</p>
+      }
+    </div>
+  </div>
+</section>
+
+<section id="metode" class="method-section" aria-labelledby="method-title">
+  <div class="shell">
+    <div class="section-head">
+      <span class="kicker">Perbandingan metode</span>
+      <h2 id="method-title">Kenapa tatap muka berbeda?</h2>
+      <p>
+        Duduk bersama praktisi memangkas bulan-bulan trial-and-error mandiri
+        menjadi hitungan minggu.
+      </p>
+    </div>
+
+    <div class="method-grid">
+      <div class="method-card method-online">
+        <span class="method-label">Belajar mandiri</span>
+        <h3>Dari video dan forum</h3>
+        <ul>
+          <li>
+            <i class="bi bi-x-circle" aria-hidden="true"></i>
+            <span>Pertanyaan menunggu balasan forum berhari-hari.</span>
+          </li>
+          <li>
+            <i class="bi bi-x-circle" aria-hidden="true"></i>
+            <span>Bug environment diselesaikan sendiri tanpa ada yang memeriksa layar.</span>
+          </li>
+          <li>
+            <i class="bi bi-x-circle" aria-hidden="true"></i>
+            <span>Tidak ada tenggat atau teman belajar yang menahan ritme.</span>
+          </li>
+        </ul>
+        <p class="method-note">
+          Cocok untuk pengenalan dasar, sulit untuk standar tim engineering.
+        </p>
+      </div>
+
+      <div class="method-card method-karsa">
+        <div class="method-top">
+          <span class="method-label">Dengan Karsa Studio</span>
+          <span class="method-badge">Rekomendasi</span>
+        </div>
+        <h3>Studio tatap muka praktis</h3>
+        <ul>
+          <li>
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+            <span><strong>Praktik bersama pengajar.</strong> Diskusikan kendala dan bedah hasil pekerjaanmu langsung di studio.</span>
+          </li>
+          <li>
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+            <span><strong>Harga pendaftar awal.</strong> Tujuh pendaftar pertama tiap jadwal mendapat potongan sesuai urutan pendaftaran.</span>
+          </li>
+          <li>
+            <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+            <span><strong>Pengembalian dana.</strong> Lihat estimasi pengembalian dana di Kelas Saya sebelum mengonfirmasi pembatalan.</span>
+          </li>
+        </ul>
+        <p class="method-note">
+          Sisa kursi tiap batch tampil di halaman jadwal sebelum kamu mendaftar.
+        </p>
+      </div>
+    </div>
+
+    <div class="closing-cta">
+      <div>
+        <h3>{{ openBatchCount() }} jadwal masih dibuka.</h3>
+        <p>Pilih batch, cek sisa kursi, lalu amankan tempatmu.</p>
+      </div>
+      <a routerLink="/courses" fragment="program" class="btn-bolt">
+        Lihat jadwal
+        <i class="bi bi-arrow-right" aria-hidden="true"></i>
+      </a>
     </div>
   </div>
 </section>

@@ -1,42 +1,40 @@
 @if (course(); as crs) {
-  <section class="py-4 py-lg-5">
-    <div class="container" style="max-width: 960px;">
-      <div class="mb-4 anim-fade-up">
+  <section class="k-page">
+    <div class="shell">
+      <div class="detail-back anim-fade-up">
         <a routerLink="/courses" fragment="program" class="btn-k-light btn-sm">
-          <i class="bi bi-arrow-left"></i> Kembali ke katalog kelas
+          <i class="bi bi-arrow-left" aria-hidden="true"></i> Kembali ke katalog kelas
         </a>
       </div>
 
-      <div class="row g-4">
-        <div class="col-lg-7 anim-fade-up delay-1">
-          <span class="k-pill k-pill-green mb-2">
-            Rincian kelas · {{ crs.durationHours }} Jam Belajar
-          </span>
-          <h1 class="h2 fw-bold mb-2">{{ crs.title }}</h1>
-          <p class="text-secondary mb-4">{{ crs.description }}</p>
+      <div class="detail-layout">
+        <div class="anim-fade-up delay-1">
+          <div class="detail-topline">
+            <span class="kicker" style="margin: 0;">Rincian kelas</span>
+            <span class="k-pill k-pill-neutral">{{ crs.durationHours }} jam belajar</span>
+          </div>
 
-          <h2 class="h5 fw-bold mb-3">Pilihan jadwal dan lokasi</h2>
+          <h1 class="detail-title">{{ crs.title }}</h1>
+          <p class="detail-lede">{{ crs.description }}</p>
 
-          <div class="row g-3 mb-4">
-            @for (b of courseBatches(); track b.id; let idx = $index) {
-              <div class="col-12">
+          <div class="detail-section">
+            <div class="panel-head" style="margin-bottom: 14px; align-items: baseline;">
+              <h2 style="margin: 0; font-size: 1.12rem;">Pilihan jadwal dan lokasi</h2>
+              <span class="admin-note">{{ courseBatches().length }} jadwal tersedia</span>
+            </div>
+
+            <div class="batch-list">
+              @for (b of courseBatches(); track b.id; let idx = $index) {
                 <div
-                  class="k-card k-card-hover p-3 px-4"
-                  style="cursor: pointer;"
-                  [style.animation-delay.ms]="idx * 60"
-                  [style.border]="
-                    selectedBatchId() === b.id
-                      ? '2px solid var(--brand-forest)'
-                      : '1.5px solid var(--border-light)'
-                  "
-                  [style.background-color]="
-                    selectedBatchId() === b.id ? 'var(--brand-lime-soft)' : 'var(--bg-card)'
-                  "
-                  [style.opacity]="b.status === 'Full' ? '0.6' : '1'"
+                  class="batch-option"
+                  [class.is-selected]="selectedBatchId() === b.id"
+                  [class.is-full]="b.status === 'Full'"
+                  style="animation: springUp 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;"
+                  [style.animation-delay.ms]="idx * 55"
                   (click)="selectBatch(b.id)"
                 >
-                  <div class="d-flex justify-content-between align-items-center mb-1">
-                    <span class="fw-bold">{{ b.batchName }}</span>
+                  <div class="batch-option-head">
+                    <span class="batch-option-name">{{ b.batchName }}</span>
 
                     @if (b.status === 'Full') {
                       <span class="k-pill k-pill-red">Kelas penuh</span>
@@ -47,52 +45,52 @@
                     }
                   </div>
 
-                  <div class="small text-secondary">
-                    <i class="bi bi-calendar3 me-1"></i>
-                    {{ b.startDate | date: 'd MMM yyyy' }} s/d {{ b.endDate | date: 'd MMM yyyy' }} · Jam {{ b.startTime }} – {{ b.endTime }} WIB
-                  </div>
-                  <div class="small text-secondary mt-1">
-                    <i class="bi bi-geo-alt me-1"></i>
-                    {{ getLocationLabel(b.locationId) }}
-                  </div>
-                </div>
-              </div>
-            }
-          </div>
-
-          <div class="k-card p-4">
-            <h3 class="h6 fw-bold mb-3">Pengajar kelas ini</h3>
-            <div class="d-flex flex-wrap gap-3 mb-4">
-              @for (item of batchInstructors(); track item.assignment.id) {
-                <div class="d-flex align-items-center gap-2 anim-pop">
-                  <div
-                    class="rounded-circle d-flex align-items-center justify-content-center text-white small fw-bold"
-                    style="width: 38px; height: 38px; background-color: var(--brand-forest);"
-                  >
-                    {{ svc.getInitials(item.instructor.fullName) }}
-                  </div>
-                  <div>
-                    <div class="small fw-bold">{{ item.instructor.fullName }}</div>
-                    <div class="text-muted" style="font-size: 0.75rem;">
-                      {{ item.instructor.expertise }}
-                    </div>
+                  <div class="batch-meta">
+                    <span>
+                      <i class="bi bi-calendar3" aria-hidden="true"></i>
+                      {{ b.startDate | date: 'd MMM yyyy' }} – {{ b.endDate | date: 'd MMM yyyy' }} · {{ b.startTime }}–{{ b.endTime }} WIB
+                    </span>
+                    <span>
+                      <i class="bi bi-geo-alt" aria-hidden="true"></i>
+                      {{ getLocationLabel(b.locationId) }}
+                    </span>
                   </div>
                 </div>
               }
             </div>
+          </div>
 
-            <h3 class="h6 fw-bold mb-2 pt-3 border-top">Materi kelas</h3>
-            <ul class="small text-secondary ps-3 mb-0">
-              @for (line of svc.getSyllabusList(crs.syllabus); track line) {
-                <li class="mb-1">{{ line }}</li>
+          <div class="detail-section panel panel--bone">
+            <h2 style="margin: 0 0 14px; font-size: 1.12rem;">Pengajar kelas ini</h2>
+            <div class="d-flex flex-wrap gap-2">
+              @for (item of batchInstructors(); track item.assignment.id) {
+                <div class="instructor-chip anim-pop">
+                  <span class="avatar-dot">{{ svc.getInitials(item.instructor.fullName) }}</span>
+                  <span>
+                    <span class="instructor-chip-name d-block">{{ item.instructor.fullName }}</span>
+                    <span class="instructor-chip-role d-block">{{ item.instructor.expertise }}</span>
+                  </span>
+                </div>
               }
-            </ul>
+            </div>
+
+            <div class="pt-4 mt-4 border-top">
+              <h2 style="margin: 0 0 6px; font-size: 1.12rem;">Materi kelas</h2>
+              <ol class="syllabus-list">
+                @for (line of syllabus(); track line; let i = $index) {
+                  <li>
+                    <span aria-hidden="true">{{ i + 1 }}</span>
+                    <span>{{ line }}</span>
+                  </li>
+                }
+              </ol>
+            </div>
           </div>
         </div>
 
-        <div class="col-lg-5 anim-fade-up delay-2">
-          <div class="k-card p-4 position-sticky" style="top: 96px;">
-            <h2 class="h5 fw-bold mb-3">Ringkasan pendaftaran</h2>
+        <aside class="detail-aside anim-fade-up delay-2">
+          <div class="summary-panel">
+            <h2>Ringkasan pendaftaran</h2>
 
             @if (selectedBatch(); as activeBatch) {
               @if (priceBreakdown(); as calc) {
@@ -106,34 +104,34 @@
                     <span class="k-pill k-pill-red mt-2">Kelas penuh</span>
                   } @else {
                     <span class="k-pill k-pill-green mt-2">Tersisa {{ svc.getRemainingSeatsForBatch(activeBatch.id) }} dari {{ activeBatch.maxSeats }} kursi</span>
-                    <p class="text-secondary mt-1 mb-0">Jika mendaftar sekarang, Anda menjadi pendaftar ke-{{ calc.queueNumber }}.</p>
+                    <p class="text-secondary mt-2 mb-0" style="font-size: 11.5px;">
+                      Jika mendaftar sekarang, Anda menjadi pendaftar ke-{{ calc.queueNumber }}.
+                    </p>
                   }
                 </div>
 
-                <div class="k-surface-soft p-3 mb-3 small">
-                  <h3 class="h6 mb-2">Rincian biaya</h3>
-                  <div class="d-flex justify-content-between gap-2 py-1">
+                <div class="summary-box">
+                  <h3 class="h6 mb-2" style="color: var(--ui-paper);">Rincian biaya</h3>
+                  <div class="summary-row">
                     <span>Harga kelas</span>
-                    <span class="font-mono">Rp{{ calc.basePrice | number: '1.0-0' }}</span>
+                    <span>Rp{{ calc.basePrice | number: '1.0-0' }}</span>
                   </div>
                   @if (calc.earlyBirdDiscount > 0) {
-                    <div class="d-flex justify-content-between gap-2 py-1 text-success">
+                    <div class="summary-row text-success">
                       <span>Diskon pendaftar awal ({{ calc.discountPercentage }}%)</span>
-                      <span class="font-mono">−Rp{{ calc.earlyBirdDiscount | number: '1.0-0' }}</span>
+                      <span>−Rp{{ calc.earlyBirdDiscount | number: '1.0-0' }}</span>
                     </div>
                     @if (calc.discountCap !== null && calc.rawDiscountAmount > calc.discountCap) {
-                      <div class="small text-secondary">Potongan maksimal Rp{{ calc.discountCap | number: '1.0-0' }}.</div>
+                      <div class="text-secondary" style="font-size: 10.5px;">Potongan maksimal Rp{{ calc.discountCap | number: '1.0-0' }}.</div>
                     }
                   }
-                  <div class="d-flex justify-content-between gap-2 py-1">
+                  <div class="summary-row">
                     <span>Pajak (PPN {{ calc.taxRate | number }}%)</span>
-                    <span class="font-mono">Rp{{ calc.taxAmount | number: '1.0-0' }}</span>
+                    <span>Rp{{ calc.taxAmount | number: '1.0-0' }}</span>
                   </div>
-                  <div class="d-flex flex-wrap justify-content-between align-items-baseline gap-2 pt-2 mt-2 border-top">
-                    <span class="fw-bold">Total biaya kelas</span>
-                    <span class="fs-5 fw-bold font-mono" style="color: var(--brand-forest);">
-                      Rp{{ calc.totalAmount | number: '1.0-0' }}
-                    </span>
+                  <div class="summary-total">
+                    <span class="summary-total-label">Total biaya kelas</span>
+                    <span class="summary-total-amount">Rp{{ calc.totalAmount | number: '1.0-0' }}</span>
                   </div>
                 </div>
 
@@ -142,10 +140,10 @@
                 } @else if (!svc.currentUser()) {
                   <button
                     type="button"
-                    class="btn-k-primary w-100 py-2"
+                    class="btn-lime w-100 py-2"
                     (click)="svc.openAuthModal('LOGIN')"
                   >
-                    <i class="bi bi-box-arrow-in-right"></i>
+                    <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
                     <span>Masuk untuk mendaftar</span>
                   </button>
                 } @else {
@@ -155,13 +153,13 @@
                     </div>
                   } @else if (!isProfileComplete()) {
                     <div class="small text-danger mb-2">
-                      Lengkapi <a routerLink="/profile" class="fw-bold text-danger">profil Anda</a> sebelum mendaftar.
+                      Lengkapi <a routerLink="/profile" class="fw-bold" style="color: var(--ui-lime);">profil Anda</a> sebelum mendaftar.
                     </div>
                   }
 
                   <button
                     type="button"
-                    class="btn-k-coral w-100 py-2"
+                    class="btn-lime w-100 py-2"
                     [disabled]="!canProceedToCheckout()"
                     (click)="goToCheckout()"
                   >
@@ -177,7 +175,7 @@
               <p class="small text-secondary mb-0">Belum ada jadwal untuk kelas ini.</p>
             }
           </div>
-        </div>
+        </aside>
       </div>
     </div>
   </section>
