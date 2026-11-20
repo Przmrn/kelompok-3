@@ -75,7 +75,7 @@ export class BackendApiService {
   cancelRegistration(id: number) { return this.http.delete('/api/Registration/' + id); }
 
   paymentDetail(id: number) {
-    return this.http.get<PaymentRow>(`/api/Payment/registration/${id}`).pipe(map((row): PaymentDetail => ({
+    return this.http.get<PaymentRow>(`/api/Registration/${id}/payment`).pipe(map((row): PaymentDetail => ({
       ...row,
       paymentMethod: row.paymentMethod === 'UPFRONT' ? 'Upfront' : 'Installment',
       registrationStatus: registrationStatuses[row.registrationStatus],
@@ -86,11 +86,11 @@ export class BackendApiService {
     })));
   }
 
-  confirmUpfront(id: number) { return this.http.post<PaymentRow>(`/api/Payment/registration/${id}/confirm-upfront`, {}); }
+  confirmUpfront(id: number) { return this.http.post<PaymentRow>(`/api/Registration/${id}/confirm-upfront`, {}); }
   confirmInstallment(id: number, paidAmount: number) {
-    return this.http.post<PaymentRow>(`/api/Payment/installments/${id}/confirm`, { paidAmount });
+    return this.http.post<PaymentRow>(`/api/Registration/installments/${id}/confirm`, { paidAmount });
   }
-  processOverdue() { return this.http.post('/api/Payment/process-overdue', {}); }
+  processOverdue() { return this.http.post('/api/Registration/process-overdue', {}); }
 
   assignment(batchId: number, instructorId: number, remove: boolean) {
     return this.http.request(remove ? 'DELETE' : 'POST', '/api/BatchInstructor', { params: { batchId, instructorId } });

@@ -6,7 +6,7 @@ import { apiTestProviders, flushCourseData, loadCourseData } from '../../service
 import { PaymentDetailPageComponent } from './payment-detail.component';
 
 describe('Rincian pembayaran', () => {
-  const endpoint = '/api/Payment/registration/3';
+  const endpoint = '/api/Registration/3/payment';
   const payment = {
     registrationId: 3, registrationNumber: 'REG-3', paymentMethod: 'INSTALLMENT',
     totalAmount: 999000, paidAmount: 200000, remainingAmount: 799000, paidAt: '2026-11-20T04:00:00Z',
@@ -39,7 +39,7 @@ describe('Rincian pembayaran', () => {
     expect(input.checkValidity()).toBeFalse();
     input.value = '50000';
     input.form!.requestSubmit();
-    const write = http.expectOne({ method: 'POST', url: '/api/Payment/installments/30/confirm' });
+    const write = http.expectOne({ method: 'POST', url: '/api/Registration/installments/30/confirm' });
     expect(write.request.body).toEqual({ paidAmount: 50000 });
     const updated = { ...payment, paidAmount: 250000, remainingAmount: 749000,
       installmentSchedules: [{ ...payment.installmentSchedules[0], paidAmount: 250000, remainingAmount: 83000 },
