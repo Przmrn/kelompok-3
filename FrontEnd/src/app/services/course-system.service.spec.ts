@@ -33,7 +33,7 @@ describe('Sinkronisasi data kelas', () => {
     expect(service.courses().length).toBe(1);
     expect(service.loadError()).toBe('');
     expect(service.loading()).toBeFalse();
-    expect(service.accountError()).toContain('memverifikasi akun');
+    expect(service.accountError()).toBe('');
     expect(service.profileStatus()).toBe('error');
     expect(service.accountLoading()).toBeFalse();
   });

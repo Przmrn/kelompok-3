@@ -1,29 +1,29 @@
 @for (reg of page.paidCourses(); track reg.id) {
   <app-course-registration-card [reg]="reg">
     @if (svc.getBatchById(reg.batchId); as batch) {
-      <div class="k-surface-soft p-3 small">
+      <div class="panel panel--bone" style="padding: 16px;">
         <div class="row g-3">
           <div class="col-md-6">
-            <div class="text-muted">Jadwal kelas</div>
-            <div class="fw-bold mt-1">{{ batch.startDate | date: 'd MMM yyyy' }} s/d {{ batch.endDate | date: 'd MMM yyyy' }}</div>
-            <div class="text-secondary">Jam {{ batch.startTime }} – {{ batch.endTime }} WIB</div>
+            <span class="fact-label">Jadwal kelas</span>
+            <span class="fact-value">{{ batch.startDate | date: 'd MMM yyyy' }} s/d {{ batch.endDate | date: 'd MMM yyyy' }}</span>
+            <span class="admin-note d-block">Jam {{ batch.startTime }} – {{ batch.endTime }} WIB</span>
           </div>
 
           @if (svc.getLocationById(batch.locationId); as loc) {
             <div class="col-md-6">
-              <div class="text-muted">Lokasi kelas</div>
-              <div class="fw-bold mt-1">{{ loc.name }} ({{ loc.roomName }})</div>
-              <div class="text-secondary">{{ loc.address }}, {{ loc.city }}</div>
+              <span class="fact-label">Lokasi kelas</span>
+              <span class="fact-value">{{ loc.name }} ({{ loc.roomName }})</span>
+              <span class="admin-note d-block">{{ loc.address }}, {{ loc.city }}</span>
             </div>
           }
 
-          <div class="col-12 pt-2 border-top">
-            <div class="text-muted mb-2">Pengajar kelas ini</div>
+          <div class="col-12 pt-3 border-top">
+            <span class="fact-label mb-2">Pengajar kelas ini</span>
             <div class="d-flex flex-wrap gap-2">
               @for (item of svc.getInstructorsForBatch(batch.id); track item.assignment.id) {
-                <div class="bg-white px-3 py-1 rounded-3 border">
-                  <span class="fw-bold">{{ item.instructor.fullName }}</span>
-                </div>
+<span class="k-pill k-pill-neutral">
+  {{ item.instructor.fullName }}
+</span>
               }
             </div>
           </div>

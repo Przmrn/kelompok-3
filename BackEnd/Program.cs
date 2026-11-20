@@ -28,12 +28,6 @@ builder.Services.AddScoped<IBatchInstructorService, BatchInstructorService>();
 builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 builder.Services.AddScoped<IPaymentService, PaymentService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
-builder.Services.AddScoped<ICourseService, CourseService>();
-builder.Services.AddScoped<IStudentService, StudentService>();
-builder.Services.AddScoped<IInstructorService, InstructorService>();
-builder.Services.AddScoped<ICourseBatchService, CourseBatchService>();
-builder.Services.AddScoped<IBatchInstructorService, BatchInstructorService>();
-builder.Services.AddScoped<IRegistrationService, RegistrationService>();
 
 builder.Services.AddCors(options =>
 {
@@ -66,20 +60,30 @@ builder.Services.AddAuthorization();
 
 var app = builder.Build();
 
-app.UseMiddleware<ExceptionMiddleware>();
-app.UseWhen(context => !app.Environment.IsDevelopment()
-    || context.Connection.RemoteIpAddress is not { } remoteAddress
-    || !System.Net.IPAddress.IsLoopback(remoteAddress), branch => branch.UseHttpsRedirection());
-app.UseCors("AngularDevelopment");
-app.UseAuthentication();
-app.UseAuthorization();
-
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.UseSwagger();
-    app.UseSwaggerUI();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "BackEnd API v1");
+        options.RoutePrefix = "swagger";
+    });
 }
+
+app.UseMiddleware<ExceptionMiddleware>();
+app.UseWhen(context =>
+{
+    var peer = context.Connection.RemoteIpAddress;
+    var localProxy = app.Environment.IsDevelopment()
+        && context.Request.Host.Host == "127.0.0.1"
+        && peer != null
+        && System.Net.IPAddress.IsLoopback(peer.IsIPv4MappedToIPv6 ? peer.MapToIPv4() : peer);
+    return !localProxy;
+}, pipeline => pipeline.UseHttpsRedirection());
+app.UseCors("AngularDevelopment");
+app.UseAuthentication();
+app.UseAuthorization();
 
 app.MapControllers();
 app.Run();

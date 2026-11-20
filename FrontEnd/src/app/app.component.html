@@ -12,10 +12,8 @@
         class="navbar-brand d-flex align-items-center gap-2 text-decoration-none m-0"
         (click)="closeMobileMenu()"
       >
-        <span class="brand-mark">K</span>
-        <span class="font-display fw-bold fs-4" style="color: var(--brand-forest); letter-spacing: -0.03em;">
-          karsa.
-        </span>
+        <img class="brand-mark" src="favicon.ico" alt="" width="36" height="36" />
+        <span class="brand-wordmark">CodeAcademia</span>
       </a>
 
       <div class="d-flex align-items-center gap-2 d-lg-none">
@@ -25,9 +23,14 @@
             routerLinkActive="active"
             class="k-cart-btn"
             title="Keranjang pembayaran"
+            [attr.aria-label]="
+              unpaidCartCount() > 0
+                ? 'Keranjang pembayaran, ' + unpaidCartCount() + ' tagihan'
+                : 'Keranjang pembayaran'
+            "
             (click)="closeMobileMenu()"
           >
-            <i class="bi bi-cart3 fs-5"></i>
+            <i class="bi bi-cart3 fs-5" aria-hidden="true"></i>
             @if (unpaidCartCount() > 0) {
               <span class="k-cart-badge">{{ unpaidCartCount() }}</span>
             }
@@ -38,7 +41,6 @@
             class="k-signin-btn btn-sm"
             (click)="openSignInModal()"
           >
-            <i class="bi bi-box-arrow-in-right"></i>
             <span>Masuk</span>
           </button>
         }
@@ -204,10 +206,14 @@
                 routerLinkActive="active"
                 class="k-cart-btn d-none d-lg-inline-flex"
                 title="Keranjang pembayaran"
-                aria-label="Keranjang pembayaran"
+                [attr.aria-label]="
+                  unpaidCartCount() > 0
+                    ? 'Keranjang pembayaran, ' + unpaidCartCount() + ' tagihan'
+                    : 'Keranjang pembayaran'
+                "
                 (click)="closeMobileMenu()"
               >
-                <i class="bi bi-cart3 fs-5"></i>
+                <i class="bi bi-cart3 fs-5" aria-hidden="true"></i>
                 @if (unpaidCartCount() > 0) {
                   <span class="k-cart-badge">{{ unpaidCartCount() }}</span>
                 }
@@ -244,7 +250,8 @@
 
       @if (svc.authModalMode() === 'LOGIN') {
         <div class="text-center mb-4">
-          <h2 class="h4 fw-bold mb-1">Masuk ke Karsa</h2>
+          <span class="kicker">Akun CodeAcademia</span>
+          <h2 class="h4 fw-bold mb-1">Masuk ke CodeAcademia</h2>
           <p class="text-secondary small mb-0">Masuk untuk mendaftar kelas dan melihat jadwal Anda.</p>
         </div>
         @if (registrationNotice()) {
@@ -270,6 +277,7 @@
         </form>
       } @else {
         <div class="text-center mb-4">
+          <span class="kicker">Akun CodeAcademia</span>
           <h2 class="h4 fw-bold mb-1">Buat akun peserta</h2>
           <p class="text-secondary small mb-0">Daftar untuk mengikuti kelas tatap muka.</p>
         </div>
@@ -289,7 +297,7 @@
               <small id="password-hint" class="text-secondary">Gunakan minimal 8 karakter.</small>
             </div>
             @if (modalError()) { <p role="alert" class="alert alert-danger small">{{ modalError() }}</p> }
-            <button type="submit" class="btn-k-coral w-100 py-2 mb-3">{{ busy() ? 'Membuat akun…' : 'Buat akun' }}</button>
+            <button type="submit" class="btn-k-primary w-100 py-2 mb-3">{{ busy() ? 'Membuat akun…' : 'Buat akun' }}</button>
             <div class="pt-3 border-top text-center">
               <p class="small text-secondary mb-2">Sudah punya akun?</p>
               <button type="button" class="btn-k-light btn-sm w-100" (click)="switchModalMode('LOGIN')">Masuk</button>
@@ -307,15 +315,15 @@
     style="z-index: 1080; max-width: 380px; width: 100%;"
   >
     <div
-      class="k-card p-3 shadow-lg"
-      style="background: var(--brand-forest); color: #FFFFFF; border-color: var(--brand-lime);"
+      class="k-card p-3"
+      style="background: var(--ui-ink); color: var(--ui-paper); border-color: var(--ui-ink); box-shadow: 0 24px 48px -24px rgba(0,0,0,.55);"
     >
       <div class="d-flex justify-content-between align-items-start gap-2">
         <div>
-          <div class="font-display fw-bold small" style="color: var(--brand-lime);">
+          <div class="fw-bold small" style="color: var(--ui-lime);">
             {{ notif.title }}
           </div>
-          <div class="small mt-1" style="color: rgba(255,255,255,0.85);">
+          <div class="small mt-1" style="color: var(--ui-stone);">
             {{ notif.message }}
           </div>
         </div>
@@ -347,7 +355,7 @@
 
 <footer class="k-footer py-4 mt-5">
   <div class="container">
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 pb-3 border-bottom" style="border-color: var(--border-light) !important;">
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 pb-3 border-bottom" style="border-color: var(--ui-hairline) !important;">
       <a
         [routerLink]="
           svc.isAdmin()
@@ -358,10 +366,8 @@
         "
         class="d-flex align-items-center gap-2 text-decoration-none"
       >
-        <span class="brand-mark" style="width: 30px; height: 30px; font-size: 0.85rem;">K</span>
-        <span class="font-display fw-bold fs-5" style="color: var(--brand-forest); letter-spacing: -0.03em;">
-          karsa.
-        </span>
+        <img class="brand-mark" src="favicon.ico" alt="" width="30" height="30" />
+        <span class="brand-wordmark">CodeAcademia</span>
         <span class="text-muted small ms-1">· Studio Kursus Tatap Muka</span>
       </a>
 
@@ -389,9 +395,8 @@
       </nav>
     </div>
 
-    <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center pt-3 small text-muted gap-2">
-      <span>&copy; 2026 Karsa Studio — Pendaftaran kelas tatap muka</span>
-      <span>Proyek Kelompok 3</span>
+    <div class="d-flex flex-column flex-sm-row justify-content-center align-items-center pt-3 small text-muted gap-2">
+      <span>&copy; 2026 CodeAcademia</span>
     </div>
   </div>
 </footer>

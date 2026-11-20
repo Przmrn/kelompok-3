@@ -17,11 +17,11 @@ export class AdminCoursesComponent {
   readonly showForm = signal(false);
   readonly editingCourseId = signal<number | undefined>(undefined);
 
-form = this.newCourse();
+  form = this.newCourse();
 
-private newCourse() {
-  return { categoryId: this.svc.categories()[0]?.id ?? 0, syllabus: '', durationHours: 0, basePrice: 0 };
-}
+  private newCourse() {
+    return { categoryId: this.svc.categories()[0]?.id ?? 0, syllabus: '', durationHours: 0, basePrice: 0 };
+  }
 
   openNewCourseForm(): void {
     if (this.showForm()) {

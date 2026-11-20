@@ -38,7 +38,7 @@ describe('AppComponent', () => {
     await fixture.whenStable();
     fixture.detectChanges();
     expect(view.querySelector<HTMLInputElement>('#login-email')!.value).toBe(user.email);
-    expect(view.querySelector('[role=status]')!.textContent).toContain('Akun berhasil dibuat');
+    expect(view.querySelector('[role=status]')!.textContent).toContain('Registrasi berhasil');
     setValue('login-password', 'sandi salah');
     submit();
     http.expectOne('/api/auth/login').flush({}, { status: 401, statusText: 'Unauthorized' });

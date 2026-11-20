@@ -1,5 +1,5 @@
 import { HttpTestingController } from '@angular/common/http/testing';
-import { accountId, apiTestProviders, flushCourseData, instructor, loadCourseData } from '../../services/course-api.testing';
+import { apiTestProviders, flushCourseData, loadCourseData } from '../../services/course-api.testing';
 import { TestBed } from '@angular/core/testing';
 import { NavigationEnd, Router, provideRouter } from '@angular/router';
 import { RouterTestingHarness } from '@angular/router/testing';

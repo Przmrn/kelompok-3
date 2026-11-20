@@ -15,7 +15,7 @@ export class CourseDetailCheckoutComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
-readonly courseId = signal<number>(0);
+  readonly courseId = signal<number>(0);
   readonly selectedBatchId = signal<number | null>(null);
 
   readonly currentUser = this.svc.currentUser;
@@ -44,6 +44,14 @@ readonly courseId = signal<number>(0);
     if (!crs || !batch) return null;
     const nextQueue = this.svc.getNextQueueNumberForBatch(batch.id);
     return this.svc.calculatePriceBreakdown(crs.basePrice, nextQueue);
+  });
+
+  readonly syllabus = computed(() => {
+    const crs = this.course();
+    if (!crs) return [];
+    return this.svc
+      .getSyllabusList(crs.syllabus)
+      .map((line) => line.replace(/^\s*\d+\s*[.)\-]\s*/, '').trim());
   });
 
   readonly isProfileComplete = computed(() => {

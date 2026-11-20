@@ -1,13 +1,15 @@
-<section class="py-5">
-  <div class="container" style="max-width: 860px;">
+<section class="k-page">
+  <div class="shell">
     @if (svc.currentUser(); as user) {
-      <div class="mb-4 anim-fade-up">
-        <span class="k-pill k-pill-green mb-2">Akun {{ labels.role[user.role] }}</span>
-        <h1 class="h2 fw-bold mb-1">Profil &amp; Ringkasan Aktivitas</h1>
-        <p class="text-secondary small mb-0">
-          Pantau ringkasan pendaftaran kelas dan kelola kelengkapan data diri Anda.
-        </p>
-      </div>
+      <header class="page-head anim-fade-up">
+        <div class="page-head-copy">
+          <span class="kicker">Akun {{ labels.role[user.role] }}</span>
+          <h1 class="page-title">Profil &amp; Ringkasan Aktivitas</h1>
+          <p class="page-lede">
+            Pantau ringkasan pendaftaran kelas dan kelola kelengkapan data diri Anda.
+          </p>
+        </div>
+      </header>
 
       @if (svc.accountError() || svc.loadError()) {
         <div class="k-card p-3 mb-4" role="alert">Ringkasan aktivitas belum berhasil dimuat.
@@ -16,66 +18,56 @@
       } @else if (svc.accountLoading() || svc.loading()) {
         <p role="status">Memuat ringkasan aktivitas…</p>
       } @else {
-      <div class="row g-3 mb-4 anim-fade-up">
-        <div class="col-md-4">
-          <div class="k-card p-4 h-100">
-            <div class="small text-secondary mb-1">Kelas terdaftar</div>
-            <div class="display-6 fw-bold">{{ myRegistrations().length }}</div>
-            <div class="small text-success mt-1">{{ confirmedCount() }} dikonfirmasi</div>
+        <div class="stat-grid stat-grid--3 anim-fade-up">
+          <div class="stat-tile stat-tile--mist">
+            <span class="stat-label">Kelas terdaftar</span>
+            <span class="stat-value">{{ myRegistrations().length }}</span>
+            <span class="stat-note">{{ confirmedCount() }} dikonfirmasi</span>
+          </div>
+          <div class="stat-tile stat-tile--ink">
+            <span class="stat-label">Total sudah dibayar</span>
+            <span class="stat-value">Rp{{ totalPaid() | number: '1.0-0' }}</span>
+            <span class="stat-note">Termasuk PPN 11%</span>
+          </div>
+          <div class="stat-tile">
+            <span class="stat-label">Sisa tagihan cicilan</span>
+            <span class="stat-value" style="color: var(--ui-ember);">Rp{{ totalRemaining() | number: '1.0-0' }}</span>
+            <span class="stat-note">Cicilan bulanan tanpa bunga</span>
           </div>
         </div>
-        <div class="col-md-4">
-          <div class="k-card p-4 h-100">
-            <div class="small text-secondary mb-1">Total Sudah Dibayar</div>
-            <div class="h4 fw-bold mt-2 mb-1" style="color: var(--brand-forest);">
-              Rp{{ totalPaid() | number: '1.0-0' }}
-            </div>
-            <div class="small text-muted">Termasuk PPN 11%</div>
-          </div>
-        </div>
-        <div class="col-md-4">
-          <div class="k-card p-4 h-100">
-            <div class="small text-secondary mb-1">Sisa Tagihan Cicilan</div>
-            <div class="h4 fw-bold mt-2 mb-1" style="color: var(--brand-coral);">
-              Rp{{ totalRemaining() | number: '1.0-0' }}
-            </div>
-            <div class="small text-muted">Cicilan bulanan tanpa bunga</div>
-          </div>
-        </div>
-      </div>
 
-      @if (myRegistrations().length > 0) {
-        <div class="k-card p-4 mb-4 anim-fade-up delay-1">
-          <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="h5 fw-bold mb-0">Aktivitas Pendaftaran Kelas Saya</h2>
-            <a routerLink="/my-registrations" class="small text-decoration-none fw-bold" style="color: var(--brand-forest);">
-              Kelola Semua →
-            </a>
-          </div>
+        @if (myRegistrations().length > 0) {
+          <div class="panel mt-4 anim-fade-up delay-1">
+            <div class="panel-head">
+              <div>
+                <h2 class="panel-title">Aktivitas pendaftaran kelas saya</h2>
+                <p class="panel-sub">Riwayat pendaftaran dan tautan ke rincian pembayaran.</p>
+              </div>
+              <a routerLink="/my-registrations" class="btn-k-light btn-sm">
+                Kelola semua <i class="bi bi-arrow-right" aria-hidden="true"></i>
+              </a>
+            </div>
 
-          <div class="d-flex flex-column gap-2">
-            @for (reg of myRegistrations(); track reg.id) {
-              <div class="p-3 rounded-4 k-surface-soft d-flex flex-wrap justify-content-between align-items-center gap-2 small">
-                <div>
-                  <span class="text-muted">{{ reg.registrationNumber }} · Pendaftar ke-{{ reg.queueNumber }}</span>
-                  @if (svc.getBatchById(reg.batchId); as b) {
-                    <div class="fw-bold fs-6">{{ svc.getCourseById(b.courseId)?.title }}</div>
-                    <div class="text-secondary">
-                      {{ b.batchName }} · Mulai {{ b.startDate | date: 'd MMM yyyy' }} · Status: <strong>{{ labels.registration[reg.registrationStatus] }}</strong> ({{ labels.payment[reg.paymentStatus] }})
-                    </div>
-                  }
-                </div>
-                <div class="d-flex gap-2">
-                  <a [routerLink]="['/payments', reg.id]" class="btn-k-primary btn-sm py-1 px-3">
+            <div>
+              @for (reg of myRegistrations(); track reg.id) {
+                <div class="activity-row">
+                  <div>
+                    <div class="ops-code">{{ reg.registrationNumber }} · Pendaftar ke-{{ reg.queueNumber }}</div>
+                    @if (svc.getBatchById(reg.batchId); as b) {
+                      <div class="ops-row-title">{{ svc.getCourseById(b.courseId)?.title }}</div>
+                      <div class="text-secondary">
+                        {{ b.batchName }} · Mulai {{ b.startDate | date: 'd MMM yyyy' }} · Status: <strong>{{ labels.registration[reg.registrationStatus] }}</strong> ({{ labels.payment[reg.paymentStatus] }})
+                      </div>
+                    }
+                  </div>
+                  <a [routerLink]="['/payments', reg.id]" class="btn-k-primary btn-sm">
                     Rincian pembayaran
                   </a>
                 </div>
-              </div>
-            }
+              }
+            </div>
           </div>
-        </div>
-      }
-
+        }
       }
 
       @if (user.role === 'Student' && svc.profileStatus() === 'loading') {
@@ -86,23 +78,23 @@
           <button type="button" class="btn-k-light align-self-start" (click)="svc.retryProfile()">Coba lagi</button>
         </div>
       } @else if (user.role === 'Student') {
-        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="k-card p-4 p-md-5 anim-fade-up delay-2">
-          <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-4 pb-3 border-bottom">
+        <form [formGroup]="profileForm" (ngSubmit)="saveProfile()" class="panel mt-4 anim-fade-up delay-2">
+          <div class="panel-head">
             <div>
-              <h2 class="h4 fw-bold mb-1">Data diri peserta ({{ user.fullName }})</h2>
-              <div class="small text-secondary">{{ user.email }}</div>
+              <h2 class="panel-title" style="font-size: 1.3rem;">Data diri peserta ({{ user.fullName }})</h2>
+              <p class="panel-sub">{{ user.email }}</p>
             </div>
 
             @if (isProfileComplete()) {
-              <span class="k-pill k-pill-green">Profil Lengkap · Siap Daftar Kelas</span>
+              <span class="k-pill k-pill-green">Profil lengkap · Siap daftar kelas</span>
             } @else {
-              <span class="k-pill k-pill-amber">Profil Belum Lengkap</span>
+              <span class="k-pill k-pill-amber">Profil belum lengkap</span>
             }
           </div>
 
           @if (!isProfileComplete()) {
-            <div class="p-3 rounded-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: var(--brand-amber-light);">
-              <span class="small" style="color: #92400E;">
+            <div class="profile-form-note">
+              <span>
                 Lengkapi seluruh kolom profil di bawah ini sebelum mendaftar kelas.
               </span>
             </div>
@@ -219,41 +211,36 @@
 
             @if (isProfileComplete()) {
               <a routerLink="/courses" class="btn-k-light">
-                Jelajahi Kelas <i class="bi bi-arrow-right"></i>
+                Jelajahi Kelas <i class="bi bi-arrow-right" aria-hidden="true"></i>
               </a>
             }
           </div>
         </form>
       }
     } @else {
-      <div class="k-card p-5 text-center anim-fade-up">
-        <div
-          class="brand-mark mx-auto mb-3"
-          style="width: 48px; height: 48px; font-size: 1.25rem;"
-        >
-          <i class="bi bi-box-arrow-in-right"></i>
-        </div>
-        <h2 class="h4 fw-bold mb-2">Anda belum masuk</h2>
-        <p class="text-secondary small mb-4">
-          Masuk atau buat akun untuk melihat profil dan riwayat pendaftaran Anda.
-        </p>
-        <div class="d-flex justify-content-center gap-2">
-          <button
-            type="button"
-            class="btn-k-primary"
-            (click)="svc.openAuthModal('LOGIN')"
-          >
-            <i class="bi bi-box-arrow-in-right"></i>
-            <span>Masuk</span>
-          </button>
-          <button
-            type="button"
-            class="btn-k-light"
-            (click)="svc.openAuthModal('REGISTER')"
-          >
-            <i class="bi bi-person-plus"></i>
-            <span>Buat akun</span>
-          </button>
+      <div class="panel anim-fade-up" style="max-width: 560px; margin-inline: auto;">
+        <div class="empty-state">
+          <div class="empty-icon"><i class="bi bi-person" aria-hidden="true"></i></div>
+          <h2>Anda belum masuk</h2>
+          <p>Masuk atau buat akun untuk melihat profil dan riwayat pendaftaran Anda.</p>
+          <div class="d-flex flex-wrap justify-content-center gap-2">
+            <button
+              type="button"
+              class="btn-k-primary"
+              (click)="svc.openAuthModal('LOGIN')"
+            >
+              <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i>
+              <span>Masuk</span>
+            </button>
+            <button
+              type="button"
+              class="btn-k-light"
+              (click)="svc.openAuthModal('REGISTER')"
+            >
+              <i class="bi bi-person-plus" aria-hidden="true"></i>
+              <span>Buat akun</span>
+            </button>
+          </div>
         </div>
       </div>
     }

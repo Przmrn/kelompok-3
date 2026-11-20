@@ -1,9 +1,8 @@
 import { provideHttpClient } from '@angular/common/http';
-import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
+import { AuthService } from '../../services/auth.service';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
-import { AuthService } from '../../services/auth.service';
-import { CourseSystemService } from '../../services/course-system.service';
 import { ProfileAuthPageComponent } from './profile-auth-page.component';
 
 describe('Student profile form', () => {
@@ -22,8 +21,8 @@ describe('Student profile form', () => {
   afterEach(() => http.verify());
 
   it('memuat profil tersimpan dan memperbaruinya setelah nomor telepon valid', async () => {
-    const svc = TestBed.inject(CourseSystemService);
     const fixture = TestBed.createComponent(ProfileAuthPageComponent);
+    const svc = fixture.componentInstance.svc;
     fixture.detectChanges();
     const read = http.expectOne({ method: 'GET', url: '/api/students/me' });
     expect(fixture.nativeElement.querySelector('form')).toBeNull();
@@ -48,12 +47,12 @@ describe('Student profile form', () => {
     expect(svc.currentStudentProfile()!.phoneNumber).toBe(original);
 
     submit('+62 812-3456-7890');
+    expect(form.querySelector('#profile-phone-error')).toBeNull();
     const write = http.expectOne({ method: 'PUT', url: '/api/students/me' });
     expect(write.request.body.educationalLevel).toBe(stored.educationalLevel);
     expect(write.request.body.phoneNumber).toBe('+62 812-3456-7890');
     write.flush({ ...stored, phoneNumber: write.request.body.phoneNumber });
     await fixture.whenStable();
-    expect(form.querySelector('#profile-phone-error')).toBeNull();
     expect(svc.currentStudentProfile()!.phoneNumber).toBe('+62 812-3456-7890');
     expect(svc.isStudentProfileComplete(user.id)).toBeFalse();
   });

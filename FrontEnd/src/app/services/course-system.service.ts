@@ -55,12 +55,12 @@ export class CourseSystemService {
   readonly batchInstructors = signal<BatchInstructor[]>([]);
   private readonly publicInstructors = signal<Instructor[]>([]);
   private readonly accountData = signal<{
-    userId: number; students: Student[]; registrations: Registration[];
+    owner: User; students: Student[]; registrations: Registration[];
     schedules: InstallmentSchedule[]; instructors: Instructor[];
   } | null>(null);
   private readonly account = computed(() => {
     const data = this.accountData();
-    return data?.userId === this.auth.user()?.id ? data : null;
+    return data?.owner === this.auth.user() ? data : null;
   });
   readonly students = computed(() => this.account()?.students ?? []);
   readonly registrations = computed(() => this.account()?.registrations ?? []);
@@ -84,7 +84,7 @@ export class CourseSystemService {
     this.accountLoading.set(participant);
     this.accountError.set('');
     if (!user) this.accountData.set(null);
-    const currentAccount = () => revision === this.revision && user?.id === this.auth.user()?.id;
+    const currentAccount = () => revision === this.revision && user === this.auth.user();
     await firstValueFrom(forkJoin({
       catalog: this.api.catalog().pipe(
         tap(catalog => {
@@ -104,12 +104,12 @@ export class CourseSystemService {
         finalize(() => { if (revision === this.revision) this.loading.set(false); })
       ),
       account: forkJoin({
-        students: participant ? this.api.students(admin) : of([]),
+        students: admin ? this.api.students() : of([]),
         payments: participant ? this.api.registrations(admin) : of({ registrations: [], schedules: [] }),
         instructors: admin ? this.api.instructors() : of([]),
       }).pipe(
         tap(data => {
-          if (currentAccount() && user) this.accountData.set({ userId: user.id, students: data.students, ...data.payments, instructors: data.instructors });
+          if (currentAccount() && user) this.accountData.set({ owner: user, students: data.students, ...data.payments, instructors: data.instructors });
         }),
         catchError(error => {
           if (currentAccount()) this.accountError.set(this.errorMessage(error));
@@ -302,14 +302,14 @@ export class CourseSystemService {
     return Math.max(0, reg.totalAmount - this.getTotalPaidForRegistration(reg));
   }
 
-readonly unpaidCartRegistrations = computed(() => this.myRegistrations().filter(reg =>
-  reg.registrationStatus !== 'Cancelled' &&
-  (reg.paymentStatus === 'Pending' || (reg.paymentStatus === 'Overdue' && reg.paidAmount === 0))
-));
+  readonly unpaidCartRegistrations = computed(() => this.myRegistrations().filter(reg =>
+    reg.registrationStatus !== 'Cancelled' &&
+    (reg.paymentStatus === 'Pending' || (reg.paymentStatus === 'Overdue' && reg.paidAmount === 0))
+  ));
 
-readonly purchasedCourses = computed(() => this.myRegistrations().filter(reg =>
-  reg.paidAmount > 0 || reg.registrationStatus === 'Confirmed' || reg.registrationStatus === 'Completed'
-));
+  readonly purchasedCourses = computed(() => this.myRegistrations().filter(reg =>
+    reg.paidAmount > 0 || reg.registrationStatus === 'Confirmed' || reg.registrationStatus === 'Completed'
+  ));
 
   getSyllabusList(syllabusText: string): string[] {
     return syllabusText
@@ -542,7 +542,7 @@ readonly purchasedCourses = computed(() => this.myRegistrations().filter(reg =>
   }
 
 
-async updateStudentProfile(profile: StudentProfileFields): Promise<void> {
+  async updateStudentProfile(profile: StudentProfileFields): Promise<void> {
     const user = this.auth.user();
     const status = this.profileStatus();
     if (!user || this.savingProfile() || (status !== 'ready' && status !== 'missing')) return;

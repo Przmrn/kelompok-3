@@ -1,22 +1,13 @@
 .k-header {
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(14px);
   border-bottom: 1px solid var(--border-light);
+  font-family: var(--ui-font);
   z-index: 1030;
 }
 
 .brand-mark {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 8px 3px 8px 3px;
-  background-color: var(--iris);
-  color: white;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 1.25rem;
+  flex: none;
   transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -26,8 +17,13 @@
 
 .k-nav-track {
   align-items: center;
-  gap: .3rem;
-  margin-left: clamp(2rem, 5vw, 5rem);
+  gap: .15rem;
+  margin-left: auto;
+  margin-right: auto;
+  background: var(--bg-subtle);
+  border: 1px solid var(--border-light);
+  border-radius: 999px;
+  padding: .35rem;
 }
 
 @media (max-width: 991.98px) {
@@ -37,6 +33,7 @@
     border-radius: 0;
     padding: 0;
     margin-left: 0;
+    margin-right: 0;
     display: flex;
     flex-direction: column;
     align-items: stretch;
@@ -45,36 +42,37 @@
 }
 
 .k-nav-pill {
-  font-family: var(--font-main);
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-family: var(--ui-font);
+  font-weight: 500;
+  font-size: 0.88rem;
   color: var(--text-secondary) !important;
-  padding: .5rem .85rem !important;
-  border-radius: 5px;
+  padding: .45rem 1rem !important;
+  border-radius: 999px;
   white-space: nowrap;
   transition: all 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .k-nav-pill:hover {
   color: var(--text-main) !important;
-  background-color: rgba(39, 25, 61, 0.05);
+  background-color: rgba(255, 255, 255, 0.75);
 }
 
 .k-nav-pill.active {
-  color: var(--iris-hover) !important;
-  background-color: var(--lavender-soft);
+  color: var(--text-main) !important;
+  background-color: #FFFFFF;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
 }
 
 .k-signin-btn {
   height: 44px;
   padding: 0 1.15rem;
-  border-radius: 6px;
-  background-color: white;
+  border-radius: 999px;
+  background-color: #FFFFFF;
   color: var(--text-main);
   border: 1px solid var(--border-light);
-  font-family: var(--font-main);
-  font-size: 0.9rem;
-  font-weight: 600;
+  font-family: var(--ui-font);
+  font-size: 0.88rem;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -83,22 +81,21 @@
 }
 
 .k-signin-btn:hover {
-  background-color: var(--brand-lime);
-  color: var(--brand-forest);
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(39, 25, 61, 0.15);
+  background-color: var(--bg-subtle);
+  color: var(--text-main);
+  transform: translateY(-1px);
 }
 
 .k-user-btn {
   height: 40px;
   padding: 0 0.95rem 0 0.5rem;
   border-radius: 999px;
-  background-color: #FFFFFF;
+  background-color: var(--bg-subtle);
   color: var(--text-main);
-  border: 1.5px solid var(--border-light);
-  font-family: var(--font-main);
-  font-size: 0.88rem;
-  font-weight: 600;
+  border: 1px solid var(--border-light);
+  font-family: var(--ui-font);
+  font-size: 0.86rem;
+  font-weight: 500;
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
@@ -107,16 +104,16 @@
 
 .k-user-btn:hover,
 .k-user-btn:focus {
-  border-color: var(--brand-forest);
-  background-color: var(--bg-page);
+  border-color: #d1d5db;
+  background-color: var(--bg-subtle);
 }
 
 .k-user-avatar {
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background-color: var(--brand-forest);
-  color: var(--brand-lime);
+  background-color: var(--iris);
+  color: #FFFFFF;
   font-size: 0.76rem;
   font-weight: 700;
   display: inline-flex;
@@ -128,10 +125,10 @@
   position: relative;
   width: 40px;
   height: 40px;
-  border-radius: 50%;
-  background-color: #FFFFFF;
-  color: var(--brand-forest);
-  border: 1.5px solid var(--border-light);
+  border-radius: 999px;
+  background-color: var(--bg-subtle);
+  color: var(--text-main);
+  border: 1px solid var(--border-light);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -141,17 +138,17 @@
 }
 
 .k-cart-btn:hover {
-  border-color: var(--brand-forest);
-  background-color: var(--brand-lime-soft);
-  color: var(--brand-forest);
+  border-color: var(--lavender);
+  background-color: var(--lavender);
+  color: var(--text-main);
   transform: translateY(-1px);
 }
 
 .k-cart-btn.active {
-  background-color: var(--brand-forest);
-  border-color: var(--brand-forest);
-  color: var(--brand-lime);
-  box-shadow: 0 4px 12px rgba(39, 25, 61, 0.18);
+  background-color: var(--ui-ink);
+  border-color: var(--ui-ink);
+  color: var(--ui-lime);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
 }
 
 .k-cart-badge {
@@ -160,9 +157,9 @@
   right: -4px;
   min-width: 19px;
   height: 19px;
-  background-color: var(--brand-coral);
+  background-color: var(--ui-ember);
   color: #FFFFFF;
-  font-family: var(--font-main);
+  font-family: var(--ui-font);
   font-size: 0.68rem;
   font-weight: 700;
   padding: 0 5px;
@@ -176,7 +173,7 @@
 .k-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(39, 25, 61, 0.55);
+  background: rgba(0, 0, 0, 0.58);
   backdrop-filter: blur(6px);
   z-index: 1090;
   display: flex;
@@ -186,33 +183,73 @@
 }
 
 .k-modal-dialog {
-  background: #FFFFFF;
-  border: 1.5px solid var(--border-light);
-  border-radius: 14px;
+  background: var(--ui-paper);
+  border: 1px solid var(--ui-hairline);
+  border-radius: 24px;
   max-height: calc(100dvh - 2rem);
   overflow-y: auto;
   width: 100%;
   max-width: 440px;
-  padding: clamp(1.25rem, 4vw, 2rem);
+  padding: clamp(1.35rem, 4vw, 2.1rem);
   position: relative;
-  box-shadow: 0 24px 48px rgba(39, 25, 61, 0.22);
+  box-shadow: 0 32px 64px -28px rgba(0, 0, 0, 0.45);
 }
 
 .k-footer {
-  background-color: #FFFFFF;
-  border-top: 1px solid var(--border-light);
+  background-color: var(--ui-paper);
+  border-top: 1px solid var(--ui-hairline);
+  font-family: var(--ui-font);
 }
 
 .k-footer-link {
-  color: var(--text-secondary);
+  color: var(--ui-graphite);
   text-decoration: none;
   font-size: 0.9rem;
   font-weight: 500;
+  padding-block: 5px;
   transition: color 0.18s ease;
 }
 
 .k-footer-link:hover,
 .k-footer-link.active {
-  color: var(--brand-forest);
+  color: var(--ui-ink);
   font-weight: 600;
+}
+
+.k-header .container,
+.k-footer .container {
+  max-width: 1200px;
+}
+
+.brand-wordmark {
+  font-family: var(--ui-font);
+  color: var(--ui-ink);
+  font-size: 1.375rem;
+  font-weight: 700;
+  letter-spacing: -0.03em;
+}
+
+.k-footer .brand-wordmark {
+  font-size: 1.125rem;
+}
+
+@media (max-width: 420px) {
+  .navbar-brand .brand-wordmark {
+    font-size: 1.125rem;
+  }
+
+  .navbar-brand .brand-mark {
+    width: 30px;
+    height: 30px;
+  }
+
+  .k-signin-btn.btn-sm {
+    padding-inline: 0.5rem;
+  }
+}
+
+@media (max-width: 991.98px) {
+  .k-nav-pill.active {
+    background: var(--bg-subtle);
+  }
 }

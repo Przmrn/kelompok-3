@@ -27,6 +27,18 @@ export class CatalogPageComponent {
     return this.svc.courses().filter((c) => catId === 0 || c.categoryId === catId);
   });
 
+  readonly openBatchCount = computed(
+    () => this.svc.batches().filter((b) => b.status === 'Open').length
+  );
+
+  readonly categoryCount = computed(() => this.svc.categories().length);
+
+  readonly studioCount = computed(() => this.svc.locations().length);
+
+  readonly seatCap = computed(() =>
+    Math.max(0, ...this.svc.batches().map((b) => b.maxSeats))
+  );
+
   getCategoryName(categoryId: number): string {
     return this.svc.getCategoryById(categoryId)?.name ?? 'Kelas';
   }

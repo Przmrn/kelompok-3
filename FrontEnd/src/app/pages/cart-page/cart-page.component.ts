@@ -12,6 +12,7 @@ import { CourseSystemService } from '../../services/course-system.service';
 export class CartPageComponent {
   readonly svc = inject(CourseSystemService);
 
+
   readonly unpaidRegistrations = this.svc.unpaidCartRegistrations;
 
   readonly paidCoursesCount = computed(() => this.svc.purchasedCourses().length);

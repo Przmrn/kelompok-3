@@ -34,14 +34,14 @@ export class AppComponent {
   }
 
   readonly svc = inject(CourseSystemService);
-  private readonly router = inject(Router);
+  readonly router = inject(Router);
   readonly mobileMenuOpen = signal(false);
 
-private get isProfilePage(): boolean {
-  return this.router.isActive('/profile', { paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' });
-}
+  private get isProfilePage(): boolean {
+    return this.router.isActive('/profile', { paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' });
+  }
 
-private get needsAccountData(): boolean {
+  private get needsAccountData(): boolean {
     return !this.router.isActive('/courses', {
       paths: 'subset', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored',
     });
@@ -115,7 +115,7 @@ private get needsAccountData(): boolean {
     try {
       const user = await firstValueFrom(this.auth.register(name, email, password));
       this.loginEmail.set(user.email);
-      this.registrationNotice.set('Akun berhasil dibuat. Masuk dengan kata sandi yang baru Anda daftarkan.');
+      this.registrationNotice.set('Registrasi berhasil, silahkan Login.');
       this.svc.openAuthModal('LOGIN');
     } catch (error) {
       this.showAuthError(error);
@@ -127,7 +127,7 @@ private get needsAccountData(): boolean {
   private showAuthError(error: unknown): void {
     const status = error instanceof HttpErrorResponse ? error.status : undefined;
     const messages: Record<number, string> = {
-      0: 'Server belum dapat dihubungi. Periksa koneksi Anda lalu coba lagi.',
+      500: 'Server belum dapat dihubungi. Periksa koneksi Anda lalu coba lagi.',
       400: 'Periksa kembali isian formulir Anda.',
       401: 'Email atau kata sandi salah.',
       409: 'Email ini sudah terdaftar. Silakan masuk atau gunakan email lain.',
