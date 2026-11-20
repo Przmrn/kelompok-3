@@ -13,7 +13,7 @@ namespace BackEnd.Models
 
         [Required]
         [MaxLength(150)]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
 
         [Required]
         [MaxLength(20)]
@@ -35,7 +35,7 @@ namespace BackEnd.Models
         [MaxLength(100)]
         public string Occupation { get; set; } = string.Empty;
 
-        public User User { get; set; }
+        public User User { get; set; } = null!;
 
         public ICollection<Registration> Registrations { get; set; } = new List<Registration>();
     }

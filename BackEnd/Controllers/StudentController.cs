@@ -17,8 +17,6 @@ namespace BackEnd.Controllers
             _service = service;
         }
 
-        // --- Student: profil sendiri (userId dari JWT) ---
-
         [HttpGet("me")]
         [Authorize(Roles = "STUDENT")]
         public async Task<ActionResult<StudentResponseDto>> GetMe()
@@ -36,8 +34,6 @@ namespace BackEnd.Controllers
         [Authorize(Roles = "STUDENT")]
         public async Task<ActionResult<StudentResponseDto>> UpdateMe(StudentUpdateDto dto)
             => Ok(await _service.UpdateMyProfileAsync(User.GetUserId(), dto));
-
-        // --- Admin ---
 
         [HttpGet]
         [Authorize(Roles = "ADMIN")]

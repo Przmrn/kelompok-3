@@ -20,7 +20,6 @@ namespace BackEnd.Services
             _instructorRepository = instructorRepository;
         }
 
-        // GET ALL
         public async Task<IEnumerable<BatchInstructorResponseDto>> GetAllAsync()
         {
             var assignments = await _batchInstructorRepository.GetAllAsync(
@@ -30,7 +29,6 @@ namespace BackEnd.Services
             return assignments.Select(MapToDto);
         }
 
-        // GET BY BATCH ID
         public async Task<IEnumerable<BatchInstructorResponseDto>> GetByBatchIdAsync(
             long batchId)
         {
@@ -43,7 +41,6 @@ namespace BackEnd.Services
                 .Select(MapToDto);
         }
 
-        // GET BY INSTRUCTOR ID
         public async Task<IEnumerable<BatchInstructorResponseDto>> GetByInstructorIdAsync(
             long instructorId)
         {
@@ -56,11 +53,9 @@ namespace BackEnd.Services
                 .Select(MapToDto);
         }
 
-        // ASSIGN INSTRUCTOR
         public async Task<BatchInstructorResponseDto> AssignInstructorAsync(
             BatchInstructorCreateDto dto)
         {
-            // 1. Pastikan batch tersedia
             var courseBatch = await _courseBatchRepository.GetByIdAsync(
                 dto.BatchId
             );
@@ -70,7 +65,6 @@ namespace BackEnd.Services
                     "Batch tidak ditemukan."
                 );
 
-            // 2. Pastikan instructor tersedia
             var instructorExists = await _instructorRepository.ExistsAsync(
                 i => i.Id == dto.InstructorId
             );
@@ -80,7 +74,6 @@ namespace BackEnd.Services
                     "Instruktur tidak ditemukan."
                 );
 
-            // 3. Periksa duplikasi penugasan
             var alreadyAssigned = await _batchInstructorRepository.ExistsAsync(
                 bi => bi.BatchId == dto.BatchId &&
                       bi.InstructorId == dto.InstructorId
@@ -91,7 +84,6 @@ namespace BackEnd.Services
                     "Instruktur sudah ditugaskan ke batch ini."
                 );
 
-            // 4. Ambil seluruh penugasan instructor
             var assignments = await _batchInstructorRepository.GetAllAsync(
                 "CourseBatch"
             );
@@ -99,7 +91,6 @@ namespace BackEnd.Services
             var instructorAssignments = assignments
                 .Where(bi => bi.InstructorId == dto.InstructorId);
 
-            // 5. Periksa bentrok jadwal
             foreach (var assignment in instructorAssignments)
             {
                 var existingBatch = assignment.CourseBatch;
@@ -120,7 +111,6 @@ namespace BackEnd.Services
                 }
             }
 
-            // 6. Buat penugasan baru
             var batchInstructor = new BatchInstructor
             {
                 BatchId = dto.BatchId,
@@ -131,7 +121,6 @@ namespace BackEnd.Services
 
             await _batchInstructorRepository.SaveChangesAsync();
 
-            // 7. Ambil kembali data beserta navigation property
             var savedAssignments = await _batchInstructorRepository.GetAllAsync(
                 "Instructor,CourseBatch"
             );
@@ -143,7 +132,6 @@ namespace BackEnd.Services
             return MapToDto(savedAssignment);
         }
 
-        // REMOVE INSTRUCTOR
         public async Task<bool> RemoveInstructorAsync(
             long batchId,
             long instructorId)
@@ -165,7 +153,6 @@ namespace BackEnd.Services
             return true;
         }
 
-        // MAPPING ENTITY TO DTO
         private static BatchInstructorResponseDto MapToDto(
             BatchInstructor entity)
         {

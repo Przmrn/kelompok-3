@@ -78,7 +78,6 @@ namespace BackEnd.Services
                 Bio = dto.Bio
             };
 
-            // user ikut tersimpan lewat relasi, dalam satu transaksi
             _db.Instructors.Add(instructor);
             await _db.SaveChangesAsync();
             _logger.LogInformation("Instructor {InstructorId} (user {UserId}) dibuat", instructor.Id, user.Id);
@@ -103,7 +102,6 @@ namespace BackEnd.Services
             instructor.Expertise = dto.Expertise;
             instructor.Bio = dto.Bio;
 
-            // jaga data akun login tetap sinkron
             instructor.User.FullName = instructor.FullName;
             instructor.User.Email = email;
 

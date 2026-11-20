@@ -55,6 +55,10 @@ namespace BackEnd.Data
                 .Property(r => r.PaymentStatus)
                 .HasConversion<string>();
 
+            modelBuilder.Entity<Registration>()
+                .Property(r => r.PaymentMethod)
+                .HasConversion<string>();
+
             modelBuilder.Entity<InstallmentSchedule>()
                 .Property(i => i.InstallmentStatus)
                 .HasConversion<string>();
@@ -63,7 +67,6 @@ namespace BackEnd.Data
                 .Property(cb => cb.CourseStatus)
                 .HasConversion<string>();
 
-            // Relasi one-to-one
             modelBuilder.Entity<Student>()
                 .HasOne(s => s.User)
                 .WithOne(u => u.Student)
@@ -78,7 +81,6 @@ namespace BackEnd.Data
                 .OnDelete(DeleteBehavior.Restrict);
 
 
-            // Relasi one-to-many
             modelBuilder.Entity<Registration>()
                 .HasOne(r => r.Student)
                 .WithMany(s => s.Registrations)

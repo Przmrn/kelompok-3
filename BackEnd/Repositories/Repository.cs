@@ -15,7 +15,6 @@ namespace BackEnd.Repositories
             _dbSet = context.Set<T>();
         }
 
-        // READ
         public async Task<IEnumerable<T>> GetAllAsync()
         {
             return await _dbSet.ToListAsync();
@@ -73,7 +72,6 @@ namespace BackEnd.Repositories
             return await _dbSet.CountAsync(predicate);
         }
 
-        // CREATE
         public async Task AddAsync(T entity)
         {
             await _dbSet.AddAsync(entity);
@@ -84,7 +82,6 @@ namespace BackEnd.Repositories
             await _dbSet.AddRangeAsync(entities);
         }
 
-        // UPDATE
         public void Update(T entity)
         {
             _dbSet.Update(entity);
@@ -95,7 +92,6 @@ namespace BackEnd.Repositories
             _dbSet.UpdateRange(entities);
         }
 
-        // DELETE
         public void Delete(T entity)
         {
             _dbSet.Remove(entity);
@@ -106,7 +102,6 @@ namespace BackEnd.Repositories
             _dbSet.RemoveRange(entities);
         }
 
-        // SAVE CHANGES
         public async Task<int> SaveChangesAsync()
         {
             return await _context.SaveChangesAsync();

@@ -30,13 +30,11 @@ namespace BackEnd.Services
             _installmentRepository = installmentRepository;
         }
 
-        // CREATE REGISTRATION
         public async Task<RegistrationDetailDto> CreateAsync(
             long userId,
             RegistrationCreateDto dto
         )
         {
-            // 1. Cari Student berdasarkan UserId dari JWT
             var students = await _studentRepository.FindAsync(
                 s => s.UserId == userId
             );
@@ -44,15 +42,10 @@ namespace BackEnd.Services
             var student = students.FirstOrDefault()
                 ?? throw new Exception("Student tidak ditemukan.");
 
-            // 2. Validasi payment method
-            if (dto.PaymentMethod != PaymentMethods.UPFRONT &&
-                dto.PaymentMethod != PaymentMethods.INSTALLMENT)
-            {
+            if (!Enum.TryParse<PaymentMethods>(dto.PaymentMethod, true, out var paymentMethod))
                 throw new Exception("Metode pembayaran tidak valid.");
-            }
 
-            // 3. Validasi tenor
-            if (dto.PaymentMethod == PaymentMethods.INSTALLMENT)
+            if (paymentMethod == PaymentMethods.INSTALLMENT)
             {
                 if (dto.InstallmentTenor != 3 &&
                     dto.InstallmentTenor != 6 &&
@@ -70,21 +63,17 @@ namespace BackEnd.Services
                 );
             }
 
-            // 4. Cari Batch
             var batch = await _batchRepository.GetByIdAsync(dto.BatchId)
                 ?? throw new Exception("Batch tidak ditemukan.");
 
-            // 5. Pastikan batch masih OPEN
             if (batch.CourseStatus != CourseBatchStatus.OPEN)
             {
                 throw new Exception("Batch tidak tersedia.");
             }
 
-            // 6. Cari Course
             var course = await _courseRepository.GetByIdAsync(batch.CourseId)
                 ?? throw new Exception("Course tidak ditemukan.");
 
-            // 7. Cek registrasi aktif Student pada Batch yang sama
             var existingRegistrations =
                 await _registrationRepository.FindAsync(r =>
                     r.StudentId == student.Id &&
@@ -100,7 +89,6 @@ namespace BackEnd.Services
                 );
             }
 
-            // 8. Ambil seluruh registrasi pada Batch
             var batchRegistrations =
                 await _registrationRepository.FindAsync(
                     r => r.BatchId == batch.Id
@@ -113,7 +101,6 @@ namespace BackEnd.Services
                 )
                 .ToList();
 
-            // 9. Validasi kapasitas
             if (activeRegistrations.Count >= batch.MaxSeats)
             {
                 batch.CourseStatus = CourseBatchStatus.FULL;
@@ -124,22 +111,18 @@ namespace BackEnd.Services
                 throw new Exception("Kapasitas batch sudah penuh.");
             }
 
-            // 10. Generate Queue Number
             int queueNumber = batchRegistrations
                 .Select(r => r.QueueNumber)
                 .DefaultIfEmpty(0)
                 .Max() + 1;
 
-            // 11. Ambil Base Price dari Course
             decimal basePrice = course.BasePrice;
 
-            // 12. Hitung Early Bird Discount
             decimal discount = CalculateDiscount(
                 queueNumber,
                 basePrice
             );
 
-            // 13. Hitung pajak 11% setelah diskon
             decimal taxableAmount = basePrice - discount;
 
             decimal taxRate = 11m;
@@ -150,10 +133,7 @@ namespace BackEnd.Services
                 MidpointRounding.AwayFromZero
             );
 
-            // 14. Hitung total
             decimal totalAmount = taxableAmount + taxAmount;
-
-            // 15. Buat Registration
             var registrationDate = DateTime.UtcNow;
 
             var registration = new Registration
@@ -177,7 +157,7 @@ namespace BackEnd.Services
 
                 TotalAmount = totalAmount,
 
-                PaymentMethod = dto.PaymentMethod,
+                PaymentMethod = paymentMethod,
 
                 InstallmentTenor = dto.InstallmentTenor,
 
@@ -191,8 +171,7 @@ namespace BackEnd.Services
             await _registrationRepository.AddAsync(registration);
             await _registrationRepository.SaveChangesAsync();
 
-            // 16. Buat jadwal cicilan jika menggunakan INSTALLMENT
-            if (dto.PaymentMethod == PaymentMethods.INSTALLMENT)
+            if (paymentMethod == PaymentMethods.INSTALLMENT)
             {
                 var schedules = GenerateInstallmentSchedules(
                     registration.Id,
@@ -205,7 +184,6 @@ namespace BackEnd.Services
                 await _installmentRepository.SaveChangesAsync();
             }
 
-            // 17. Update status batch jika kapasitas sudah penuh
             if (activeRegistrations.Count + 1 >= batch.MaxSeats)
             {
                 batch.CourseStatus = CourseBatchStatus.FULL;
@@ -217,7 +195,6 @@ namespace BackEnd.Services
             return await BuildDetailAsync(registration);
         }
 
-        // HITUNG DISKON EARLY BIRD
         private decimal CalculateDiscount(
             int queueNumber,
             decimal basePrice
@@ -242,13 +219,11 @@ namespace BackEnd.Services
             return Math.Min(discount, maxDiscount);
         }
 
-        // GENERATE REGISTRATION NUMBER
         private string GenerateRegistrationNumber()
         {
             return $"REG-{DateTime.UtcNow:yyyyMMddHHmmss}-{Guid.NewGuid().ToString("N")[..6].ToUpper()}";
         }
 
-        // GENERATE INSTALLMENT SCHEDULES
         private List<InstallmentSchedule> GenerateInstallmentSchedules(
             long registrationId,
             decimal totalAmount,
@@ -302,7 +277,6 @@ namespace BackEnd.Services
             return schedules;
         }
 
-        // GET MY REGISTRATIONS
         public async Task<IEnumerable<RegistrationDetailDto>>
             GetMyRegistrationsAsync(long userId)
         {
@@ -327,7 +301,6 @@ namespace BackEnd.Services
             return results;
         }
 
-        // GET REGISTRATION BY ID
         public async Task<RegistrationDetailDto> GetByIdAsync(
             long registrationId,
             long userId,
@@ -399,7 +372,6 @@ namespace BackEnd.Services
             return true;
         }
 
-        // GET ALL REGISTRATIONS (ADMIN)
         public async Task<IEnumerable<RegistrationDetailDto>> GetAllAsync()
         {
             var registrations =
@@ -415,7 +387,6 @@ namespace BackEnd.Services
             return results;
         }
 
-        // BUILD REGISTRATION DETAIL
         private async Task<RegistrationDetailDto> BuildDetailAsync(
             Registration registration
         )
@@ -464,7 +435,7 @@ namespace BackEnd.Services
 
                 PaidAmount = registration.PaidAmount,
 
-                PaymentMethod = registration.PaymentMethod,
+                PaymentMethod = registration.PaymentMethod.ToString(),
 
                 InstallmentTenor = registration.InstallmentTenor,
 
@@ -504,7 +475,6 @@ namespace BackEnd.Services
             };
         }
 
-        // PAYMENT
         public async Task<RegistrationDetailDto> PayAsync(
             long registrationId,
             long userId,

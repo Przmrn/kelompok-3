@@ -17,7 +17,6 @@ namespace BackEnd.Controllers
             _courseBatchService = courseBatchService;
         }
 
-        // GET: api/CourseBatch
         [HttpGet]
         public async Task<ActionResult<IEnumerable<CourseBatchResponseDto>>> GetAll()
         {
@@ -26,7 +25,6 @@ namespace BackEnd.Controllers
             return Ok(courseBatches);
         }
 
-        // GET: api/CourseBatch/1
         [HttpGet("{id:long}")]
         public async Task<ActionResult<CourseBatchDetailDto>> GetById(long id)
         {
@@ -43,7 +41,6 @@ namespace BackEnd.Controllers
             return Ok(courseBatch);
         }
 
-        // POST: api/CourseBatch
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<CourseBatchResponseDto>> Create(
@@ -59,7 +56,6 @@ namespace BackEnd.Controllers
             );
         }
 
-        // PUT: api/CourseBatch/1
         [HttpPut("{id:long}")]
         [Authorize(Roles = "ADMIN")]
         public async Task<ActionResult<CourseBatchResponseDto>> Update(
@@ -80,7 +76,6 @@ namespace BackEnd.Controllers
             return Ok(updatedCourseBatch);
         }
 
-        // DELETE: api/CourseBatch/1
         [HttpDelete("{id:long}")]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> Delete(long id)

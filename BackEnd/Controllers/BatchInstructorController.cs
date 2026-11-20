@@ -17,7 +17,6 @@ namespace BackEnd.Controllers
             _batchInstructorService = batchInstructorService;
         }
 
-        // GET: api/BatchInstructor
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
@@ -26,7 +25,6 @@ namespace BackEnd.Controllers
             return Ok(result);
         }
 
-        // GET: api/BatchInstructor/batch/1
         [HttpGet("batch/{batchId:long}")]
         public async Task<IActionResult> GetByBatchId(long batchId)
         {
@@ -37,7 +35,6 @@ namespace BackEnd.Controllers
             return Ok(result);
         }
 
-        // GET: api/BatchInstructor/instructor/1
         [HttpGet("instructor/{instructorId:long}")]
         public async Task<IActionResult> GetByInstructorId(
             long instructorId)
@@ -49,7 +46,6 @@ namespace BackEnd.Controllers
             return Ok(result);
         }
 
-        // POST: api/BatchInstructor
         [HttpPost]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> AssignInstructor(
@@ -62,7 +58,6 @@ namespace BackEnd.Controllers
             return Ok(result);
         }
 
-        // DELETE: api/BatchInstructor?batchId=1&instructorId=2
         [HttpDelete]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> RemoveInstructor(

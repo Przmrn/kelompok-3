@@ -38,7 +38,7 @@ namespace BackEnd.Models
         public decimal TotalAmount { get; set; }
 
         [MaxLength(30)]
-        public string PaymentMethod { get; set; } = string.Empty;
+        public PaymentMethods PaymentMethod { get; set; }
 
         public int? InstallmentTenor { get; set; }
 

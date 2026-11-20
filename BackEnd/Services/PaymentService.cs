@@ -221,7 +221,7 @@ namespace BackEnd.Services
             {
                 RegistrationId = registration.Id,
                 RegistrationNumber = registration.RegistrationNumber,
-                PaymentMethod = registration.PaymentMethod,
+                PaymentMethod = registration.PaymentMethod.ToString(),
                 TotalAmount = registration.TotalAmount,
                 PaidAmount = registration.PaidAmount,
                 RemainingAmount = Math.Max(0, registration.TotalAmount - registration.PaidAmount),

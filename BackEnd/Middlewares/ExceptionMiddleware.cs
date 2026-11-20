@@ -1,5 +1,5 @@
+using System.Security.Claims;
 using System.Text.Json;
-using BackEnd.Exceptions;
 using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Middlewares
@@ -21,7 +21,7 @@ namespace BackEnd.Middlewares
             {
                 await _next(context);
             }
-            catch (AppException ex)
+            catch (BackEnd.Exceptions.AppException ex)
             {
                 await WriteResponse(context, ex.StatusCode, ex.Message);
             }
@@ -46,6 +46,46 @@ namespace BackEnd.Middlewares
             context.Response.ContentType = "application/json";
             var body = JsonSerializer.Serialize(new { status = statusCode, message });
             return context.Response.WriteAsync(body);
+        }
+    }
+}
+
+namespace BackEnd.Exceptions
+{
+    public class AppException : Exception
+    {
+        public int StatusCode { get; }
+
+        public AppException(string message, int statusCode = 400) : base(message)
+        {
+            StatusCode = statusCode;
+        }
+    }
+
+    public class NotFoundException : AppException
+    {
+        public NotFoundException(string message) : base(message, 404) { }
+    }
+
+    public class UnauthorizedException : AppException
+    {
+        public UnauthorizedException(string message) : base(message, 401) { }
+    }
+}
+
+namespace BackEnd.Extensions
+{
+    public static class ClaimsPrincipalExtensions
+    {
+        public static long GetUserId(this ClaimsPrincipal user)
+        {
+            var value = user.FindFirst("sub")?.Value
+                        ?? user.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!long.TryParse(value, out var id))
+                throw new BackEnd.Exceptions.UnauthorizedException("Token tidak valid.");
+
+            return id;
         }
     }
 }
