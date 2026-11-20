@@ -1,11 +1,6 @@
-﻿
-using BackEnd.DTOs;
-using BackEnd.DTOs.Registration;
+﻿﻿using BackEnd.DTOs.Registration;
 using BackEnd.DTOs.Payment;
-using BackEnd.Models;
 using BackEnd.Services;
-using BackEnd.Repositories;
-using BackEnd.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -20,228 +15,147 @@ namespace BackEnd.Controllers
         private readonly IRegistrationService _registrationService;
         private readonly IPaymentService _paymentService;
 
-        private readonly IRepository<Student> _students;
-
         public RegistrationController(
             IRegistrationService registrationService,
-            IPaymentService paymentService,
-            IRepository<Student> students)
+            IPaymentService paymentService)
         {
             _registrationService = registrationService;
             _paymentService = paymentService;
-            _students = students;
         }
 
-        // Mengambil seluruh pendaftaran
-        [HttpGet]
-        [Authorize(Roles = "ADMIN")]
-        public async Task<ActionResult<IEnumerable<Registration>>> GetAll()
+        private long GetUserId()
         {
-            var registrations = await _registrationService.GetAllAsync();
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
+                ?? User.FindFirstValue("sub");
 
-            return Ok(registrations);
+            if (!long.TryParse(userId, out var id))
+                throw new UnauthorizedAccessException("User ID tidak valid.");
+
+            return id;
         }
 
-        // Mengambil pendaftaran milik student yang sedang login
-        [HttpGet("me")]
-        [Authorize(Roles = "STUDENT")]
-        public async Task<ActionResult<IEnumerable<Registration>>> GetMyRegistrations()
-        {
-            var studentId = await GetCurrentStudentIdAsync();
-
-            if (studentId == null)
-                return Ok(Array.Empty<Registration>());
-
-            var registrations =
-                await _registrationService.GetByStudentIdAsync(studentId.Value);
-
-            return Ok(registrations);
-        }
-
-        // Mengambil detail pendaftaran berdasarkan ID
-        [HttpGet("{id:long}")]
-        [Authorize(Roles = "STUDENT,ADMIN")]
-        public async Task<ActionResult<Registration>> GetById(long id)
-        {
-            var registration = await _registrationService.GetByIdAsync(id);
-
-            if (registration == null)
-                return NotFound(new
-                {
-                    message = "Pendaftaran tidak ditemukan."
-                });
-
-            if (User.IsInRole("STUDENT"))
-            {
-                var studentId = await GetCurrentStudentIdAsync();
-
-                if (studentId == null)
-                    return Unauthorized();
-
-                if (registration.StudentId != studentId.Value)
-                    return Forbid();
-            }
-
-            return Ok(registration);
-        }
-
-        // Mengambil detail payment dan jadwal cicilan berdasarkan pendaftaran
-        [HttpGet("{id:long}/payment")]
-        [Authorize(Roles = "STUDENT,ADMIN")]
-        public async Task<ActionResult<PaymentResponseDto>> GetPayment(long id)
-        {
-            var registration = await _registrationService.GetByIdAsync(id);
-
-            if (registration == null)
-                return NotFound(new
-                {
-                    message = "Pendaftaran tidak ditemukan."
-                });
-
-            if (User.IsInRole("STUDENT"))
-            {
-                var studentId = await GetCurrentStudentIdAsync();
-
-                if (studentId == null)
-                    return Unauthorized();
-
-                if (registration.StudentId != studentId.Value)
-                    return Forbid();
-            }
-
-            var payment = await _paymentService.GetByRegistrationIdAsync(id);
-
-            return payment == null
-                ? NotFound(new { message = "Data payment tidak ditemukan." })
-                : Ok(payment);
-        }
-
-        // Membuat pendaftaran kursus
         [HttpPost]
         [Authorize(Roles = "STUDENT")]
-        public async Task<ActionResult<Registration>> Create(
-            [FromBody] RegistrationCreateDto request)
+        public async Task<IActionResult> Create([FromBody] RegistrationCreateDto dto)
         {
-            var studentId = await GetCurrentStudentIdAsync();
-
-            if (studentId == null)
-                return Unauthorized(new
-                {
-                    message = "Identitas student tidak ditemukan."
-                });
-
-            var registration = await _registrationService.CreateAsync(
-                studentId.Value,
-                request.BatchId,
-                request.PaymentMethod,
-                request.InstallmentTenor
-            );
-
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = registration.Id },
-                registration
-            );
+            try
+            {
+                var result = await _registrationService.CreateAsync(GetUserId(), dto);
+                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
         }
 
-        // Mengonfirmasi pembayaran Upfront
+        [HttpGet("me")]
+        [Authorize(Roles = "STUDENT")]
+        public async Task<IActionResult> GetMyRegistrations()
+        {
+            try
+            {
+                return Ok(await _registrationService.GetMyRegistrationsAsync(GetUserId()));
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
+        [HttpGet("{id:long}")]
+        public async Task<IActionResult> GetById(long id)
+        {
+            try
+            {
+                return Ok(await _registrationService.GetByIdAsync(id, GetUserId(), User.IsInRole("ADMIN")));
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
+        [HttpGet("{id:long}/payment")]
+        [Authorize(Roles = "STUDENT,ADMIN")]
+        public async Task<IActionResult> GetPayment(long id)
+        {
+            try
+            {
+                await _registrationService.GetByIdAsync(id, GetUserId(), User.IsInRole("ADMIN"));
+                var payment = await _paymentService.GetByRegistrationIdAsync(id);
+                return payment == null
+                    ? NotFound(new { message = "Data payment tidak ditemukan." })
+                    : Ok(payment);
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
+        [HttpGet]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> GetAll()
+        {
+            try
+            {
+                return Ok(await _registrationService.GetAllAsync());
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
+        [HttpPost("{id:long}/payments")]
+        [Authorize(Roles = "STUDENT")]
+        public async Task<IActionResult> Pay(long id, [FromBody] RegistrationPaymentDto dto)
+        {
+            try
+            {
+                return Ok(await _registrationService.PayAsync(id, GetUserId(), dto));
+            }
+            catch (Exception ex)
+            {
+                return HandleException(ex);
+            }
+        }
+
         [HttpPost("{id:long}/confirm-upfront")]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> ConfirmUpfrontPayment(
             long id,
             [FromBody] PaymentConfirmationRequestDto? request = null)
         {
-            var payment = await _paymentService.ConfirmUpfrontPaymentAsync(
-                id,
-                request?.PaidAmount);
-
-            return Ok(new
-            {
-                message = "Pembayaran Upfront berhasil dikonfirmasi.",
-                payment
-            });
+            var payment = await _paymentService.ConfirmUpfrontPaymentAsync(id, request?.PaidAmount);
+            return Ok(new { message = "Pembayaran Upfront berhasil dikonfirmasi.", payment });
         }
 
-        // Mengonfirmasi pembayaran cicilan
         [HttpPost("installments/{scheduleId:long}/confirm")]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> ConfirmInstallmentPayment(
             long scheduleId,
             [FromBody] PaymentConfirmationRequestDto? request = null)
         {
-            var payment = await _paymentService.ConfirmInstallmentPaymentAsync(
-                scheduleId,
-                request?.PaidAmount
-            );
-
-            return Ok(new
-            {
-                message = "Pembayaran cicilan berhasil dikonfirmasi.",
-                payment
-            });
+            var payment = await _paymentService.ConfirmInstallmentPaymentAsync(scheduleId, request?.PaidAmount);
+            return Ok(new { message = "Pembayaran cicilan berhasil dikonfirmasi.", payment });
         }
 
-        // Membatalkan pendaftaran
-        [HttpDelete("{id:long}")]
-        [Authorize(Roles = "STUDENT,ADMIN")]
-        public async Task<IActionResult> Cancel(long id)
-        {
-            var registration = await _registrationService.GetByIdAsync(id);
-
-            if (registration == null)
-                return NotFound(new
-                {
-                    message = "Pendaftaran tidak ditemukan."
-                });
-
-            if (User.IsInRole("STUDENT"))
-            {
-                var studentId = await GetCurrentStudentIdAsync();
-
-                if (studentId == null)
-                    return Unauthorized();
-
-                if (registration.StudentId != studentId.Value)
-                    return Forbid();
-            }
-
-            var result = await _registrationService.CancelAsync(id);
-
-            if (!result)
-                return BadRequest(new
-                {
-                    message = "Pendaftaran tidak dapat dibatalkan."
-                });
-
-            return Ok(new
-            {
-                message = "Pendaftaran berhasil dibatalkan."
-            });
-        }
-
-        // Memproses pendaftaran dengan cicilan yang terlambat
         [HttpPost("process-overdue")]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> ProcessOverdueRegistrations()
         {
             await _paymentService.ProcessOverdueRegistrationsAsync();
-
-            return Ok(new
-            {
-                message = "Pemeriksaan keterlambatan pembayaran berhasil dijalankan."
-            });
+            return Ok(new { message = "Pemeriksaan keterlambatan pembayaran berhasil dijalankan." });
         }
 
-        private async Task<long?> GetCurrentStudentIdAsync()
+        private IActionResult HandleException(Exception ex)
         {
-            var studentIdClaim = User.FindFirst("StudentId")?.Value;
+            if (ex is UnauthorizedAccessException)
+                return Forbid();
 
-            if (long.TryParse(studentIdClaim, out var studentId))
-                return studentId;
-
-            var userId = User.GetUserId();
-            var student = (await _students.FindAsync(s => s.UserId == userId)).FirstOrDefault();
-            return student?.Id;
+            return BadRequest(new { message = ex.Message });
         }
     }
 }

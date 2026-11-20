@@ -11,19 +11,15 @@ import { CourseSystemService } from '../../services/course-system.service';
 })
 export class CartPageComponent {
   readonly svc = inject(CourseSystemService);
+<<<<<<< HEAD
+=======
+
+>>>>>>> rafie
 
 
-  readonly unpaidRegistrations = computed(() => {
-    const student = this.svc.currentStudentProfile();
-    if (!student) return [];
-    return this.svc.getUnpaidCartRegistrations(student.id);
-  });
+  readonly unpaidRegistrations = this.svc.unpaidCartRegistrations;
 
-  readonly paidCoursesCount = computed(() => {
-    const student = this.svc.currentStudentProfile();
-    if (!student) return 0;
-    return this.svc.getPaidCoursesForStudent(student.id).length;
-  });
+  readonly paidCoursesCount = computed(() => this.svc.purchasedCourses().length);
 
   getInitialAmountDue(registrationId: number, fallbackTotal: number): number {
     const firstSchedule = this.svc

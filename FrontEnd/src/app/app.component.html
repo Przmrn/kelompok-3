@@ -171,7 +171,7 @@
                 >
                   {{ labels.role[user.role] }}
                 </span>
-                @if (user.role === 'Student' && !svc.isStudentProfileComplete(user.id)) {
+                @if (user.role === 'Student' && svc.profileChecked() && !svc.isStudentProfileComplete(user.id)) {
                   <span class="pulse-dot" title="Profil belum lengkap"></span>
                 }
               </button>

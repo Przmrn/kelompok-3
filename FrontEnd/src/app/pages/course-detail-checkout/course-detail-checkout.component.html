@@ -153,6 +153,10 @@
                     <div class="small text-danger mb-2">
                       Gunakan akun peserta untuk mendaftar kelas.
                     </div>
+                  } @else if (svc.isStudent() && svc.profileStatus() === 'loading') {
+                    <div class="small text-muted mb-2" role="status">Memuat profil peserta…</div>
+                  } @else if (svc.isStudent() && svc.profileStatus() === 'error') {
+                    <div class="small text-danger mb-2">Profil belum berhasil dimuat. <button class="btn btn-link btn-sm" type="button" (click)="svc.retryProfile()">Coba lagi</button></div>
                   } @else if (!isProfileComplete()) {
                     <div class="small text-danger mb-2">
                       Lengkapi <a routerLink="/profile" class="fw-bold text-danger">profil Anda</a> sebelum mendaftar.

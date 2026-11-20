@@ -20,14 +20,15 @@ export class AdminBatchesComponent {
   readonly editingBatchId = signal<number | undefined>(undefined);
 
   form = {
-    courseId: this.svc.courses()[0]?.id ?? 0,
-    locationId: this.svc.locations()[0]?.id ?? 0,
+    courseId: 1,
+    locationId: 1,
     batchName: 'BCH-BE-04 — Batch 4 Reguler Januari',
     startDate: '2027-01-16',
     endDate: '2027-02-14',
     startTime: '09:00',
     endTime: '16:00',
     maxSeats: 30,
+    status: 'Open' as 'Open' | 'Full',
   };
 
   openNewBatchForm(): void {
@@ -37,14 +38,15 @@ export class AdminBatchesComponent {
     }
     this.editingBatchId.set(undefined);
     this.form = {
-      courseId: this.svc.courses()[0]?.id ?? 0,
-      locationId: this.svc.locations()[0]?.id ?? 0,
+      courseId: 1,
+      locationId: 1,
       batchName: `BCH-NEW-0${this.svc.batches().length + 1} — Batch Reguler`,
       startDate: '2027-01-16',
       endDate: '2027-02-14',
       startTime: '09:00',
       endTime: '16:00',
       maxSeats: 30,
+      status: 'Open',
     };
     this.showForm.set(true);
   }

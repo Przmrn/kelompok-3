@@ -12,15 +12,7 @@ import { CourseSystemService } from '../../services/course-system.service';
 export class MyRegistrationsComponent {
   readonly svc = inject(CourseSystemService);
 
-  readonly paidCourses = computed(() => {
-    const student = this.svc.currentStudentProfile();
-    if (!student) return [];
-    return this.svc.getPaidCoursesForStudent(student.id);
-  });
+  readonly paidCourses = this.svc.purchasedCourses;
 
-  readonly unpaidCount = computed(() => {
-    const student = this.svc.currentStudentProfile();
-    if (!student) return 0;
-    return this.svc.getUnpaidCartRegistrations(student.id).length;
-  });
+  readonly unpaidCount = computed(() => this.svc.unpaidCartRegistrations().length);
 }

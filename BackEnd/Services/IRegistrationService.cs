@@ -1,36 +1,30 @@
-﻿
-using BackEnd.Models;
+﻿using BackEnd.DTOs.Registration;
 
 namespace BackEnd.Services
 {
     public interface IRegistrationService
     {
-        // Mengambil seluruh pendaftaran
-        Task<IEnumerable<Registration>> GetAllAsync();
+        Task<RegistrationDetailDto> CreateAsync(
+            long userId,
+            RegistrationCreateDto dto
+        );
 
-        // Mengambil pendaftaran berdasarkan ID
-        Task<Registration?> GetByIdAsync(long id);
+        Task<IEnumerable<RegistrationDetailDto>> GetMyRegistrationsAsync(
+            long userId
+        );
 
-        // Mengambil pendaftaran berdasarkan Student
-        Task<IEnumerable<Registration>> GetByStudentIdAsync(long studentId);
+        Task<RegistrationDetailDto> GetByIdAsync(
+            long registrationId,
+            long userId,
+            bool isAdmin
+        );
 
-        // Membuat pendaftaran kursus
-        Task<Registration> CreateAsync(
-            long studentId,
-            long batchId,
-            string paymentMethod,
-            int? installmentTenor);
+        Task<IEnumerable<RegistrationDetailDto>> GetAllAsync();
 
-        // Mengonfirmasi pembayaran Upfront
-        Task<bool> ConfirmUpfrontPaymentAsync(long registrationId);
-
-        // Mengonfirmasi pembayaran cicilan
-        Task<bool> ConfirmInstallmentPaymentAsync(long installmentScheduleId);
-
-        // Membatalkan pendaftaran
-        Task<bool> CancelAsync(long id);
-
-        // Memproses pendaftaran dengan cicilan yang terlambat
-        Task ProcessOverdueRegistrationsAsync();
+        Task<RegistrationDetailDto> PayAsync(
+            long registrationId,
+            long userId,
+            RegistrationPaymentDto dto
+        );
     }
 }

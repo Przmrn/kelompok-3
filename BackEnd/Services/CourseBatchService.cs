@@ -1,4 +1,5 @@
-﻿
+﻿using BackEnd.DTOs.CourseBatch;
+using BackEnd.Exceptions;
 using BackEnd.Models;
 using BackEnd.Repositories;
 
@@ -20,47 +21,54 @@ namespace BackEnd.Services
             _locationRepository = locationRepository;
         }
 
-        public async Task<IEnumerable<CourseBatch>> GetAllAsync()
+        // Mengambil seluruh batch
+        public async Task<IEnumerable<CourseBatchResponseDto>> GetAllAsync()
         {
-            return await _batchRepository.GetAllAsync(
-                "Registrations");
+            var batches = await _batchRepository.GetAllAsync(
+                "Course,Location,Registrations");
+
+            return batches.Select(MapToResponseDto);
         }
 
-        public async Task<CourseBatch?> GetByIdAsync(long id)
+        // Mengambil detail satu batch berdasarkan ID
+        public async Task<CourseBatchDetailDto?> GetByIdAsync(long id)
         {
-            var courseBatch = await _batchRepository.GetAllAsync(
-                "Registrations");
+            var batch = await GetBatchEntityAsync(id);
 
-            return courseBatch.FirstOrDefault(cb => cb.Id == id);
+            if (batch == null)
+                return null;
+
+            return MapToDetailDto(batch);
         }
 
-        public async Task<CourseBatch> CreateAsync(CourseBatch courseBatch)
+        // Membuat batch baru
+        public async Task<CourseBatchResponseDto> CreateAsync(
+            CourseBatchCreateDto dto)
         {
             // Validasi Course
             var courseExists = await _courseRepository.ExistsAsync(
-                c => c.Id == courseBatch.CourseId);
+                c => c.Id == dto.CourseId);
 
             if (!courseExists)
-                throw new BackEnd.Exceptions.AppException("Course tidak ditemukan.");
+                throw new AppException("Course tidak ditemukan.");
 
             // Validasi Location
             var locationExists = await _locationRepository.ExistsAsync(
-                l => l.Id == courseBatch.LocationId);
+                l => l.Id == dto.LocationId);
 
             if (!locationExists)
-                throw new BackEnd.Exceptions.AppException("Location tidak ditemukan.");
+                throw new AppException("Location tidak ditemukan.");
 
-            // Validasi tanggal
-            if (courseBatch.StartDate > courseBatch.EndDate)
-                throw new BackEnd.Exceptions.AppException("Tanggal mulai tidak boleh melebihi tanggal selesai.");
+            // Validasi data batch
+            ValidateBatchData(
+                dto.StartDate,
+                dto.EndDate,
+                dto.StartTime,
+                dto.EndTime,
+                dto.MaxSeats);
 
-            // Validasi waktu
-            if (courseBatch.StartTime >= courseBatch.EndTime)
-                throw new BackEnd.Exceptions.AppException("Waktu mulai harus lebih awal dari waktu selesai.");
-
-            // Validasi kapasitas
-            if (courseBatch.MaxSeats <= 0 || courseBatch.MaxSeats > 30)
-                throw new BackEnd.Exceptions.AppException("Kapasitas batch harus antara 1 sampai 30.");
+            // Konversi DTO menjadi Entity
+            var courseBatch = dto.ToBatch();
 
             // Status awal batch
             courseBatch.CourseStatus = CourseBatchStatus.OPEN;
@@ -68,72 +76,204 @@ namespace BackEnd.Services
             await _batchRepository.AddAsync(courseBatch);
             await _batchRepository.SaveChangesAsync();
 
-            return courseBatch;
+            // Ambil kembali data beserta relasinya
+            var createdBatch = await GetBatchEntityAsync(courseBatch.Id);
+
+            if (createdBatch == null)
+                throw new AppException("Gagal mengambil data batch yang dibuat.");
+
+            return MapToResponseDto(createdBatch);
         }
 
-        public async Task<CourseBatch?> UpdateAsync(
+        // Mengubah batch
+        public async Task<CourseBatchResponseDto?> UpdateAsync(
             long id,
-            CourseBatch courseBatch)
+            CourseBatchUpdateDto dto)
         {
-            var existingBatch = await GetByIdAsync(id);
+            var existingBatch = await GetBatchEntityAsync(id);
 
             if (existingBatch == null)
                 return null;
 
             // Validasi Course
             var courseExists = await _courseRepository.ExistsAsync(
-                c => c.Id == courseBatch.CourseId);
+                c => c.Id == dto.CourseId);
 
             if (!courseExists)
-                throw new BackEnd.Exceptions.AppException("Course tidak ditemukan.");
+                throw new AppException("Course tidak ditemukan.");
 
             // Validasi Location
             var locationExists = await _locationRepository.ExistsAsync(
-                l => l.Id == courseBatch.LocationId);
+                l => l.Id == dto.LocationId);
 
             if (!locationExists)
-                throw new BackEnd.Exceptions.AppException("Location tidak ditemukan.");
+                throw new AppException("Location tidak ditemukan.");
 
-            if (courseBatch.StartDate > courseBatch.EndDate)
-                throw new BackEnd.Exceptions.AppException("Tanggal mulai tidak valid.");
+            // Validasi tanggal, waktu, dan kapasitas
+            ValidateBatchData(
+                dto.StartDate,
+                dto.EndDate,
+                dto.StartTime,
+                dto.EndTime,
+                dto.MaxSeats);
 
-            if (courseBatch.StartTime >= courseBatch.EndTime)
-                throw new BackEnd.Exceptions.AppException("Waktu mulai tidak valid.");
+            // Kapasitas tidak boleh lebih kecil dari peserta terdaftar
+            if (dto.MaxSeats < existingBatch.UsedSeats)
+            {
+                throw new AppException(
+                    "Kapasitas kurang dari jumlah peserta terdaftar.");
+            }
 
-            if (courseBatch.MaxSeats <= 0 || courseBatch.MaxSeats > 30)
-                throw new BackEnd.Exceptions.AppException("Kapasitas batch harus antara 1 sampai 30.");
+            // Update data batch
+            existingBatch.CourseId = dto.CourseId;
+            existingBatch.LocationId = dto.LocationId;
+            existingBatch.BatchName = dto.BatchName;
+            existingBatch.StartDate = dto.StartDate;
+            existingBatch.EndDate = dto.EndDate;
+            existingBatch.StartTime = dto.StartTime;
+            existingBatch.EndTime = dto.EndTime;
+            existingBatch.MaxSeats = dto.MaxSeats;
 
-            existingBatch.CourseId = courseBatch.CourseId;
-            existingBatch.LocationId = courseBatch.LocationId;
-            existingBatch.BatchName = courseBatch.BatchName;
-            existingBatch.StartDate = courseBatch.StartDate;
-            existingBatch.EndDate = courseBatch.EndDate;
-            existingBatch.StartTime = courseBatch.StartTime;
-            existingBatch.EndTime = courseBatch.EndTime;
-            existingBatch.MaxSeats = courseBatch.MaxSeats;
+            // Perbarui status berdasarkan kapasitas
+            existingBatch.CourseStatus =
+                existingBatch.UsedSeats >= existingBatch.MaxSeats
+                    ? CourseBatchStatus.FULL
+                    : CourseBatchStatus.OPEN;
 
-            if (existingBatch.MaxSeats < existingBatch.UsedSeats)
-                throw new BackEnd.Exceptions.AppException("Kapasitas kurang dari jumlah peserta terdaftar.");
-            existingBatch.CourseStatus = existingBatch.UsedSeats >= existingBatch.MaxSeats ? CourseBatchStatus.FULL : CourseBatchStatus.OPEN;
             _batchRepository.Update(existingBatch);
             await _batchRepository.SaveChangesAsync();
 
-            return existingBatch;
+            // Ambil ulang agar navigasi Course dan Location sesuai
+            var updatedBatch = await GetBatchEntityAsync(id);
+
+            if (updatedBatch == null)
+                throw new AppException("Gagal mengambil data batch yang diperbarui.");
+
+            return MapToResponseDto(updatedBatch);
         }
 
+        // Menghapus batch
         public async Task<bool> DeleteAsync(long id)
         {
-            var courseBatch = await GetByIdAsync(id);
+            var courseBatch = await GetBatchEntityAsync(id);
 
             if (courseBatch == null)
                 return false;
 
+            // Batch yang sudah memiliki pendaftaran tidak boleh dihapus
             if (courseBatch.Registrations.Count > 0)
-                throw new BackEnd.Exceptions.AppException("Jadwal yang memiliki pendaftaran tidak dapat dihapus.", 409);
+            {
+                throw new AppException(
+                    "Jadwal yang memiliki pendaftaran tidak dapat dihapus.",
+                    409);
+            }
+
             _batchRepository.Delete(courseBatch);
             await _batchRepository.SaveChangesAsync();
 
             return true;
+        }
+
+        // Mengambil entity beserta relasi yang dibutuhkan
+        private async Task<CourseBatch?> GetBatchEntityAsync(long id)
+        {
+            var batches = await _batchRepository.GetAllAsync(
+                "Course,Location,Registrations");
+
+            return batches.FirstOrDefault(batch => batch.Id == id);
+        }
+
+        // Validasi data batch
+        private void ValidateBatchData(
+            DateOnly startDate,
+            DateOnly endDate,
+            TimeOnly startTime,
+            TimeOnly endTime,
+            int maxSeats)
+        {
+            if (startDate > endDate)
+            {
+                throw new AppException(
+                    "Tanggal mulai tidak boleh melebihi tanggal selesai.");
+            }
+
+            if (startTime >= endTime)
+            {
+                throw new AppException(
+                    "Waktu mulai harus lebih awal dari waktu selesai.");
+            }
+
+            if (maxSeats <= 0 || maxSeats > 30)
+            {
+                throw new AppException(
+                    "Kapasitas batch harus antara 1 sampai 30.");
+            }
+        }
+
+        // Mapping Entity menjadi Response DTO
+        private CourseBatchResponseDto MapToResponseDto(
+            CourseBatch batch)
+        {
+            return new CourseBatchResponseDto
+            {
+                Id = batch.Id,
+
+                CourseId = batch.CourseId,
+
+                LocationId = batch.LocationId,
+                LocationName = batch.Location.Name,
+
+                BatchName = batch.BatchName,
+
+                StartDate = batch.StartDate,
+                EndDate = batch.EndDate,
+
+                StartTime = batch.StartTime,
+                EndTime = batch.EndTime,
+
+                MaxSeats = batch.MaxSeats,
+                UsedSeats = batch.UsedSeats,
+                AvailableSeats = batch.MaxSeats - batch.UsedSeats,
+
+                CourseStatus = batch.CourseStatus
+            };
+        }
+
+        // Mapping Entity menjadi Detail DTO
+        private CourseBatchDetailDto MapToDetailDto(
+            CourseBatch batch)
+        {
+            return new CourseBatchDetailDto
+            {
+                Id = batch.Id,
+
+                CourseId = batch.CourseId,
+
+                LocationId = batch.LocationId,
+                LocationName = batch.Location.Name,
+
+                BatchName = batch.BatchName,
+
+                StartDate = batch.StartDate,
+                EndDate = batch.EndDate,
+
+                StartTime = batch.StartTime,
+                EndTime = batch.EndTime,
+
+                MaxSeats = batch.MaxSeats,
+                UsedSeats = batch.UsedSeats,
+                AvailableSeats = batch.MaxSeats - batch.UsedSeats,
+
+                CourseStatus = batch.CourseStatus,
+
+                Syllabus = batch.Course.Syllabus,
+                DurationHours = batch.Course.DurationHours,
+                BasePrice = batch.Course.BasePrice,
+
+                LocationAddress = batch.Location.Address,
+                LocationCity = batch.Location.City,
+                RoomName = batch.Location.RoomName
+            };
         }
     }
 }

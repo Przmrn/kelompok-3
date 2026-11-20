@@ -26,11 +26,7 @@ export class ProfileAuthPageComponent {
     return u ? this.svc.isStudentProfileComplete(u.id) : false;
   });
 
-  readonly myRegistrations = computed(() => {
-    const student = this.svc.currentStudentProfile();
-    if (!student) return [];
-    return this.svc.registrations().filter((r) => r.studentId === student.id);
-  });
+  readonly myRegistrations = this.svc.myRegistrations;
 
   readonly confirmedCount = computed(
     () =>
@@ -67,7 +63,7 @@ export class ProfileAuthPageComponent {
 
   constructor() {
     effect(() => {
-      this.profileForm.reset(this.svc.currentStudentProfile() ?? {});
+      this.profileForm.reset(this.svc.currentStudentProfile() ?? { fullName: this.svc.currentUser()?.fullName ?? '' });
     });
   }
 
@@ -78,6 +74,6 @@ export class ProfileAuthPageComponent {
       this.profileForm.markAllAsTouched();
       return;
     }
-    this.svc.updateStudentProfile(u.id, this.profileForm.getRawValue());
+    void this.svc.updateStudentProfile(this.profileForm.getRawValue());
   }
 }

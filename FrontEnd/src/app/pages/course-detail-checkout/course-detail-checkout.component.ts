@@ -15,7 +15,11 @@ export class CourseDetailCheckoutComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
 
+<<<<<<< HEAD
+  readonly courseId = signal<number>(0);
+=======
   readonly courseId = signal<number>(1);
+>>>>>>> rafie
   readonly selectedBatchId = signal<number | null>(null);
 
   readonly currentUser = this.svc.currentUser;
@@ -78,7 +82,7 @@ export class CourseDetailCheckoutComponent implements OnInit {
 
   ngOnInit(): void {
     this.route.paramMap.subscribe((params) => {
-      const id = Number(params.get('id')) || 1;
+      const id = Number(params.get('id'));
       this.courseId.set(id);
       this.selectedBatchId.set(null);
     });

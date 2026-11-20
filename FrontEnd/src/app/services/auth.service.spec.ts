@@ -53,10 +53,16 @@ describe('Sesi akun Karsa', () => {
     request.flush(session());
     const courses = TestBed.inject(CourseSystemService);
     expect(courses.currentUser()?.role).toBe('Student');
+    expect(courses.currentStudentProfile()).toBeNull();
+    TestBed.flushEffects();
+    const profile = http.expectOne('/api/students/me');
+    expect(profile.request.headers.get('Authorization')).toBe('Bearer token-uji');
+    profile.flush({ id: 1, userId: user.id, fullName: user.fullName, phoneNumber: '', address: '',
+      city: '', province: '', country: '', educationalLevel: '', occupation: '' });
     const student = courses.currentStudentProfile()!;
     expect(student.fullName).toBe(user.fullName);
     expect(student.phoneNumber).toBe('');
-    expect(courses.getUnpaidCartRegistrations(student.id)).toEqual([]);
+    expect(courses.unpaidCartRegistrations()).toEqual([]);
     auth.logout();
     expect(auth.user()).toBeNull();
     expect(sessionStorage.getItem('karsa.auth')).toBeNull();

@@ -14,7 +14,9 @@
       </div>
     </div>
 
-    @if (!isProfileComplete()) {
+    @if (svc.profileStatus() === 'error') {
+      <div class="k-card p-3 mb-4">Profil belum berhasil dimuat. <button class="btn-k-light" type="button" (click)="svc.retryProfile()">Coba lagi</button></div>
+    } @else if (svc.profileStatus() !== 'loading' && !isProfileComplete()) {
       <div class="k-card p-3 px-4 mb-4 d-flex flex-wrap justify-content-between align-items-center gap-2" style="background: var(--brand-amber-light);">
         <span class="small" style="color: #92400E;">
           <strong>Perhatian:</strong> Lengkapi profil Anda sebelum mendaftar kelas.
