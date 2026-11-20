@@ -28,7 +28,6 @@ export class AdminBatchesComponent {
     startTime: '09:00',
     endTime: '16:00',
     maxSeats: 30,
-    status: 'Open' as 'Open' | 'Full',
   };
 
   openNewBatchForm(): void {
@@ -46,7 +45,6 @@ export class AdminBatchesComponent {
       startTime: '09:00',
       endTime: '16:00',
       maxSeats: 30,
-      status: 'Open',
     };
     this.showForm.set(true);
   }

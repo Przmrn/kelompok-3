@@ -1,17 +1,11 @@
-<<<<<<< HEAD
 import { provideHttpClient } from '@angular/common/http';
 import { provideHttpClientTesting, HttpTestingController } from '@angular/common/http/testing';
 import { AuthService } from '../../services/auth.service';
-=======
-import { HttpTestingController } from '@angular/common/http/testing';
-import { accountId, apiTestProviders, flushCourseData, instructor, loadCourseData } from '../../services/course-api.testing';
->>>>>>> rafie
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { ProfileAuthPageComponent } from './profile-auth-page.component';
 
 describe('Student profile form', () => {
-<<<<<<< HEAD
   const user = { id: 7, role: 'Student', fullName: 'Peserta', email: 'peserta@example.test' };
   const stored = { id: 5, userId: user.id, fullName: 'Nama tersimpan', phoneNumber: '081234567890',
     address: 'Jalan Uji', city: 'Bandung', province: 'Jawa Barat', country: 'Indonesia',
@@ -27,13 +21,8 @@ describe('Student profile form', () => {
   afterEach(() => http.verify());
 
   it('memuat profil tersimpan dan memperbaruinya setelah nomor telepon valid', async () => {
-    const svc = TestBed.inject(CourseSystemService);
-=======
-  it('blocks an invalid phone and saves a formatted number on a partial profile', async () => {
-    TestBed.configureTestingModule({ providers: [provideRouter([]), ...apiTestProviders('Student')] });
-    const svc = await loadCourseData('Student');
->>>>>>> rafie
     const fixture = TestBed.createComponent(ProfileAuthPageComponent);
+    const svc = fixture.componentInstance.svc;
     fixture.detectChanges();
     const read = http.expectOne({ method: 'GET', url: '/api/students/me' });
     expect(fixture.nativeElement.querySelector('form')).toBeNull();
@@ -58,13 +47,6 @@ describe('Student profile form', () => {
     expect(svc.currentStudentProfile()!.phoneNumber).toBe(original);
 
     submit('+62 812-3456-7890');
-    const request = TestBed.inject(HttpTestingController).expectOne('/api/students/me');
-    expect(request.request.method).toBe('PUT');
-    expect(request.request.body.phoneNumber).toBe('+62 812-3456-7890');
-    request.flush({});
-    await Promise.resolve();
-    flushCourseData('Student', { phone: '+62 812-3456-7890', expertise: '', cancelled: false });
-    await Promise.resolve();
     expect(form.querySelector('#profile-phone-error')).toBeNull();
     const write = http.expectOne({ method: 'PUT', url: '/api/students/me' });
     expect(write.request.body.educationalLevel).toBe(stored.educationalLevel);
@@ -72,7 +54,6 @@ describe('Student profile form', () => {
     write.flush({ ...stored, phoneNumber: write.request.body.phoneNumber });
     await fixture.whenStable();
     expect(svc.currentStudentProfile()!.phoneNumber).toBe('+62 812-3456-7890');
-<<<<<<< HEAD
     expect(svc.isStudentProfileComplete(user.id)).toBeFalse();
   });
 
@@ -92,8 +73,5 @@ describe('Student profile form', () => {
     http.expectOne({ method: 'POST', url: '/api/students/me' }).flush(stored);
     await fixture.whenStable();
     expect(fixture.componentInstance.svc.currentStudentProfile()?.id).toBe(stored.id);
-=======
-    expect(svc.isStudentProfileComplete(accountId)).toBeFalse();
->>>>>>> rafie
   });
 });

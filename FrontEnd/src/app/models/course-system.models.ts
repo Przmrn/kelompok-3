@@ -98,10 +98,7 @@ export interface Registration {
   paymentMethod: PaymentMethodType;
   installmentTenor: 3 | 6 | 12 | null;
   paidAmount: number;
-<<<<<<< HEAD
   paidAt: string | null;
-=======
->>>>>>> rafie
   paymentStatus: PaymentStatus;
   registrationStatus: RegistrationStatus;
   cancelledAt?: string;

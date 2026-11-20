@@ -4,11 +4,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { User } from '../models/course-system.models';
 import { AuthService } from './auth.service';
-<<<<<<< HEAD
 import { accountId, flushCourseData, student } from './course-api.testing';
-=======
-import { accountId, flushCourseData } from './course-api.testing';
->>>>>>> rafie
 import { CourseSystemService } from './course-system.service';
 
 describe('Sinkronisasi data kelas', () => {
@@ -29,24 +25,16 @@ describe('Sinkronisasi data kelas', () => {
 
   it('tetap menampilkan katalog ketika profil peserta gagal dimuat', async () => {
     const loading = service.reload();
-<<<<<<< HEAD
     TestBed.flushEffects();
     http.expectOne('/api/Registration/me').flush([]);
-=======
-    http.expectOne('/api/Registration/me');
->>>>>>> rafie
     http.expectOne('/api/students/me').flush({}, { status: 401, statusText: 'Unauthorized' });
     flushCourseData('Guest');
     await loading;
     expect(service.courses().length).toBe(1);
     expect(service.loadError()).toBe('');
     expect(service.loading()).toBeFalse();
-<<<<<<< HEAD
     expect(service.accountError()).toBe('');
     expect(service.profileStatus()).toBe('error');
-=======
-    expect(service.accountError()).toContain('memverifikasi akun');
->>>>>>> rafie
     expect(service.accountLoading()).toBeFalse();
   });
 
@@ -54,11 +42,8 @@ describe('Sinkronisasi data kelas', () => {
     const loading = service.reload();
     flushCourseData('Student');
     await loading;
-<<<<<<< HEAD
     TestBed.flushEffects();
     http.expectOne('/api/students/me').flush(student);
-=======
->>>>>>> rafie
     const result = service.confirmCancelRegistration(1);
     http.expectOne('/api/Registration/1').flush({ message: 'Pendaftaran sudah diproses.' }, { status: 409, statusText: 'Conflict' });
     expect((await result).success).toBeFalse();

@@ -547,15 +547,12 @@
   font-size: 13px;
   font-weight: 600;
   text-decoration: none;
-  transition:
-    background-color 0.2s ease,
-    transform 0.2s ease;
+  transition: background-color 0.2s ease;
 }
 
 .card-cta:hover {
   background: var(--bolt-hover);
   color: var(--paper);
-  transform: translateY(-1px);
 }
 
 .catalog-empty {

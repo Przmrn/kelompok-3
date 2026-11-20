@@ -11,14 +11,9 @@ export const instructor = { id: 14, userId: 80, fullName: 'Pengajar', email: 'pe
   expertise: 'ASP.NET Core, SQL Server, PostgreSQL, Distributed Systems', bio: '' };
 
 export function apiTestProviders(role: 'Admin' | 'Student') {
-<<<<<<< HEAD
   const user = { id: accountId, role, fullName: 'Akun Uji', email: 'uji@example.test' };
   return [provideHttpClient(), provideHttpClientTesting(), { provide: AuthService,
     useValue: { accessToken: () => null, user: () => user } }];
-=======
-  return [provideHttpClient(), provideHttpClientTesting(), { provide: AuthService,
-    useValue: { accessToken: () => null, user: () => ({ id: accountId, role, fullName: 'Akun Uji', email: 'uji@example.test' }) } }];
->>>>>>> rafie
 }
 
 const registration = { id: 1, studentId: student.id, batchId: 9, registrationNumber: 'REG-1',
@@ -40,11 +35,7 @@ export function flushCourseData(role: 'Admin' | 'Student' | 'Guest', options = {
   if (role === 'Guest') return;
   const admin = role === 'Admin';
   const profile = { ...student, phoneNumber: options.phone };
-<<<<<<< HEAD
   if (admin) http.expectOne('/api/students').flush([profile]);
-=======
-  http.expectOne(admin ? '/api/students' : '/api/students/me').flush(admin ? [profile] : profile);
->>>>>>> rafie
   http.expectOne(admin ? '/api/Registration' : '/api/Registration/me').flush([
     { ...registration, registrationStatus: options.cancelled ? 2 : 1 },
     { ...registration, id: 2, paymentMethod: 'UPFRONT', installmentTenor: null, paymentStatus: 0, registrationStatus: 0, paidAmount: 0, totalAmount: 1318125, installmentSchedules: [] },
@@ -56,11 +47,8 @@ export function flushCourseData(role: 'Admin' | 'Student' | 'Guest', options = {
 
 export async function loadCourseData(role: 'Student' | 'Admin') {
   const service = TestBed.inject(CourseSystemService);
-<<<<<<< HEAD
   TestBed.flushEffects();
   if (role === 'Student') TestBed.inject(HttpTestingController).expectOne('/api/students/me').flush(student);
-=======
->>>>>>> rafie
   const load = service.reload();
   flushCourseData(role);
   await load;
