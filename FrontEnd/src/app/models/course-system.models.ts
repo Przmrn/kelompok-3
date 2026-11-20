@@ -122,6 +122,14 @@ export interface InstallmentSchedule {
   status: 'Pending' | 'Paid' | 'Overdue';
 }
 
+export interface PaymentDetail extends Pick<Registration,
+  'registrationNumber' | 'paymentMethod' | 'totalAmount' | 'paidAmount' | 'paymentStatus' | 'registrationStatus'> {
+  registrationId: number;
+  remainingAmount: number;
+  paidAt: string | null;
+  installmentSchedules: (InstallmentSchedule & { remainingAmount: number })[];
+}
+
 export interface PriceCalculationBreakdown {
   queueNumber: number;
   basePrice: number;
