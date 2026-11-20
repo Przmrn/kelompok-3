@@ -1,17 +1,19 @@
-﻿
-using BackEnd.Models;
+﻿using BackEnd.DTOs.CourseBatch;
 
 namespace BackEnd.Services
 {
     public interface ICourseBatchService
     {
-        Task<IEnumerable<CourseBatch>> GetAllAsync();
+        Task<IEnumerable<CourseBatchResponseDto>> GetAllAsync();
 
-        Task<CourseBatch?> GetByIdAsync(long id);
+        Task<CourseBatchDetailDto?> GetByIdAsync(long id);
 
-        Task<CourseBatch> CreateAsync(CourseBatch courseBatch);
+        Task<CourseBatchResponseDto> CreateAsync(
+            CourseBatchCreateDto dto);
 
-        Task<CourseBatch?> UpdateAsync(long id, CourseBatch courseBatch);
+        Task<CourseBatchResponseDto?> UpdateAsync(
+            long id,
+            CourseBatchUpdateDto dto);
 
         Task<bool> DeleteAsync(long id);
     }

@@ -1,14 +1,14 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using BackEnd.Models;
 
 namespace BackEnd.DTOs.Registration
 {
     public class RegistrationCreateDto
     {
-        [Range(1, long.MaxValue)]
+        [Required]
         public long BatchId { get; set; }
 
         [Required]
-        [MaxLength(30)]
         public string PaymentMethod { get; set; } = string.Empty;
 
         public int? InstallmentTenor { get; set; }
