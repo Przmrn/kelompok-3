@@ -45,7 +45,6 @@ describe('Peringatan jadwal pengajar', () => {
     const overlap = { ...assigned, id: 10, startTime: '10:00', endTime: '12:00' };
     const adjacent = { ...assigned, id: 11, startTime: assigned.endTime, endTime: '12:00' };
     svc.batches.set([assigned, overlap, adjacent]);
-    svc.batchInstructors.set([{ id: 1, batchId: assigned.id, instructorId }]);
     const fixture = TestBed.createComponent(InstructorsPageComponent);
     const page = fixture.componentInstance;
     const view: HTMLElement = fixture.nativeElement;

@@ -31,9 +31,8 @@ export function flushCourseData(role: 'Admin' | 'Student' | 'Guest', options = {
   http.expectOne('/api/courses').flush([{ id: 6, categoryId: 5, categoryName: 'Backend', syllabus: 'SQL', durationHours: 8, basePrice: 1000000 }]);
   http.expectOne('/api/CourseBatch').flush([{ id: 9, courseId: 6, locationId: 7, batchName: 'Grup B', startDate: date,
     endDate: date, startTime: '09:00:00', endTime: '11:00:00', maxSeats: 30, usedSeats: 1, nextQueue: 3, courseStatus: 0 }]);
-  http.expectOne('/api/BatchInstructor').flush([{ id: 12, batchId: 9, instructorId: instructor.id,
-    instructorName: instructor.fullName, expertise: instructor.expertise, bio: instructor.bio }]);
   if (role === 'Guest') return;
+  flushInstructorAssignments();
   const admin = role === 'Admin';
   const profile = { ...student, phoneNumber: options.phone };
   if (admin) http.expectOne('/api/students').flush([profile]);
@@ -44,6 +43,13 @@ export function flushCourseData(role: 'Admin' | 'Student' | 'Guest', options = {
       installments: [{ ...registration.installments[0], id: 30, installmentStatus: 0, paidAmount: 0 }] },
   ]);
   if (admin) http.expectOne('/api/instructors').flush([{ ...instructor, expertise: options.expertise }]);
+}
+
+export function flushInstructorAssignments() {
+  TestBed.inject(HttpTestingController).expectOne('/api/BatchInstructor').flush([{
+    id: 12, batchId: 9, instructorId: instructor.id,
+    instructorName: instructor.fullName, expertise: instructor.expertise, bio: instructor.bio,
+  }]);
 }
 
 export async function loadCourseData(role: 'Student' | 'Admin') {

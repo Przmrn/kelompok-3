@@ -73,6 +73,7 @@ namespace BackEnd.Services
 
             var expiresAt = DateTime.UtcNow.AddMinutes(GetExpiresMinutes());
             var key = _configuration["Jwt:Key"]
+                ?? Environment.GetEnvironmentVariable("JWT_KEY")
                 ?? throw new InvalidOperationException("JWT key is not configured.");
 
             var credentials = new SigningCredentials(

@@ -9,7 +9,7 @@ interface CourseRow extends Omit<Course, 'title' | 'description'> {
 interface BatchRow extends Omit<CourseBatch, 'status'> {
   courseStatus: number;
 }
-interface AssignmentRow extends BatchInstructor {
+export interface AssignmentRow extends BatchInstructor {
   instructorName: string;
   expertise: string;
   bio: string;
@@ -56,7 +56,6 @@ export class BackendApiService {
       locations: this.http.get<Location[]>('/api/locations'),
       courses: this.http.get<CourseRow[]>('/api/courses'),
       batches: this.http.get<BatchRow[]>('/api/CourseBatch'),
-      assignments: this.http.get<AssignmentRow[]>('/api/BatchInstructor'),
     }).pipe(map(data => ({
       ...data,
       courses: data.courses.map(row => ({
@@ -75,6 +74,10 @@ export class BackendApiService {
 
   instructors() {
     return this.http.get<Instructor[]>('/api/instructors');
+  }
+
+  instructorAssignments() {
+    return this.http.get<AssignmentRow[]>('/api/BatchInstructor');
   }
 
   myInstructorProfile() {

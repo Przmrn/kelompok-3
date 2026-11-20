@@ -4,7 +4,7 @@ import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { User } from '../models/course-system.models';
 import { AuthService } from './auth.service';
-import { accountId, flushCourseData, instructor, student } from './course-api.testing';
+import { accountId, flushCourseData, flushInstructorAssignments, instructor, student } from './course-api.testing';
 import { CourseSystemService } from './course-system.service';
 
 describe('Sinkronisasi data kelas', () => {
@@ -22,6 +22,18 @@ describe('Sinkronisasi data kelas', () => {
   });
 
   afterEach(() => http.verify());
+
+  it('menampilkan kelas dan jadwal kepada tamu hanya dari endpoint publik', async () => {
+    user.set(null);
+    TestBed.flushEffects();
+    const loading = service.reload();
+    flushCourseData('Guest');
+    http.expectNone('/api/BatchInstructor');
+    await loading;
+    expect(service.loadError()).toBe('');
+    expect(service.getCourseById(6)?.title).toContain('Backend');
+    expect(service.getBatchesByCourseId(6)[0].id).toBe(9);
+  });
 
   for (const role of ['Student', 'Admin'] as const) {
     it(`memuat pendaftaran dan cicilan untuk ${role}`, async () => {
@@ -43,6 +55,7 @@ describe('Sinkronisasi data kelas', () => {
     user.set({ ...user()!, id: instructor.userId, role: 'Instructor' });
     const loading = service.reload();
     flushCourseData('Guest');
+    flushInstructorAssignments();
     http.expectOne('/api/instructors/me').flush(instructor);
     await loading;
     expect(service.accountError()).toBe('');
@@ -56,6 +69,7 @@ describe('Sinkronisasi data kelas', () => {
     TestBed.flushEffects();
     http.expectOne('/api/Registration/me').flush([]);
     http.expectOne('/api/students/me').flush({}, { status: 401, statusText: 'Unauthorized' });
+    flushInstructorAssignments();
     flushCourseData('Guest');
     await loading;
     expect(service.courses().length).toBe(1);

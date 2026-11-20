@@ -61,27 +61,28 @@
           </div>
 
           <div class="k-card p-4">
-            <h3 class="h6 fw-bold mb-3">Pengajar kelas ini</h3>
-            <div class="d-flex flex-wrap gap-3 mb-4">
-              @for (item of batchInstructors(); track item.assignment.id) {
-                <div class="d-flex align-items-center gap-2 anim-pop">
-                  <div
-                    class="rounded-circle d-flex align-items-center justify-content-center text-white small fw-bold"
-                    style="width: 38px; height: 38px; background-color: var(--brand-forest);"
-                  >
-                    {{ svc.getInitials(item.instructor.fullName) }}
-                  </div>
-                  <div>
-                    <div class="small fw-bold">{{ item.instructor.fullName }}</div>
-                    <div class="text-muted" style="font-size: 0.75rem;">
-                      {{ item.instructor.expertise }}
+            @if (currentUser()) {
+              <h3 class="h6 fw-bold mb-3">Pengajar kelas ini</h3>
+              <div class="d-flex flex-wrap gap-3 mb-4">
+                @for (item of batchInstructors(); track item.assignment.id) {
+                  <div class="d-flex align-items-center gap-2 anim-pop">
+                    <div
+                      class="rounded-circle d-flex align-items-center justify-content-center text-white small fw-bold"
+                      style="width: 38px; height: 38px; background-color: var(--brand-forest);"
+                    >
+                      {{ svc.getInitials(item.instructor.fullName) }}
+                    </div>
+                    <div>
+                      <div class="small fw-bold">{{ item.instructor.fullName }}</div>
+                      <div class="text-muted" style="font-size: 0.75rem;">
+                        {{ item.instructor.expertise }}
+                      </div>
                     </div>
                   </div>
-                </div>
-              }
-            </div>
-
-            <h3 class="h6 fw-bold mb-2 pt-3 border-top">Materi kelas</h3>
+                }
+              </div>
+            }
+            <h3 class="h6 fw-bold mb-2" [class.border-top]="currentUser()" [class.pt-3]="currentUser()">Materi kelas</h3>
             <ul class="small text-secondary ps-3 mb-0">
               @for (line of svc.getSyllabusList(crs.syllabus); track line) {
                 <li class="mb-1">{{ line }}</li>

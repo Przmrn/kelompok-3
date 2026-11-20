@@ -1,7 +1,7 @@
 import { Injectable, computed, effect, inject, signal } from '@angular/core';
 import { Observable, catchError, finalize, firstValueFrom, forkJoin, map, of, tap } from 'rxjs';
 import { HttpErrorResponse } from '@angular/common/http';
-import { BackendApiService, StudentProfileFields } from './backend-api.service';
+import { AssignmentRow, BackendApiService, StudentProfileFields } from './backend-api.service';
 import { AuthService } from './auth.service';
 import {
   BatchInstructor,
@@ -52,17 +52,16 @@ export class CourseSystemService {
   readonly locations = signal<Location[]>([]);
   readonly courses = signal<Course[]>([]);
   readonly batches = signal<CourseBatch[]>([]);
-  readonly batchInstructors = signal<BatchInstructor[]>([]);
-  private readonly publicInstructors = signal<Pick<Instructor, 'id' | 'fullName' | 'expertise' | 'bio'>[]>([]);
   private readonly accountData = signal<{
     owner: User; students: Student[]; registrations: Registration[];
-    schedules: InstallmentSchedule[]; instructors: Instructor[];
+    schedules: InstallmentSchedule[]; instructors: Instructor[]; assignments: AssignmentRow[];
   } | null>(null);
   private readonly account = computed(() => {
     const data = this.accountData();
     return data?.owner === this.auth.user() ? data : null;
   });
   readonly students = computed(() => this.account()?.students ?? []);
+  readonly batchInstructors = computed(() => this.account()?.assignments ?? []);
   readonly registrations = computed(() => this.account()?.registrations ?? []);
   readonly myRegistrations = computed(() => this.isStudent() ? this.registrations() : []);
   readonly installmentSchedules = computed(() => this.account()?.schedules ?? []);
@@ -93,11 +92,6 @@ export class CourseSystemService {
           this.locations.set(catalog.locations);
           this.courses.set(catalog.courses);
           this.batches.set(catalog.batches);
-          this.batchInstructors.set(catalog.assignments);
-          const profiles = catalog.assignments.map(a => ({
-            id: a.instructorId, fullName: a.instructorName, expertise: a.expertise, bio: a.bio,
-          }));
-          this.publicInstructors.set([...new Map(profiles.map(i => [i.id, i])).values()]);
         }),
         catchError(error => {
           if (revision === this.revision) this.loadError.set(this.errorMessage(error));
@@ -106,13 +100,17 @@ export class CourseSystemService {
         finalize(() => { if (revision === this.revision) this.loading.set(false); })
       ),
       account: forkJoin({
+        assignments: user ? this.api.instructorAssignments() : of([]),
         students: admin ? this.api.students() : of([]),
         payments: participant ? this.api.registrations(admin) : of({ registrations: [], schedules: [] }),
         instructors: admin ? this.api.instructors() : user?.role === 'Instructor'
           ? this.api.myInstructorProfile().pipe(map(profile => [profile])) : of([]),
       }).pipe(
         tap(data => {
-          if (currentAccount() && user) this.accountData.set({ owner: user, students: data.students, ...data.payments, instructors: data.instructors });
+          if (currentAccount() && user) this.accountData.set({
+            owner: user, students: data.students, ...data.payments,
+            instructors: data.instructors, assignments: data.assignments,
+          });
         }),
         catchError(error => {
           if (currentAccount()) this.accountError.set(this.errorMessage(error));
@@ -333,10 +331,13 @@ export class CourseSystemService {
 
   getInstructorsForBatch(batchId: number) {
     const assignments = this.batchInstructors().filter((bi) => bi.batchId === batchId);
-    return assignments.flatMap(assignment => {
-      const instructor = this.publicInstructors().find(i => i.id === assignment.instructorId);
-      return instructor ? [{ instructor, assignment }] : [];
-    });
+    return assignments.map(assignment => ({
+      assignment,
+      instructor: {
+        id: assignment.instructorId, fullName: assignment.instructorName,
+        expertise: assignment.expertise, bio: assignment.bio,
+      },
+    }));
   }
 
   getBatchesForInstructor(instructorId: number): {
@@ -347,24 +348,14 @@ export class CourseSystemService {
   }[] {
     const assignments = this.batchInstructors().filter((bi) => bi.instructorId === instructorId);
     return assignments
-      .map((assignment) => {
+      .flatMap((assignment) => {
         const batch = this.getBatchById(assignment.batchId);
-        if (!batch) return null;
+        if (!batch) return [];
         const course = this.getCourseById(batch.courseId);
         const location = this.getLocationById(batch.locationId);
-        if (!course || !location) return null;
-        return { batch, course, location, assignment };
-      })
-      .filter(
-        (
-          item
-        ): item is {
-          batch: CourseBatch;
-          course: Course;
-          location: Location;
-          assignment: BatchInstructor;
-        } => item !== null
-      );
+        if (!course || !location) return [];
+        return [{ batch, course, location, assignment }];
+      });
   }
 
   getLoggedInInstructorProfile(): Instructor | null {
