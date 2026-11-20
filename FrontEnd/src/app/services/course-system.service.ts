@@ -132,7 +132,7 @@ export class CourseSystemService {
     return 'Permintaan belum berhasil. Silakan coba lagi.';
   }
 
-  private async change(request: Observable<unknown>, message: string) {
+  private async change(request: Observable<unknown>, message: string, errorTitle = 'Permintaan belum berhasil') {
     if (this.saving()) return { success: false, message: 'Permintaan masih diproses.' };
     const userId = this.auth.user()?.id;
     this.saving.set(true);
@@ -145,7 +145,7 @@ export class CourseSystemService {
       return { success: true, message };
     } catch (error) {
       const message = this.errorMessage(error);
-      this.showNotification('warning', 'Permintaan belum berhasil', message);
+      this.showNotification('warning', errorTitle, message);
       return { success: false, message };
     } finally {
       this.saving.set(false);
@@ -203,9 +203,10 @@ export class CourseSystemService {
     title: string,
     message: string
   ): void {
-    this.notification.set({ type, title, message });
+    const notification = { type, title, message };
+    this.notification.set(notification);
     setTimeout(() => {
-      if (this.notification()?.title === title) {
+      if (this.notification() === notification) {
         this.notification.set(null);
       }
     }, 5000);
@@ -313,9 +314,9 @@ export class CourseSystemService {
     (reg.paymentStatus === 'Pending' || (reg.paymentStatus === 'Overdue' && reg.paidAmount === 0))
   ));
 
-  readonly purchasedCourses = computed(() => this.myRegistrations().filter(reg =>
-    reg.paidAmount > 0 || reg.registrationStatus === 'Confirmed' || reg.registrationStatus === 'Completed'
-  ));
+  canOpenRefund(reg: Registration): boolean {
+    return reg.registrationStatus === 'Confirmed' || (reg.registrationStatus === 'Pending' && reg.paidAmount > 0);
+  }
 
   getSyllabusList(syllabusText: string): string[] {
     return syllabusText
@@ -607,7 +608,13 @@ export class CourseSystemService {
     return this.change(this.api.save('CourseBatch', id, { ...fields, startTime: startTime.slice(0, 5) + ':00', endTime: endTime.slice(0, 5) + ':00' }), 'Jadwal kelas disimpan.');
   }
 
-  deleteBatchByAdmin(id: number) { return this.change(this.api.remove('CourseBatch', id), 'Jadwal kelas dihapus.'); }
+  deleteBatchByAdmin(batch: CourseBatch) {
+    return this.change(
+      this.api.remove('CourseBatch', batch.id),
+      `Jadwal “${batch.batchName}” berhasil dihapus.`,
+      `Jadwal “${batch.batchName}” tidak dapat dihapus`
+    );
+  }
 
   saveCategory(id: number | undefined, data: Omit<CourseCategory, 'id'>) {
     return this.change(this.api.save('course-categories', id, data), 'Kategori disimpan.');

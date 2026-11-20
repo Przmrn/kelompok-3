@@ -101,4 +101,37 @@ describe('Sinkronisasi data kelas', () => {
     expect(service.registrations()).toEqual([]);
     expect(service.students()).toEqual([]);
   });
+
+  it('menampilkan alasan dari server dan mempertahankan jadwal yang memiliki riwayat pendaftaran', async () => {
+    user.set({ ...user()!, role: 'Admin' });
+    const loading = service.reload();
+    flushCourseData('Admin');
+    await loading;
+    const batch = service.batches()[0];
+    const reason = 'Jadwal ini sudah memiliki riwayat pendaftaran peserta sehingga tidak dapat dihapus.';
+    const result = service.deleteBatchByAdmin(batch);
+    http.expectOne({ method: 'DELETE', url: '/api/CourseBatch/9' })
+      .flush({ message: reason }, { status: 409, statusText: 'Conflict' });
+    expect((await result).success).toBeFalse();
+    expect(service.getBatchById(batch.id)).toEqual(batch);
+    expect(service.notification()).toEqual({
+      type: 'warning', title: 'Jadwal “Grup B” tidak dapat dihapus', message: reason,
+    });
+  });
+
+  it('memuat ulang daftar setelah server menghapus jadwal kosong', async () => {
+    user.set({ ...user()!, role: 'Admin' });
+    const loading = service.reload();
+    flushCourseData('Admin');
+    await loading;
+    const emptyBatch = { ...service.batches()[0], id: 10, batchName: 'Grup C', usedSeats: 0 };
+    service.batches.update(batches => [...batches, emptyBatch]);
+    const result = service.deleteBatchByAdmin(emptyBatch);
+    http.expectOne({ method: 'DELETE', url: '/api/CourseBatch/10' }).flush({ message: 'Batch kursus berhasil dihapus.' });
+    await Promise.resolve();
+    flushCourseData('Admin');
+    expect((await result).success).toBeTrue();
+    expect(service.batches().map(b => b.id)).toEqual([9]);
+    expect(service.notification()?.message).toBe('Jadwal “Grup C” berhasil dihapus.');
+  });
 });

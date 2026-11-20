@@ -26,13 +26,13 @@
         <div>
           <h1 class="h2 fw-bold mb-1">Keranjang pembayaran ({{ unpaidRegistrations().length }})</h1>
           <p class="text-secondary small mb-0">
-            Setelah admin mengonfirmasi pembayaran pertama, kelas akan muncul di <strong>Kelas saya</strong>.
+            Kelas yang menunggu pembayaran juga dapat Anda lihat di <strong>Kelas saya</strong>.
           </p>
         </div>
 
         <div class="d-flex gap-2">
           <a routerLink="/my-courses" class="btn-k-light btn-sm">
-            Lihat kelas saya ({{ paidCoursesCount() }})
+            Lihat kelas saya ({{ svc.myRegistrations().length }})
           </a>
           <a routerLink="/courses" class="btn-k-primary btn-sm">
             + Pilih Kelas Lain

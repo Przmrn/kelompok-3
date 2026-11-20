@@ -7,7 +7,7 @@ interface CourseRow extends Omit<Course, 'title' | 'description'> {
   categoryName: string;
 }
 interface BatchRow extends Omit<CourseBatch, 'status'> {
-  courseStatus: number;
+  courseStatus: string | number;
 }
 export interface AssignmentRow extends BatchInstructor {
   instructorName: string;
@@ -17,17 +17,18 @@ export interface AssignmentRow extends BatchInstructor {
 export type StudentProfileFields = Omit<Student, 'id' | 'userId'>;
 type StudentResponse = Omit<Student, 'educationLevel'> & { educationalLevel: string };
 
-type ScheduleRow = Omit<InstallmentSchedule, 'status' | 'registrationId'> & { installmentStatus: number };
+type ScheduleRow = Omit<InstallmentSchedule, 'status' | 'registrationId'> & { installmentStatus: string | number };
 interface RegistrationRow extends Omit<Registration, 'paymentMethod' | 'registrationStatus' | 'paymentStatus'> {
   paymentMethod: 'UPFRONT' | 'INSTALLMENT';
-  registrationStatus: number;
-  paymentStatus: number;
+  registrationStatus: string | number;
+  paymentStatus: string | number;
   installments: ScheduleRow[];
 }
 
 const registrationStatuses: Registration['registrationStatus'][] = ['Pending', 'Confirmed', 'Cancelled', 'Completed'];
 const paymentStatuses: PaymentStatus[] = ['Pending', 'PartiallyPaid', 'Paid', 'Overdue', 'Failed'];
 const installmentStatuses: InstallmentSchedule['status'][] = ['Pending', 'Paid', 'Overdue'];
+const batchStatuses: CourseBatch['status'][] = ['Open', 'Full'];
 type PaymentRow = Omit<PaymentDetail, 'paymentMethod' | 'registrationStatus' | 'paymentStatus' | 'installmentSchedules'>
   & Pick<RegistrationRow, 'paymentMethod' | 'registrationStatus' | 'paymentStatus'>
   & { installmentSchedules: (ScheduleRow & { registrationId: number; remainingAmount: number })[] };
@@ -37,12 +38,22 @@ function toStudent({ educationalLevel, ...student }: StudentResponse): Student {
   return { ...student, educationLevel: educationalLevel };
 }
 
+function decodeStatus<T extends string>(value: string | number, statuses: readonly T[]): T {
+  if (typeof value === 'number' && statuses[value]) return statuses[value];
+  if (typeof value === 'string') {
+    const name = value.replace(/_/g, '').toUpperCase();
+    const status = statuses.find(item => item.toUpperCase() === name);
+    if (status) return status;
+  }
+  throw new Error('Status dari server tidak dikenali: ' + value);
+}
+
 function paymentFields(row: Pick<RegistrationRow, 'paymentMethod' | 'registrationStatus' | 'paymentStatus'>):
   Pick<Registration, 'paymentMethod' | 'registrationStatus' | 'paymentStatus'> {
   return {
     paymentMethod: row.paymentMethod === 'UPFRONT' ? 'Upfront' : 'Installment',
-    registrationStatus: registrationStatuses[row.registrationStatus],
-    paymentStatus: paymentStatuses[row.paymentStatus],
+    registrationStatus: decodeStatus(row.registrationStatus, registrationStatuses),
+    paymentStatus: decodeStatus(row.paymentStatus, paymentStatuses),
   };
 }
 
@@ -65,7 +76,7 @@ export class BackendApiService {
       })),
       batches: data.batches.map((row): CourseBatch => ({
         ...row,
-        status: row.courseStatus === 1 ? 'Full' : 'Open',
+        status: decodeStatus(row.courseStatus, batchStatuses),
         startTime: row.startTime.slice(0, 5),
         endTime: row.endTime.slice(0, 5),
       })),
@@ -115,7 +126,7 @@ export class BackendApiService {
       schedules: rows.flatMap(row => row.installments.map(({ installmentStatus, ...item }): InstallmentSchedule => ({
         ...item,
         registrationId: row.id,
-        status: installmentStatuses[installmentStatus],
+        status: decodeStatus(installmentStatus, installmentStatuses),
       }))),
     })));
   }
@@ -137,7 +148,7 @@ export class BackendApiService {
       ...row,
       ...paymentFields(row),
       installmentSchedules: row.installmentSchedules.map(({ installmentStatus, ...schedule }) => ({
-        ...schedule, status: installmentStatuses[installmentStatus],
+        ...schedule, status: decodeStatus(installmentStatus, installmentStatuses),
       })),
     })));
   }

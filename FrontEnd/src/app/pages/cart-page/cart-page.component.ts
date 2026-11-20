@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, computed, inject } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CourseSystemService } from '../../services/course-system.service';
 
@@ -14,8 +14,6 @@ export class CartPageComponent {
 
 
   readonly unpaidRegistrations = this.svc.unpaidCartRegistrations;
-
-  readonly paidCoursesCount = computed(() => this.svc.purchasedCourses().length);
 
   getInitialAmountDue(registrationId: number, fallbackTotal: number): number {
     const firstSchedule = this.svc

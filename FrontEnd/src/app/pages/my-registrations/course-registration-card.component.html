@@ -48,15 +48,7 @@
 
   <div class="card-actions">
     <div class="d-flex flex-wrap gap-2">
-      <a
-        class="k-chip"
-        routerLink="/my-courses/jadwal"
-        routerLinkActive="active"
-        ariaCurrentWhenActive="page"
-      >
-        Jadwal, lokasi, dan pengajar
-      </a>
-      @if (reg.registrationStatus !== 'Cancelled' && reg.registrationStatus !== 'Completed') {
+      @if (svc.canOpenRefund(reg)) {
         <a
           class="k-chip"
           [routerLink]="['/my-courses', reg.id, 'refund']"

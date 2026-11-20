@@ -18,8 +18,8 @@ export class CourseRefundTabComponent {
 
   readonly registration = computed(() => {
     const id = this.params().get('registrationId');
-    return this.page.paidCourses().find(reg =>
-      String(reg.id) === id && reg.registrationStatus !== 'Cancelled' && reg.registrationStatus !== 'Completed'
+    return this.page.registrations().find(reg =>
+      String(reg.id) === id && this.page.svc.canOpenRefund(reg)
     );
   });
 

@@ -1,4 +1,4 @@
-@for (reg of page.paidCourses(); track reg.id) {
+@for (reg of page.registrations(); track reg.id) {
   <app-course-registration-card [reg]="reg">
     @if (svc.getBatchById(reg.batchId); as batch) {
       <div class="panel panel--bone" style="padding: 16px;">

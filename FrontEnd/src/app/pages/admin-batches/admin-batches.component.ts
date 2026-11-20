@@ -71,4 +71,12 @@ export class AdminBatchesComponent {
     });
     if (result.success) this.showForm.set(false);
   }
+
+  async deleteBatch(batch: CourseBatch) {
+    const result = await this.svc.deleteBatchByAdmin(batch);
+    if (result.success && this.editingBatchId() === batch.id) {
+      this.editingBatchId.set(undefined);
+      this.showForm.set(false);
+    }
+  }
 }

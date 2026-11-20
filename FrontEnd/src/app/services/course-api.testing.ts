@@ -19,8 +19,8 @@ export function apiTestProviders(role: 'Admin' | 'Student') {
 const registration = { id: 1, studentId: student.id, batchId: 9, registrationNumber: 'REG-1',
   registrationDate: new Date().toISOString(), queueNumber: 1, basePrice: 1000000, earlyBirdDiscount: 100000,
   taxRate: 11, taxAmount: 99000, totalAmount: 999000, paymentMethod: 'INSTALLMENT', installmentTenor: 3,
-  paymentStatus: 1, registrationStatus: 1, paidAmount: 333000, installments: [
-    { id: 20, installmentNumber: 1, dueDate: '2027-01-01', amount: 333000, paidAt: null, paidAmount: 333000, installmentStatus: 1 },
+  paymentStatus: 'PARTIALLY_PAID', registrationStatus: 'CONFIRMED', paidAmount: 333000, installments: [
+    { id: 20, installmentNumber: 1, dueDate: '2027-01-01', amount: 333000, paidAt: null, paidAmount: 333000, installmentStatus: 'PAID' },
   ] };
 
 export function flushCourseData(role: 'Admin' | 'Student' | 'Guest', options = { phone: '', expertise: instructor.expertise, cancelled: false }) {
@@ -37,9 +37,9 @@ export function flushCourseData(role: 'Admin' | 'Student' | 'Guest', options = {
   const profile = { ...student, phoneNumber: options.phone };
   if (admin) http.expectOne('/api/students').flush([profile]);
   http.expectOne(admin ? '/api/Registration' : '/api/Registration/me').flush([
-    { ...registration, registrationStatus: options.cancelled ? 2 : 1 },
-    { ...registration, id: 2, paymentMethod: 'UPFRONT', installmentTenor: null, paymentStatus: 0, registrationStatus: 0, paidAmount: 0, totalAmount: 1318125, installments: [] },
-    { ...registration, id: 3, paymentStatus: 0, registrationStatus: 0, paidAmount: 0,
+    { ...registration, registrationStatus: options.cancelled ? 'CANCELLED' : registration.registrationStatus },
+    { ...registration, id: 2, registrationNumber: 'REG-2', paymentMethod: 'UPFRONT', installmentTenor: null, paymentStatus: 'PENDING', registrationStatus: 'PENDING', paidAmount: 0, totalAmount: 1318125, installments: [] },
+    { ...registration, id: 3, registrationNumber: 'REG-3', paymentStatus: 0, registrationStatus: 0, paidAmount: 0,
       installments: [{ ...registration.installments[0], id: 30, installmentStatus: 0, paidAmount: 0 }] },
   ]);
   if (admin) http.expectOne('/api/instructors').flush([{ ...instructor, expertise: options.expertise }]);

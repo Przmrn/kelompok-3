@@ -5,7 +5,7 @@
         <div class="empty-state">
           <div class="empty-icon"><i class="bi bi-journal-bookmark-fill" aria-hidden="true"></i></div>
           <h1 class="h4 fw-bold">Kelas saya</h1>
-          <p>Masuk untuk melihat jadwal dan lokasi kelas yang sudah Anda beli.</p>
+          <p>Masuk untuk melihat kelas yang Anda daftarkan.</p>
           <button
             type="button"
             class="btn-k-primary"
@@ -19,10 +19,10 @@
     } @else {
       <header class="page-head anim-fade-up">
         <div class="page-head-copy">
-          <span class="kicker">Kelas yang sudah dibeli</span>
-          <h1 class="page-title">Kelas saya ({{ paidCourses().length }})</h1>
+          <span class="kicker">Pendaftaran kelas</span>
+          <h1 class="page-title">Kelas saya ({{ registrations().length }})</h1>
           <p class="page-lede">
-            Lihat jadwal, lokasi, dan rincian cicilan untuk kelas yang sudah Anda beli.
+            Lihat jadwal, lokasi, dan status pembayaran kelas yang Anda daftarkan.
           </p>
         </div>
 
@@ -39,20 +39,15 @@
         </div>
       </header>
 
-      @if (paidCourses().length) {
+      @if (registrations().length) {
         <router-outlet></router-outlet>
       } @else {
         <div class="panel anim-fade-up">
           <div class="empty-state">
             <div class="empty-icon"><i class="bi bi-calendar2-week" aria-hidden="true"></i></div>
-            <h2>Anda belum membeli kelas</h2>
-            <p>Pilih jadwal dari katalog, lalu selesaikan pembayaran pertama untuk membuka kelas.</p>
+            <h2>Anda belum mendaftar kelas</h2>
+            <p>Pilih kelas dan jadwal dari katalog untuk mulai mendaftar.</p>
             <div class="d-flex flex-wrap justify-content-center gap-2">
-              @if (unpaidCount() > 0) {
-                <a routerLink="/cart" class="btn-k-coral btn-sm">
-                  Bayar Tagihan di Keranjang ({{ unpaidCount() }})
-                </a>
-              }
               <a routerLink="/courses" class="btn-k-primary btn-sm">Lihat Semua Kelas</a>
             </div>
           </div>

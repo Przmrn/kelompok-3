@@ -122,7 +122,7 @@
                     </span>
                     <div class="d-flex gap-2">
                       <button class="btn-k-light btn-sm" type="button" (click)="editBatch(b)">Ubah</button>
-                      <button class="btn btn-sm text-danger" type="button" (click)="svc.deleteBatchByAdmin(b.id)">Hapus</button>
+                      <button class="btn btn-sm text-danger" type="button" [disabled]="svc.saving()" (click)="deleteBatch(b)">Hapus</button>
                     </div>
                   </div>
                 </article>

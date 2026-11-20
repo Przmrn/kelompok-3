@@ -2,6 +2,8 @@
 using BackEnd.Exceptions;
 using BackEnd.Models;
 using BackEnd.Repositories;
+using Microsoft.EntityFrameworkCore;
+using Npgsql;
 
 namespace BackEnd.Services
 {
@@ -10,15 +12,20 @@ namespace BackEnd.Services
         private readonly IRepository<CourseBatch> _batchRepository;
         private readonly IRepository<Course> _courseRepository;
         private readonly IRepository<Location> _locationRepository;
+        private readonly IRepository<BatchInstructor> _assignmentRepository;
+        private const string RegisteredBatchMessage =
+            "Jadwal ini sudah memiliki riwayat pendaftaran peserta sehingga tidak dapat dihapus.";
 
         public CourseBatchService(
             IRepository<CourseBatch> batchRepository,
             IRepository<Course> courseRepository,
-            IRepository<Location> locationRepository)
+            IRepository<Location> locationRepository,
+            IRepository<BatchInstructor> assignmentRepository)
         {
             _batchRepository = batchRepository;
             _courseRepository = courseRepository;
             _locationRepository = locationRepository;
+            _assignmentRepository = assignmentRepository;
         }
 
         public async Task<IEnumerable<CourseBatchResponseDto>> GetAllAsync()
@@ -137,20 +144,28 @@ namespace BackEnd.Services
 
         public async Task<bool> DeleteAsync(long id)
         {
-            var courseBatch = await GetBatchEntityAsync(id);
+            var courseBatch = await _batchRepository.GetByIdAsync(id);
 
             if (courseBatch == null)
                 return false;
 
-            if (courseBatch.Registrations.Count > 0)
+            if (await _batchRepository.ExistsAsync(b => b.Id == id && b.Registrations.Any()))
             {
-                throw new AppException(
-                    "Jadwal yang memiliki pendaftaran tidak dapat dihapus.",
-                    409);
+                throw new AppException(RegisteredBatchMessage, StatusCodes.Status409Conflict);
             }
 
+            var assignments = await _assignmentRepository.FindAsync(a => a.BatchId == id);
+            _assignmentRepository.DeleteRange(assignments);
             _batchRepository.Delete(courseBatch);
-            await _batchRepository.SaveChangesAsync();
+            try
+            {
+                await _batchRepository.SaveChangesAsync();
+            }
+            catch (DbUpdateException ex) when (ex.InnerException is PostgresException
+                { SqlState: PostgresErrorCodes.ForeignKeyViolation, ConstraintName: "FK_Registrations_CourseBatches_BatchId" })
+            {
+                throw new AppException(RegisteredBatchMessage, StatusCodes.Status409Conflict);
+            }
 
             return true;
         }
