@@ -5,12 +5,13 @@ namespace BackEnd.DTOs.Registration
 {
     public class RegistrationCreateDto
     {
-        [Required]
+        [Range(1, long.MaxValue)]
         public long BatchId { get; set; }
 
-        [Required]
+        [EnumDataType(typeof(PaymentMethods))]
         public PaymentMethods PaymentMethod { get; set; }
 
+        [Range(1, 12)]
         public int? InstallmentTenor { get; set; }
     }
 }

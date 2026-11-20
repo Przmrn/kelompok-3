@@ -18,15 +18,8 @@ namespace BackEnd.Controllers
         [HttpPost("register")]
         public async Task<ActionResult<UserResponseDto>> Register(RegisterRequestDto dto)
         {
-            try
-            {
-                var user = await _service.RegisterAsync(dto);
-                return Created($"api/auth/users/{user.Id}", user);
-            }
-            catch (InvalidOperationException exception)
-            {
-                return Conflict(new { message = exception.Message });
-            }
+            var user = await _service.RegisterAsync(dto);
+            return Created($"api/auth/users/{user.Id}", user);
         }
 
         [HttpPost("login")]

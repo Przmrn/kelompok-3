@@ -4,14 +4,13 @@ namespace BackEnd.DTOs.CourseBatch
 {
     public class CourseBatchUpdateDto
     {
-        [Required]
+        [Range(1, long.MaxValue)]
         public long CourseId { get; set; }
 
-        [Required]
+        [Range(1, long.MaxValue)]
         public long LocationId { get; set; }
 
-        [Required]
-        [MaxLength(150)]
+        [Required, MinLength(1), MaxLength(150)]
         public string BatchName { get; set; } = string.Empty;
 
         public DateOnly StartDate { get; set; }

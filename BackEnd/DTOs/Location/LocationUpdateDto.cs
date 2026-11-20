@@ -4,7 +4,7 @@ namespace BackEnd.DTOs.Location
 {
     public class LocationUpdateDto
     {
-        [Required, MaxLength(150)]
+        [Required, MinLength(1), MaxLength(150)]
         public string Name { get; set; } = string.Empty;
 
         [Required, MaxLength(150)]

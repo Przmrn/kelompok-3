@@ -43,6 +43,7 @@ builder.Services.AddCors(options =>
 });
 
 var jwtKey = builder.Configuration["Jwt:Key"]
+    ?? Environment.GetEnvironmentVariable("JWT_KEY")
     ?? throw new InvalidOperationException("JWT key is not configured.");
 
 builder.Services

@@ -1,5 +1,6 @@
 ﻿﻿using BackEnd.DTOs.Registration;
 using BackEnd.DTOs.Payment;
+using BackEnd.Exceptions;
 using BackEnd.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -29,7 +30,7 @@ namespace BackEnd.Controllers
                 ?? User.FindFirstValue("sub");
 
             if (!long.TryParse(userId, out var id))
-                throw new UnauthorizedAccessException("User ID tidak valid.");
+                throw new UnauthorizedException("User ID tidak valid.");
 
             return id;
         }
@@ -38,105 +39,56 @@ namespace BackEnd.Controllers
         [Authorize(Roles = "STUDENT")]
         public async Task<IActionResult> Create([FromBody] RegistrationCreateDto dto)
         {
-            try
-            {
-                var result = await _registrationService.CreateAsync(GetUserId(), dto);
-                return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex);
-            }
+            var result = await _registrationService.CreateAsync(GetUserId(), dto);
+            return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }
 
         [HttpGet("me")]
         [Authorize(Roles = "STUDENT")]
         public async Task<IActionResult> GetMyRegistrations()
         {
-            try
-            {
-                return Ok(await _registrationService.GetMyRegistrationsAsync(GetUserId()));
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex);
-            }
+            return Ok(await _registrationService.GetMyRegistrationsAsync(GetUserId()));
         }
 
         [HttpGet("{id:long}")]
         public async Task<IActionResult> GetById(long id)
         {
-            try
-            {
-                return Ok(await _registrationService.GetByIdAsync(id, GetUserId(), User.IsInRole("ADMIN")));
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex);
-            }
+            return Ok(await _registrationService.GetByIdAsync(id, GetUserId(), User.IsInRole("ADMIN")));
         }
 
         [HttpGet("{id:long}/payment")]
         [Authorize(Roles = "STUDENT,ADMIN")]
         public async Task<IActionResult> GetPayment(long id)
         {
-            try
-            {
-                await _registrationService.GetByIdAsync(id, GetUserId(), User.IsInRole("ADMIN"));
-                var payment = await _paymentService.GetByRegistrationIdAsync(id);
-                return payment == null
-                    ? NotFound(new { message = "Data payment tidak ditemukan." })
-                    : Ok(payment);
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex);
-            }
+            await _registrationService.GetByIdAsync(id, GetUserId(), User.IsInRole("ADMIN"));
+            var payment = await _paymentService.GetByRegistrationIdAsync(id);
+            return payment == null
+                ? NotFound(new { message = "Data payment tidak ditemukan." })
+                : Ok(payment);
         }
 
         [HttpDelete("{id:long}")]
         [Authorize(Roles = "STUDENT,ADMIN")]
         public async Task<IActionResult> Cancel(long id)
         {
-            try
-            {
-                var cancelled = await _registrationService.CancelAsync(id, GetUserId(), User.IsInRole("ADMIN"));
-                return cancelled
-                    ? Ok(new { message = "Pendaftaran dibatalkan." })
-                    : Conflict(new { message = "Pendaftaran sudah dibatalkan." });
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex);
-            }
+            var cancelled = await _registrationService.CancelAsync(id, GetUserId(), User.IsInRole("ADMIN"));
+            return cancelled
+                ? Ok(new { message = "Pendaftaran dibatalkan." })
+                : Conflict(new { message = "Pendaftaran sudah dibatalkan." });
         }
 
         [HttpGet]
         [Authorize(Roles = "ADMIN")]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                return Ok(await _registrationService.GetAllAsync());
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex);
-            }
+            return Ok(await _registrationService.GetAllAsync());
         }
 
         [HttpPost("{id:long}/payments")]
         [Authorize(Roles = "STUDENT")]
         public async Task<IActionResult> Pay(long id, [FromBody] RegistrationPaymentDto dto)
         {
-            try
-            {
-                return Ok(await _registrationService.PayAsync(id, GetUserId(), dto));
-            }
-            catch (Exception ex)
-            {
-                return HandleException(ex);
-            }
+            return Ok(await _registrationService.PayAsync(id, GetUserId(), dto));
         }
 
         [HttpPost("{id:long}/confirm-upfront")]
@@ -167,12 +119,5 @@ namespace BackEnd.Controllers
             return Ok(new { message = "Pemeriksaan keterlambatan pembayaran berhasil dijalankan." });
         }
 
-        private IActionResult HandleException(Exception ex)
-        {
-            if (ex is UnauthorizedAccessException)
-                return Forbid();
-
-            return BadRequest(new { message = ex.Message });
-        }
     }
 }

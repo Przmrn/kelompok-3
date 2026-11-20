@@ -111,7 +111,7 @@ namespace BackEnd.Services
         private async Task EnsureCategoryExist(long categoryId)
         {
             if (!await _db.CourseCategories.AnyAsync(c => c.Id == categoryId))
-                throw new AppException("Kategori course tidak ditemukan.", 400);
+                throw new NotFoundException("Kategori course tidak ditemukan.");
         }
     }
 }

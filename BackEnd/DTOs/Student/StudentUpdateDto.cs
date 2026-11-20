@@ -4,7 +4,7 @@ namespace BackEnd.DTOs.Student
 {
     public class StudentUpdateDto
     {
-        [Required, MaxLength(150)]
+        [Required, MinLength(1), MaxLength(150)]
         public string FullName { get; set; } = string.Empty;
 
         [Required, MaxLength(20)]
