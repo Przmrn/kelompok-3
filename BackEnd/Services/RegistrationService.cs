@@ -437,7 +437,7 @@ namespace BackEnd.Services
 
                 PaidAmount = registration.PaidAmount,
 
-                PaymentMethod = registration.PaymentMethod.ToString(),
+                PaymentMethod = registration.PaymentMethod,
 
                 InstallmentTenor = registration.InstallmentTenor,
 
