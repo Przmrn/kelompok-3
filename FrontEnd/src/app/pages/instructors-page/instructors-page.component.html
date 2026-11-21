@@ -13,7 +13,7 @@
         class="btn-k-primary btn-sm"
         (click)="openNewInstructorForm()"
       >
-        {{ showForm() ? 'Tutup formulir' : '+ Tambah pengajar' }}
+        {{ edit.open() == 'new' ? 'Tutup form' : '+ Tambah pengajar' }}
       </button>
     </div>
 
@@ -91,84 +91,22 @@
         </div>
       </div>
     </div>
-
-    @if (showForm()) {
-      <div class="k-card p-4 mb-4 anim-pop">
-        <h2 class="h5 fw-bold mb-3">
-          {{ editingInstructorId() ? 'Ubah profil pengajar' : 'Tambah pengajar' }}
-        </h2>
-        <div class="row g-3 mb-3">
-          <div class="col-md-4">
-            <label class="k-label">Nama lengkap</label>
-            <input type="text" class="form-control k-input" [(ngModel)]="form.fullName" placeholder="Nama lengkap & gelar" />
+    <div class="expand edit-anchor" [id]="edit.anchorId('new')" [class.open]="edit.open() === 'new'">
+      <div class="expand-inner">
+        @if (edit.mounted() === 'new') {
+          <div class="k-card p-4 mb-4">
+            <h2 class="h5 fw-bold mb-3">Tambah pengajar</h2>
+            <ng-container *ngTemplateOutlet="instructorForm"></ng-container>
           </div>
-          <div class="col-md-4">
-            <label class="k-label">Email</label>
-            <input type="email" class="form-control k-input" [(ngModel)]="form.email" placeholder="nama@example.com" />
-          </div>
-          <div class="col-md-4">
-            <label class="k-label">Nomor telepon</label>
-            <input type="tel" class="form-control k-input" [(ngModel)]="form.phoneNumber" placeholder="0812xxxxxxxx" />
-          </div>
-          @if (!editingInstructorId()) {
-            <div class="col-md-6">
-              <label for="instructor-password" class="k-label">Kata sandi akun pengajar</label>
-              <input type="password" id="instructor-password" class="form-control k-input" autocomplete="new-password" [(ngModel)]="password" minlength="8" placeholder="Minimal 8 karakter" />
-            </div>
-          }
-          <div class="col-12">
-            <label class="k-label" for="new-skill">Keahlian</label>
-            <div class="d-flex gap-2">
-              <input #skillInput id="new-skill" type="text" class="form-control k-input"
-                     [(ngModel)]="pendingSkill" (keydown.enter)="$event.preventDefault(); addSkills()"
-                     placeholder="Contoh: SQL Server" />
-              <button type="button" class="btn-k-light btn-sm" [disabled]="!pendingSkill.trim()"
-                      (click)="addSkills(); skillInput.focus()">Tambah</button>
-            </div>
-            @if (form.expertise.length) {
-              <ol class="skill-list mt-2" aria-label="Urutan keahlian">
-                @for (skill of form.expertise; track skill; let i = $index) {
-                  <li class="skill-card">
-                    <span>{{ skill }}</span>
-                    <div class="skill-actions">
-                      <button type="button" [disabled]="$first" (click)="moveSkill(i, -1)"
-                              [attr.aria-label]="'Pindahkan ' + skill + ' lebih awal'" title="Pindahkan lebih awal">
-                        <i class="bi bi-arrow-left" aria-hidden="true"></i>
-                      </button>
-                      <button type="button" [disabled]="$last" (click)="moveSkill(i, 1)"
-                              [attr.aria-label]="'Pindahkan ' + skill + ' lebih akhir'" title="Pindahkan lebih akhir">
-                        <i class="bi bi-arrow-right" aria-hidden="true"></i>
-                      </button>
-                      <button type="button" (click)="form.expertise.splice(i, 1)"
-                              [attr.aria-label]="'Hapus keahlian ' + skill" title="Hapus keahlian">
-                        <i class="bi bi-x-lg" aria-hidden="true"></i>
-                      </button>
-                    </div>
-                  </li>
-                }
-              </ol>
-            }
-          </div>
-          <div class="col-12">
-            <label class="k-label">Profil singkat</label>
-            <input type="text" class="form-control k-input" [(ngModel)]="form.bio" placeholder="Profil singkat pengajar" />
-          </div>
-        </div>
-        <div class="d-flex gap-2">
-          <button type="button" class="btn-k-primary btn-sm" (click)="saveInstructor()">
-            {{ editingInstructorId() ? 'Simpan Perubahan' : 'Simpan pengajar' }}
-          </button>
-          <button type="button" class="btn-k-light btn-sm" (click)="showForm.set(false)">
-            Batal
-          </button>
-        </div>
+        }
       </div>
-    }
-
+    </div>
     <div class="row g-4">
       @for (ins of svc.instructors(); track ins.id) {
         <div class="col-md-6">
-          <div class="k-card p-4 h-100 d-flex flex-column justify-content-between">
+          <div class="k-card edit-anchor p-4 h-100 d-flex flex-column"
+               [id]="edit.anchorId(ins.id)"
+               [class.is-editing]="edit.open() === ins.id">
             <div>
               <div class="d-flex flex-wrap gap-2 justify-content-between align-items-start mb-3">
                 <div class="d-flex align-items-center gap-3">
@@ -188,20 +126,28 @@
                   <button
                     type="button"
                     class="btn-k-light btn-sm py-1 px-2"
-                    (click)="editInstructor(ins)"
-                  >
-                    Ubah
+                    [attr.aria-expanded]="edit.open() === ins.id"
+                    (click)="editInstructor(ins)">
+                    {{ edit.open() === ins.id ? 'Tutup' : 'Ubah' }}
                   </button>
                   <button
                     type="button"
                     class="btn btn-sm btn-outline-danger rounded-pill px-2"
-                    (click)="svc.deleteInstructorByAdmin(ins.id)"
-                  >
+                    (click)="svc.deleteInstructorByAdmin(ins.id)">
                     Hapus
                   </button>
                 </div>
               </div>
-
+              <div class="expand" [class.open]="edit.open() === ins.id">
+                <div class="expand-inner">
+                  @if (edit.mounted() === ins.id) {
+                    <div class="edit-body mb-3">
+                      <h4 class="h6 fw-bold mb-3">Ubah profil pengajar</h4>
+                      <ng-container *ngTemplateOutlet="instructorForm"></ng-container>
+                    </div>
+                  }
+                </div>
+              </div>
               <div class="small fw-semibold mb-2">Keahlian</div>
               <ul class="skill-list mb-3" aria-label="Keahlian pengajar">
                 @for (skill of splitSkills(ins.expertise); track $index) {
@@ -213,7 +159,7 @@
               <p class="small text-secondary mb-3">{{ ins.bio }}</p>
             </div>
 
-            <div class="pt-3 border-top">
+            <div class="pt-3 border-top mt-auto">
               <div class="small fw-semibold text-secondary mb-2">
                 Jadwal mengajar ({{ svc.getBatchesForInstructor(ins.id).length }}):
               </div>
@@ -244,3 +190,70 @@
     </div>
   </div>
 </section>
+<ng-template #instructorForm>
+  <div class="row g-3 mb-3">
+    <div class="col-12">
+      <label class="k-label">Nama lengkap</label>
+      <input data-autofocus type="text" class="form-control k-input" [(ngModel)]="form.fullName" placeholder="Nama lengkap & gelar" />
+    </div>
+    <div class="col-12 col-sm-6">
+      <label class="k-label">Email</label>
+      <input type="email" class="form-control k-input" [(ngModel)]="form.email" placeholder="nama@example.com" />
+    </div>
+    <div class="col-12 col-sm-6">
+      <label class="k-label">Nomor telepon</label>
+      <input type="tel" class="form-control k-input" [(ngModel)]="form.phoneNumber" placeholder="0812xxxxxxxx" />
+    </div>
+    @if (!editingInstructorId()) {
+      <div class="col-12">
+        <label for="instructor-password" class="k-label">Kata sandi akun pengajar</label>
+        <input type="password" id="instructor-password" class="form-control k-input" autocomplete="new-password" [(ngModel)]="password" minlength="8" placeholder="Minimal 8 karakter" />
+      </div>
+    }
+    <div class="col-12">
+      <label class="k-label" for="new-skill">Keahlian</label>
+      <div class="d-flex gap-2">
+        <input #skillInput id="new-skill" type="text" class="form-control k-input"
+               [(ngModel)]="pendingSkill" (keydown.enter)="$event.preventDefault(); addSkills()"
+               placeholder="Contoh: SQL Server" />
+        <button type="button" class="btn-k-light btn-sm" [disabled]="!pendingSkill.trim()"
+                (click)="addSkills(); skillInput.focus()">Tambah</button>
+      </div>
+      @if (form.expertise.length) {
+        <ol class="skill-list mt-2" aria-label="Urutan keahlian">
+          @for (skill of form.expertise; track skill; let i = $index) {
+            <li class="skill-card">
+              <span>{{ skill }}</span>
+              <div class="skill-actions">
+                <button type="button" [disabled]="$first" (click)="moveSkill(i, -1)"
+                        [attr.aria-label]="'Pindahkan ' + skill + ' lebih awal'" title="Pindahkan lebih awal">
+                  <i class="bi bi-arrow-left" aria-hidden="true"></i>
+                </button>
+                <button type="button" [disabled]="$last" (click)="moveSkill(i, 1)"
+                        [attr.aria-label]="'Pindahkan ' + skill + ' lebih akhir'" title="Pindahkan lebih akhir">
+                  <i class="bi bi-arrow-right" aria-hidden="true"></i>
+                </button>
+                <button type="button" (click)="form.expertise.splice(i, 1)"
+                        [attr.aria-label]="'Hapus keahlian ' + skill" title="Hapus keahlian">
+                  <i class="bi bi-x-lg" aria-hidden="true"></i>
+                </button>
+              </div>
+            </li>
+          }
+        </ol>
+      }
+    </div>
+    <div class="col-12">
+      <label class="k-label">Profil singkat</label>
+      <input type="text" class="form-control k-input" [(ngModel)]="form.bio" placeholder="Profil singkat pengajar" />
+    </div>
+  </div>
+  <div class="d-flex gap-2">
+    <button type="button" class="btn-k-primary btn-sm" [disabled]="svc.saving()" (click)="saveInstructor()">
+      {{ editingInstructorId() ? 'Simpan Perubahan' : 'Simpan pengajar' }}
+    </button>
+    <button type="button" class="btn-k-light btn-sm" (click)="edit.hide()">
+      Batal
+    </button>
+  </div>
+</ng-template>

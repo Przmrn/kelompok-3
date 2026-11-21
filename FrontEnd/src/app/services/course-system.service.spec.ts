@@ -51,6 +51,50 @@ describe('Sinkronisasi data kelas', () => {
     });
   }
 
+  it('menyembunyikan aktivitas pembayaran berstatus Cancelled dan Completed', async () => {
+    TestBed.flushEffects();
+    http.expectOne('/api/students/me').flush(student);
+    const loading = service.reload();
+    flushCourseData('Student', {
+      phone: '',
+      expertise: instructor.expertise,
+      cancelled: false,
+      statusOverrides: { 1: 'COMPLETED', 2: 'CANCELLED' },
+    });
+    await loading;
+    expect(service.myRegistrations().length).toBe(3);
+    expect(service.paymentActivities().map(r => r.id)).toEqual([3]);
+  });
+
+  it('menyembunyikan pendaftaran final dari daftar dashboard admin', async () => {
+    user.set({ ...user()!, role: 'Admin' });
+    TestBed.flushEffects();
+    const loading = service.reload();
+    flushCourseData('Admin', {
+      phone: '',
+      expertise: instructor.expertise,
+      cancelled: false,
+      statusOverrides: { 1: 'COMPLETED', 2: 'CANCELLED' },
+    });
+    await loading;
+    expect(service.registrations().length).toBe(3);
+    expect(service.adminRegistrations().map(r => r.id)).toEqual([3]);
+  });
+
+  it('mengeluarkan aktivitas final dari keranjang meskipun pembayarannya belum lunas', async () => {
+    TestBed.flushEffects();
+    http.expectOne('/api/students/me').flush(student);
+    const loading = service.reload();
+    flushCourseData('Student', {
+      phone: '',
+      expertise: instructor.expertise,
+      cancelled: false,
+      statusOverrides: { 3: 'COMPLETED' },
+    });
+    await loading;
+    expect(service.unpaidCartRegistrations().map(r => r.id)).toEqual([2]);
+  });
+
   it('memuat jadwal berdasarkan profil pengajar yang masuk', async () => {
     user.set({ ...user()!, id: instructor.userId, role: 'Instructor' });
     const loading = service.reload();

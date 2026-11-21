@@ -23,24 +23,24 @@ export class ProfileAuthPageComponent {
   readonly svc = inject(CourseSystemService);
   readonly isProfileComplete = this.svc.currentProfileComplete;
 
-  readonly myRegistrations = this.svc.myRegistrations;
+  readonly paymentActivities = this.svc.paymentActivities;
 
   readonly confirmedCount = computed(
     () =>
-      this.myRegistrations().filter(
+      this.paymentActivities().filter(
         (r) => r.registrationStatus === 'Confirmed' || r.registrationStatus === 'Completed'
       ).length
   );
 
   readonly totalPaid = computed(() =>
-    this.myRegistrations().reduce(
+    this.paymentActivities().reduce(
       (acc, r) => acc + this.svc.getTotalPaidForRegistration(r),
       0
     )
   );
 
   readonly totalRemaining = computed(() =>
-    this.myRegistrations().reduce(
+    this.paymentActivities().reduce(
       (acc, r) => acc + this.svc.getRemainingObligationForRegistration(r),
       0
     )

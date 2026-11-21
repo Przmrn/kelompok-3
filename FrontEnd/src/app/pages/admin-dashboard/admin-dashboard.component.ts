@@ -14,6 +14,7 @@ import { CourseSystemService } from '../../services/course-system.service';
 export class AdminDashboardComponent {
   readonly labels = courseLabels;
   readonly svc = inject(CourseSystemService);
+  readonly adminRegistrations = this.svc.adminRegistrations;
 
   readonly openBatchCount = computed(
     () => this.svc.batches().filter((b) => b.status === 'Open').length
@@ -23,9 +24,8 @@ export class AdminDashboardComponent {
   );
   readonly confirmedRegCount = computed(
     () =>
-      this.svc
-        .registrations()
-        .filter((r) => r.registrationStatus === 'Confirmed' || r.registrationStatus === 'Completed')
+      this.adminRegistrations()
+        .filter((r) => r.registrationStatus === 'Confirmed')
         .length
   );
   readonly totalRevenuePaid = computed(() =>

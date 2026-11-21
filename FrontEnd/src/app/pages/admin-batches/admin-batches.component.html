@@ -10,7 +10,7 @@
       <div class="page-actions">
         <span class="k-pill k-pill-neutral">{{ svc.batches().length }} jadwal</span>
         <button type="button" class="btn-k-primary" (click)="openNewBatchForm()">
-          {{ showForm() ? 'Tutup formulir' : '+ Tambah jadwal' }}
+          {{ edit.open() == 'new' ? 'Tutup form' : '+ Tambah jadwal' }}
         </button>
       </div>
     </header>
@@ -19,53 +19,16 @@
       <app-reference-editor kind="locations"></app-reference-editor>
     </div>
 
-    @if (showForm()) {
-      <div class="panel panel--bone mt-4 p-4 anim-pop">
-        <h2 class="panel-title mb-3">{{ editingBatchId() ? 'Ubah jadwal kelas' : 'Tambah jadwal kelas' }}</h2>
-        <div class="row g-3 mb-3">
-          <div class="col-md-4">
-            <label class="k-label">Kelas</label>
-            <select class="form-select k-select" [(ngModel)]="form.courseId">
-              @for (c of svc.courses(); track c.id) {
-                <option [ngValue]="c.id">{{ c.title }}</option>
-              }
-            </select>
+    <div class="expand edit-anchor" [id]="edit.anchorId('new')" [class.open]="edit.open() === 'new'">
+      <div class="expand-inner">
+        @if (edit.mounted() === 'new') {
+          <div class="panel panel--bone mt-4 p-4">
+            <h2 class="panel-title mb-3">Tambah jadwal kelas</h2>
+            <ng-container *ngTemplateOutlet="batchForm"></ng-container>
           </div>
-          <div class="col-md-4">
-            <label class="k-label">Lokasi</label>
-            <select class="form-select k-select" [(ngModel)]="form.locationId">
-              @for (l of svc.locations(); track l.id) {
-                <option [ngValue]="l.id">{{ l.name }} ({{ l.city }})</option>
-              }
-            </select>
-          </div>
-          <div class="col-md-4">
-            <label class="k-label">Nama jadwal</label>
-            <input class="form-control k-input" [(ngModel)]="form.batchName" placeholder="Nama batch" />
-          </div>
-          <div class="col-md-3">
-            <label class="k-label">Tanggal mulai</label>
-            <input type="date" class="form-control k-input" [(ngModel)]="form.startDate" />
-          </div>
-          <div class="col-md-3">
-            <label class="k-label">Tanggal selesai</label>
-            <input type="date" class="form-control k-input" [(ngModel)]="form.endDate" />
-          </div>
-          <div class="col-md-3">
-            <label class="k-label">Jam mulai</label>
-            <input type="time" class="form-control k-input" [(ngModel)]="form.startTime" />
-          </div>
-          <div class="col-md-3">
-            <label class="k-label">Jam selesai</label>
-            <input type="time" class="form-control k-input" [(ngModel)]="form.endTime" />
-          </div>
-        </div>
-        <button class="btn-k-primary btn-sm" type="button" (click)="saveBatch()">
-          {{ editingBatchId() ? 'Simpan perubahan' : 'Simpan jadwal' }}
-        </button>
-        <button class="btn-k-light btn-sm ms-2" type="button" (click)="showForm.set(false)">Batal</button>
+        }
       </div>
-    }
+    </div>
 
     <section class="panel mt-4 anim-fade-up">
       <div class="panel-head">
@@ -78,7 +41,9 @@
           <div class="row g-3">
             @for (b of svc.batches(); track b.id; let i = $index) {
               <div class="col-12 col-lg-6">
-                <article class="h-100 p-3 rounded-3 border"
+                <article class="edit-anchor h-100 p-3 rounded-3 border"
+                         [id]="edit.anchorId(b.id)"
+                         [class.is-editing]="edit.open() === b.id"
                          [class.bg-light]="i % 2 === 0">
                   <div class="d-flex gap-3 align-items-start">
                     <div class="text-center rounded-3 bg-white border p-2" style="min-width:65px;">
@@ -121,10 +86,23 @@
                       · Sisa {{ svc.getRemainingSeatsForBatch(b.id) }} kursi
                     </span>
                     <div class="d-flex gap-2">
-                      <button class="btn-k-light btn-sm" type="button" (click)="editBatch(b)">Ubah</button>
+                      <button class="btn-k-light btn-sm" type="button" [attr.aria-expanded]="edit.open() === b.id" (click)="editBatch(b)">
+                        {{ edit.open() === b.id ? 'Tutup' : 'Ubah' }}
+                      </button>
                       <button class="btn btn-sm text-danger" type="button" [disabled]="svc.saving()" (click)="deleteBatch(b)">Hapus</button>
                     </div>
                   </div>
+                  <div class="expand" [class.open]="edit.open() === b.id">
+                    <div class="expand-inner">
+                      @if (edit.mounted() === b.id) {
+                        <div class="edit-body">
+                          <h4 class="panel-title mb-3">Ubah jadwal kelas</h4>
+                          <ng-container *ngTemplateOutlet="batchForm"></ng-container>
+                        </div>
+                      }
+                    </div>
+                  </div>
+
                 </article>
               </div>
             }
@@ -140,3 +118,48 @@
     </section>
   </div>
 </section>
+
+<ng-template #batchForm>
+  <div class="row g-3 mb-3">
+    <div class="col-12 col-sm-6">
+      <label class="k-label">Kelas</label>
+      <select data-autofocus class="form-select k-select" [(ngModel)]="form.courseId">
+        @for (c of svc.courses(); track c.id) {
+          <option [ngValue]="c.id">{{ c.title }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-12 col-sm-6">
+      <label class="k-label">Lokasi</label>
+      <select class="form-select k-select" [(ngModel)]="form.locationId">
+        @for (l of svc.locations(); track l.id) {
+          <option [ngValue]="l.id">{{ l.name }} ({{ l.city }})</option>
+        }
+      </select>
+    </div>
+    <div class="col-12">
+      <label class="k-label">Nama jadwal</label>
+      <input class="form-control k-input" [(ngModel)]="form.batchName" placeholder="Nama batch" />
+    </div>
+    <div class="col-6">
+      <label class="k-label">Tanggal mulai</label>
+      <input type="date" class="form-control k-input" [(ngModel)]="form.startDate" />
+    </div>
+    <div class="col-6">
+      <label class="k-label">Tanggal selesai</label>
+      <input type="date" class="form-control k-input" [(ngModel)]="form.endDate" />
+    </div>
+    <div class="col-6">
+      <label class="k-label">Jam mulai</label>
+      <input type="time" class="form-control k-input" [(ngModel)]="form.startTime" />
+    </div>
+    <div class="col-6">
+      <label class="k-label">Jam selesai</label>
+      <input type="time" class="form-control k-input" [(ngModel)]="form.endTime" />
+    </div>
+  </div>
+  <button class="btn-k-primary btn-sm" type="button" [disabled]="svc.saving()" (click)="saveBatch()">
+    {{ editingBatchId() ? 'Simpan perubahan' : 'Simpan jadwal' }}
+  </button>
+  <button class="btn-k-light btn-sm ms-2" type="button" (click)="edit.hide()">Batal</button>
+</ng-template>

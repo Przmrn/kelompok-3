@@ -23,9 +23,20 @@ const registration = { id: 1, studentId: student.id, batchId: 9, registrationNum
     { id: 20, installmentNumber: 1, dueDate: '2027-01-01', amount: 333000, paidAt: null, paidAmount: 333000, installmentStatus: 'PAID' },
   ] };
 
-export function flushCourseData(role: 'Admin' | 'Student' | 'Guest', options = { phone: '', expertise: instructor.expertise, cancelled: false }) {
+type FlushOptions = {
+  phone: string;
+  expertise: string;
+  cancelled: boolean;
+  statusOverrides?: Record<number, string>;
+};
+
+export function flushCourseData(
+  role: 'Admin' | 'Student' | 'Guest',
+  options: FlushOptions = { phone: '', expertise: instructor.expertise, cancelled: false }
+) {
   const http = TestBed.inject(HttpTestingController);
   const date = new Date(Date.now() + 16 * 86400000).toISOString().slice(0, 10);
+  const status = (id: number, fallback: string) => options.statusOverrides?.[id] ?? fallback;
   http.expectOne('/api/course-categories').flush([{ id: 5, name: 'Backend', description: '' }]);
   http.expectOne('/api/locations').flush([{ id: 7, name: 'Studio', city: 'Bandung', address: 'Jalan Uji', roomName: 'A1' }]);
   http.expectOne('/api/courses').flush([{ id: 6, categoryId: 5, categoryName: 'Backend', syllabus: 'SQL', durationHours: 8, basePrice: 1000000 }]);
@@ -37,9 +48,9 @@ export function flushCourseData(role: 'Admin' | 'Student' | 'Guest', options = {
   const profile = { ...student, phoneNumber: options.phone };
   if (admin) http.expectOne('/api/students').flush([profile]);
   http.expectOne(admin ? '/api/Registration' : '/api/Registration/me').flush([
-    { ...registration, registrationStatus: options.cancelled ? 'CANCELLED' : registration.registrationStatus },
-    { ...registration, id: 2, registrationNumber: 'REG-2', paymentMethod: 'UPFRONT', installmentTenor: null, paymentStatus: 'PENDING', registrationStatus: 'PENDING', paidAmount: 0, totalAmount: 1318125, installments: [] },
-    { ...registration, id: 3, registrationNumber: 'REG-3', paymentStatus: 0, registrationStatus: 0, paidAmount: 0,
+    { ...registration, registrationStatus: status(1, options.cancelled ? 'CANCELLED' : registration.registrationStatus) },
+    { ...registration, id: 2, registrationNumber: 'REG-2', paymentMethod: 'UPFRONT', installmentTenor: null, paymentStatus: 'PENDING', registrationStatus: status(2, 'PENDING'), paidAmount: 0, totalAmount: 1318125, installments: [] },
+    { ...registration, id: 3, registrationNumber: 'REG-3', paymentStatus: 0, registrationStatus: status(3, 'PENDING'), paidAmount: 0,
       installments: [{ ...registration.installments[0], id: 30, installmentStatus: 0, paidAmount: 0 }] },
   ]);
   if (admin) http.expectOne('/api/instructors').flush([{ ...instructor, expertise: options.expertise }]);

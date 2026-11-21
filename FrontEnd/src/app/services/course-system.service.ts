@@ -20,6 +20,10 @@ import {
   User,
 } from '../models/course-system.models';
 
+function isActivePaymentActivity(reg: Registration): boolean {
+  return reg.registrationStatus !== 'Cancelled' && reg.registrationStatus !== 'Completed';
+}
+
 @Injectable({
   providedIn: 'root',
 })
@@ -64,6 +68,18 @@ export class CourseSystemService {
   readonly batchInstructors = computed(() => this.account()?.assignments ?? []);
   readonly registrations = computed(() => this.account()?.registrations ?? []);
   readonly myRegistrations = computed(() => this.isStudent() ? this.registrations() : []);
+  /**
+   * Satu-satunya sumber daftar aktivitas pembayaran peserta. Registrasi yang
+   * sudah final (dibatalkan atau selesai) tetap tersimpan di server, tetapi
+   * tidak lagi ditampilkan sebagai aktivitas yang perlu ditindaklanjuti.
+   */
+  readonly paymentActivities = computed(() =>
+    this.myRegistrations().filter(isActivePaymentActivity)
+  );
+  /** Daftar pendaftaran aktif untuk dashboard admin (tanpa data final). */
+  readonly adminRegistrations = computed(() =>
+    this.registrations().filter(isActivePaymentActivity)
+  );
   readonly installmentSchedules = computed(() => this.account()?.schedules ?? []);
   readonly instructors = computed(() => this.account()?.instructors ?? []);
   readonly loading = signal(true);
@@ -309,9 +325,8 @@ export class CourseSystemService {
     return Math.max(0, reg.totalAmount - this.getTotalPaidForRegistration(reg));
   }
 
-  readonly unpaidCartRegistrations = computed(() => this.myRegistrations().filter(reg =>
-    reg.registrationStatus !== 'Cancelled' &&
-    (reg.paymentStatus === 'Pending' || (reg.paymentStatus === 'Overdue' && reg.paidAmount === 0))
+  readonly unpaidCartRegistrations = computed(() => this.paymentActivities().filter(reg =>
+    reg.paymentStatus === 'Pending' || (reg.paymentStatus === 'Overdue' && reg.paidAmount === 0)
   ));
 
   canOpenRefund(reg: Registration): boolean {

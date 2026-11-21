@@ -79,7 +79,10 @@ describe('My Courses child routes', () => {
     await navigation;
     harness.detectChanges();
     expect(router.url).toBe('/my-courses/jadwal');
-    expect(harness.routeNativeElement!.textContent).toContain('Pendaftaran kelas ini sudah dibatalkan.');
+    harness.detectChanges();
+    expect(harness.routeNativeElement!.querySelector('h1')?.textContent).toContain('Kelas saya (2)');
+    expect(harness.routeNativeElement!.textContent).not.toContain('Pendaftaran kelas ini sudah dibatalkan.');
+    expect(harness.routeNativeElement!.querySelector('a[href="/payments/1"]')).toBeNull();
   });
 
   it('excludes unpaid registrations from direct refund links', async () => {

@@ -1373,6 +1373,46 @@ h1, h2, h3, h4, h5, h6, .font-display {
   border-top: 1px solid rgba(0, 0, 0, 0.12);
 }
 
+
+/*Inline expandable edit                                              */
+
+.edit-anchor {
+  scroll-margin-top: 96px; /* tinggi header sticky */
+}
+
+.expand {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 0.32s cubic-bezier(0.22, 1, 0.36, 1),
+    opacity 0.24s ease;
+}
+
+.expand.open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.expand-inner {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.edit-body {
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(0, 0, 0, 0.12);
+}
+
+.is-editing {
+  box-shadow: 0 0 0 2px var(--ui-ink), 0 18px 36px -26px rgba(0, 0, 0, 0.28);
+}
+
+.admin-card.is-editing:hover {
+  transform: none;
+}
+
 .admin-price {
   font-size: 1.05rem;
   font-weight: 700;
