@@ -3,6 +3,7 @@ using BackEnd.DTOs.Registration;
 using BackEnd.Exceptions;
 using BackEnd.Models;
 using BackEnd.Repositories;
+using Microsoft.EntityFrameworkCore;
 
 namespace BackEnd.Services
 {
@@ -15,6 +16,7 @@ namespace BackEnd.Services
         private readonly IRepository<Location> _locationRepository;
         private readonly IRepository<InstallmentSchedule> _installmentRepository;
         private readonly CourseDbContext _context;
+        private readonly ILogger<RegistrationService> _logger;
 
         public RegistrationService(
             IRepository<Registration> registrationRepository,
@@ -23,7 +25,8 @@ namespace BackEnd.Services
             IRepository<Course> courseRepository,
             IRepository<Location> locationRepository,
             IRepository<InstallmentSchedule> installmentRepository,
-            CourseDbContext context
+            CourseDbContext context,
+            ILogger<RegistrationService> logger
         )
         {
             _registrationRepository = registrationRepository;
@@ -33,6 +36,7 @@ namespace BackEnd.Services
             _locationRepository = locationRepository;
             _installmentRepository = installmentRepository;
             _context = context;
+            _logger = logger;
         }
 
         public async Task<RegistrationDetailDto> CreateAsync(
@@ -117,6 +121,7 @@ namespace BackEnd.Services
 
                 _batchRepository.Update(batch);
                 await _batchRepository.SaveChangesAsync();
+                await transaction.CommitAsync();
 
                 throw new AppException("Kapasitas batch sudah penuh.", StatusCodes.Status409Conflict);
             }
@@ -203,6 +208,9 @@ namespace BackEnd.Services
             }
 
             await transaction.CommitAsync();
+            _logger.LogInformation(
+                "Registration {RegistrationId} ({RegistrationNumber}) dibuat untuk student {StudentId} pada batch {BatchId}",
+                registration.Id, registration.RegistrationNumber, student.Id, batch.Id);
             return await BuildDetailAsync(registration);
         }
 
@@ -281,7 +289,7 @@ namespace BackEnd.Services
 
                     PaidAmount = 0,
 
-                    InstallmentStatus = InstallmentStatus.PENDING
+                    InstallmentStatus = installmentAmount == 0 ? InstallmentStatus.PAID : InstallmentStatus.PENDING
                 });
             }
 
@@ -333,13 +341,23 @@ namespace BackEnd.Services
 
                 if (registration.StudentId != student.Id)
                 {
-                    throw new UnauthorizedException(
+                    throw new ForbiddenException(
                         "Anda tidak memiliki akses ke registration ini."
                     );
                 }
             }
 
             return await BuildDetailAsync(registration);
+        }
+
+        public async Task<CancellationPreviewDto> PreviewCancellationAsync(long registrationId, long userId, bool isAdmin)
+        {
+            await GetByIdAsync(registrationId, userId, isAdmin);
+            var registration = await _registrationRepository.GetByIdAsync(registrationId)
+                ?? throw new NotFoundException("Pendaftaran tidak ditemukan.");
+            var batch = await _batchRepository.GetByIdAsync(registration.BatchId)
+                ?? throw new NotFoundException("Jadwal tidak ditemukan.");
+            return RefundPolicy.Calculate(registration, batch.StartDate, DateTime.UtcNow);
         }
 
         public async Task<bool> CancelAsync(long registrationId, long userId, bool isAdmin)
@@ -353,7 +371,7 @@ namespace BackEnd.Services
                     ?? throw new NotFoundException("Student tidak ditemukan.");
 
                 if (registration.StudentId != student.Id)
-                    throw new UnauthorizedException("Anda tidak memiliki akses ke registration ini.");
+                    throw new ForbiddenException("Anda tidak memiliki akses ke registration ini.");
             }
 
             if (registration.RegistrationStatus == RegistrationStatus.CANCELLED)
@@ -362,14 +380,29 @@ namespace BackEnd.Services
             if (registration.RegistrationStatus == RegistrationStatus.COMPLETED)
                 throw new AppException("Registration yang sudah selesai tidak dapat dibatalkan.", StatusCodes.Status409Conflict);
 
-            registration.RegistrationStatus = RegistrationStatus.CANCELLED;
-            _registrationRepository.Update(registration);
+            var batch = await _batchRepository.GetByIdAsync(registration.BatchId)
+                ?? throw new NotFoundException("Jadwal tidak ditemukan.");
+            var cancelledAt = DateTime.UtcNow;
+            var preview = RefundPolicy.Calculate(registration, batch.StartDate, cancelledAt);
+            if (!preview.CanCancel) throw new AppException(preview.ReasonIfBlocked!);
 
-            var batch = await _batchRepository.GetByIdAsync(registration.BatchId);
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            // Tolak pembatalan bila pembayaran atau status berubah sejak preview server dihitung.
+            var updated = await _context.Registrations.Where(r => r.Id == registrationId &&
+                r.RegistrationStatus == registration.RegistrationStatus && r.PaidAmount == registration.PaidAmount)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(r => r.RegistrationStatus, RegistrationStatus.CANCELLED)
+                    .SetProperty(r => r.CancelledAt, cancelledAt)
+                    .SetProperty(r => r.DaysBeforeBatchStart, preview.DaysDifference)
+                    .SetProperty(r => r.RefundPercentage, preview.RefundPercentage)
+                    .SetProperty(r => r.RefundAmount, preview.EstimatedRefundAmount)
+                    .SetProperty(r => r.CancellationReason, "Dibatalkan atas permintaan pengguna"));
+            if (updated != 1) throw new AppException("Data pembayaran berubah. Muat ulang sebelum membatalkan.", 409);
             if (batch != null && batch.CourseStatus == CourseBatchStatus.FULL)
             {
                 var activeCount = await _registrationRepository.CountAsync(r =>
                     r.BatchId == batch.Id &&
+                    r.Id != registration.Id &&
                     (r.RegistrationStatus == RegistrationStatus.PENDING ||
                      r.RegistrationStatus == RegistrationStatus.CONFIRMED));
                 if (activeCount < batch.MaxSeats)
@@ -380,6 +413,8 @@ namespace BackEnd.Services
             }
 
             await _registrationRepository.SaveChangesAsync();
+            await transaction.CommitAsync();
+            _logger.LogInformation("Registration {RegistrationId} dibatalkan oleh user {UserId}; refund tercatat {RefundAmount}", registrationId, userId, preview.EstimatedRefundAmount);
             return true;
         }
 
@@ -423,6 +458,15 @@ namespace BackEnd.Services
                 Id = registration.Id,
                 StudentId = registration.StudentId,
                 PaidAt = registration.PaidAt,
+                CancelledAt = registration.CancelledAt,
+                DaysBeforeBatchStart = registration.DaysBeforeBatchStart,
+                RefundPercentage = registration.RefundPercentage,
+                RefundAmount = registration.RefundAmount,
+                CancellationReason = registration.CancellationReason,
+                RefundedAt = registration.RefundedAt,
+                RefundedByUserId = registration.RefundedByUserId,
+                RefundReference = registration.RefundReference,
+
 
                 RegistrationNumber = registration.RegistrationNumber,
 
@@ -505,7 +549,7 @@ namespace BackEnd.Services
 
             if (registration.StudentId != student.Id)
             {
-                throw new UnauthorizedException(
+                throw new ForbiddenException(
                     "Anda tidak memiliki akses ke registration ini."
                 );
             }
@@ -523,6 +567,11 @@ namespace BackEnd.Services
 
             if (registration.PaymentMethod == PaymentMethods.UPFRONT)
             {
+                if (registration.PaymentStatus == PaymentStatus.PAID || registration.PaidAmount >= registration.TotalAmount)
+                {
+                    throw new AppException("Pembayaran sudah lunas.", StatusCodes.Status409Conflict);
+                }
+
                 decimal remaining = registration.TotalAmount - registration.PaidAmount;
 
                 if (dto.Amount != remaining)
@@ -538,7 +587,7 @@ namespace BackEnd.Services
 
                 registration.RegistrationStatus = RegistrationStatus.CONFIRMED;
 
-                registration.PaidAt ??= DateTime.UtcNow;
+                registration.PaidAt = DateTime.UtcNow;
             }
             else if (registration.PaymentMethod == PaymentMethods.INSTALLMENT)
             {
@@ -555,6 +604,12 @@ namespace BackEnd.Services
                 if (nextInstallment == null)
                 {
                     throw new AppException("Semua cicilan sudah dibayar.", StatusCodes.Status409Conflict);
+                }
+
+                var today = DateOnly.FromDateTime(DateTime.UtcNow);
+                if (today > nextInstallment.DueDate.AddDays(14))
+                {
+                    throw new AppException("Batas pembayaran cicilan telah terlewati.");
                 }
 
                 decimal remainingInstallment =
@@ -575,7 +630,7 @@ namespace BackEnd.Services
 
                 registration.PaidAmount += dto.Amount;
 
-                registration.PaidAt ??= DateTime.UtcNow;
+                registration.PaidAt = DateTime.UtcNow;
 
                 registration.RegistrationStatus = RegistrationStatus.CONFIRMED;
 
@@ -584,9 +639,17 @@ namespace BackEnd.Services
                          s.Id == nextInstallment.Id
                 );
 
+                bool hasOverdueInstallment = schedules.Any(
+                    s => s.Id != nextInstallment.Id &&
+                         s.InstallmentStatus == InstallmentStatus.OVERDUE &&
+                         s.PaidAmount < s.Amount
+                );
+
                 registration.PaymentStatus = allPaid
                     ? PaymentStatus.PAID
-                    : PaymentStatus.PARTIALLY_PAID;
+                    : hasOverdueInstallment
+                        ? PaymentStatus.OVERDUE
+                        : PaymentStatus.PARTIALLY_PAID;
 
                 _installmentRepository.Update(nextInstallment);
             }
@@ -594,6 +657,10 @@ namespace BackEnd.Services
             _registrationRepository.Update(registration);
 
             await _registrationRepository.SaveChangesAsync();
+
+            _logger.LogInformation(
+                "Pembayaran sebesar {Amount} diterima untuk registration {RegistrationId} (status: {PaymentStatus})",
+                dto.Amount, registrationId, registration.PaymentStatus);
 
             return await BuildDetailAsync(registration);
         }

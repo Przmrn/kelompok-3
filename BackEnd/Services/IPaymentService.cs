@@ -8,5 +8,6 @@ namespace BackEnd.Services
         Task<PaymentResponseDto> ConfirmUpfrontPaymentAsync(long registrationId, decimal? paidAmount);
         Task<PaymentResponseDto> ConfirmInstallmentPaymentAsync(long scheduleId, decimal? paidAmount);
         Task ProcessOverdueRegistrationsAsync();
+        Task<PaymentResponseDto> ConfirmRefundAsync(long registrationId, long userId, string reference);
     }
 }

@@ -1,4 +1,6 @@
 using BackEnd.DTOs.Payment;
+using BackEnd.Data;
+using Microsoft.EntityFrameworkCore;
 using BackEnd.Exceptions;
 using BackEnd.Models;
 using BackEnd.Repositories;
@@ -10,15 +12,21 @@ namespace BackEnd.Services
         private readonly IRepository<Registration> _registrationRepository;
         private readonly IRepository<InstallmentSchedule> _installmentRepository;
         private readonly IRepository<CourseBatch> _batchRepository;
+        private readonly ILogger<PaymentService> _logger;
+        private readonly CourseDbContext _context;
 
         public PaymentService(
             IRepository<Registration> registrationRepository,
             IRepository<InstallmentSchedule> installmentRepository,
-            IRepository<CourseBatch> batchRepository)
+            IRepository<CourseBatch> batchRepository,
+            ILogger<PaymentService> logger,
+            CourseDbContext context)
         {
             _registrationRepository = registrationRepository;
             _installmentRepository = installmentRepository;
             _batchRepository = batchRepository;
+            _logger = logger;
+            _context = context;
         }
 
         public async Task<PaymentResponseDto?> GetByRegistrationIdAsync(long registrationId)
@@ -56,6 +64,8 @@ namespace BackEnd.Services
 
             _registrationRepository.Update(registration);
             await _registrationRepository.SaveChangesAsync();
+
+            _logger.LogInformation("Pembayaran UPFRONT dikonfirmasi untuk registration {RegistrationId} sebesar {Amount}", registrationId, amount);
 
             return ToPaymentResponse(registration);
         }
@@ -121,7 +131,24 @@ namespace BackEnd.Services
             _registrationRepository.Update(registration);
             await _registrationRepository.SaveChangesAsync();
 
+            _logger.LogInformation("Pembayaran cicilan {ScheduleId} (registration {RegistrationId}) dikonfirmasi sebesar {Amount}", scheduleId, registration.Id, amount);
+
             return ToPaymentResponse(registration);
+        }
+
+        public async Task<PaymentResponseDto> ConfirmRefundAsync(long registrationId, long userId, string reference)
+        {
+            reference = reference.Trim();
+            if (reference.Length is < 1 or > 100) throw new AppException("Isi referensi pengembalian dana, maksimal 100 karakter.");
+            var updated = await _context.Registrations.Where(r => r.Id == registrationId &&
+                    r.RegistrationStatus == RegistrationStatus.CANCELLED && r.RefundAmount > 0 && r.RefundedAt == null)
+                .ExecuteUpdateAsync(setters => setters
+                    .SetProperty(r => r.RefundedAt, DateTime.UtcNow)
+                    .SetProperty(r => r.RefundedByUserId, userId)
+                    .SetProperty(r => r.RefundReference, reference));
+            if (updated != 1) throw new AppException("Refund tidak tersedia atau sudah dikonfirmasi.", 409);
+            _logger.LogInformation("Refund registration {RegistrationId} dikonfirmasi oleh admin {UserId}", registrationId, userId);
+            return (await GetByRegistrationIdAsync(registrationId))!;
         }
 
         public async Task ProcessOverdueRegistrationsAsync()
@@ -159,6 +186,10 @@ namespace BackEnd.Services
                 if (shouldCancel)
                 {
                     registration.RegistrationStatus = RegistrationStatus.CANCELLED;
+                    registration.CancelledAt = DateTime.UtcNow;
+                    registration.CancellationReason = "Batas pembayaran cicilan terlewati lebih dari 14 hari";
+                    registration.RefundAmount = 0;
+                    registration.RefundPercentage = 0;
                     registration.PaymentStatus = PaymentStatus.OVERDUE;
                     affectedBatchIds.Add(registration.BatchId);
                 }
@@ -204,6 +235,7 @@ namespace BackEnd.Services
             }
 
             await _batchRepository.SaveChangesAsync();
+            _logger.LogInformation("Pemeriksaan keterlambatan selesai; {BatchCount} batch diperbarui kapasitasnya", affectedBatchIds.Count);
         }
 
         private static void ValidatePaidAmount(decimal amount, decimal maximumAmount)
@@ -228,6 +260,15 @@ namespace BackEnd.Services
                 PaymentStatus = registration.PaymentStatus,
                 RegistrationStatus = registration.RegistrationStatus,
                 PaidAt = registration.PaidAt,
+                CancelledAt = registration.CancelledAt,
+                DaysBeforeBatchStart = registration.DaysBeforeBatchStart,
+                RefundPercentage = registration.RefundPercentage,
+                RefundAmount = registration.RefundAmount,
+                CancellationReason = registration.CancellationReason,
+                RefundedAt = registration.RefundedAt,
+                RefundedByUserId = registration.RefundedByUserId,
+                RefundReference = registration.RefundReference,
+
                 InstallmentSchedules = registration.InstallmentSchedules
                     .OrderBy(s => s.InstallmentNumber)
                     .Select(s => new InstallmentScheduleDto

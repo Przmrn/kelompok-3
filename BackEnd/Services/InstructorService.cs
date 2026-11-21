@@ -55,9 +55,9 @@ namespace BackEnd.Services
 
         public async Task<InstructorResponseDto> CreateAsync(InstructorCreateDto dto)
         {
-            var email = dto.Email.Trim();
+            var email = dto.Email.Trim().ToLowerInvariant();
 
-            if (await _db.Users.AnyAsync(u => u.Email == email))
+            if (await _db.Users.AnyAsync(u => u.Email.ToLower() == email))
                 throw new AppException("Email sudah terdaftar.", 409);
 
             var user = new User
@@ -92,8 +92,8 @@ namespace BackEnd.Services
                 .FirstOrDefaultAsync(i => i.Id == id)
                 ?? throw new NotFoundException("Instructor tidak ditemukan.");
 
-            var email = dto.Email.Trim();
-            if (await _db.Users.AnyAsync(u => u.Email == email && u.Id != instructor.UserId))
+            var email = dto.Email.Trim().ToLowerInvariant();
+            if (await _db.Users.AnyAsync(u => u.Email.ToLower() == email && u.Id != instructor.UserId))
                 throw new AppException("Email sudah digunakan akun lain.", 409);
 
             instructor.FullName = dto.FullName.Trim();

@@ -13,6 +13,16 @@ namespace BackEnd.DTOs.Payment
         public PaymentStatus PaymentStatus { get; set; }
         public RegistrationStatus RegistrationStatus { get; set; }
         public DateTime? PaidAt { get; set; }
+
+        public DateTime? CancelledAt { get; set; }
+        public int? DaysBeforeBatchStart { get; set; }
+        public int? RefundPercentage { get; set; }
+        public decimal? RefundAmount { get; set; }
+        public string? CancellationReason { get; set; }
+        public DateTime? RefundedAt { get; set; }
+        public long? RefundedByUserId { get; set; }
+        public string? RefundReference { get; set; }
+
         public List<InstallmentScheduleDto> InstallmentSchedules { get; set; } = new();
     }
 }

@@ -25,6 +25,12 @@ namespace BackEnd.Middlewares
             {
                 await WriteResponse(context, ex.StatusCode, ex.Message);
             }
+            catch (DbUpdateConcurrencyException ex)
+            {
+                _logger.LogWarning(ex, "Data berubah selama transaksi.");
+                await WriteResponse(context, StatusCodes.Status409Conflict,
+                    "Data telah berubah. Muat ulang halaman lalu coba kembali.");
+            }
             catch (DbUpdateException ex)
             {
                 _logger.LogWarning(ex, "Perubahan data ditolak oleh database.");
@@ -70,6 +76,11 @@ namespace BackEnd.Exceptions
     public class UnauthorizedException : AppException
     {
         public UnauthorizedException(string message) : base(message, 401) { }
+    }
+
+    public class ForbiddenException : AppException
+    {
+        public ForbiddenException(string message) : base(message, 403) { }
     }
 }
 

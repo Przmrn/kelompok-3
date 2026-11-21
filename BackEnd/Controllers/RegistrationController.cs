@@ -51,6 +51,7 @@ namespace BackEnd.Controllers
         }
 
         [HttpGet("{id:long}")]
+        [Authorize(Roles = "STUDENT,ADMIN")]
         public async Task<IActionResult> GetById(long id)
         {
             return Ok(await _registrationService.GetByIdAsync(id, GetUserId(), User.IsInRole("ADMIN")));
@@ -65,6 +66,20 @@ namespace BackEnd.Controllers
             return payment == null
                 ? NotFound(new { message = "Data payment tidak ditemukan." })
                 : Ok(payment);
+        }
+
+        [HttpGet("{id:long}/cancellation-preview")]
+        [Authorize(Roles = "STUDENT,ADMIN")]
+        public async Task<IActionResult> CancellationPreview(long id)
+        {
+            return Ok(await _registrationService.PreviewCancellationAsync(id, GetUserId(), User.IsInRole("ADMIN")));
+        }
+
+        [HttpPost("{id:long}/confirm-refund")]
+        [Authorize(Roles = "ADMIN")]
+        public async Task<IActionResult> ConfirmRefund(long id, [FromBody] RefundConfirmationDto request)
+        {
+            return Ok(await _paymentService.ConfirmRefundAsync(id, GetUserId(), request.Reference));
         }
 
         [HttpDelete("{id:long}")]

@@ -57,6 +57,19 @@ namespace BackEnd.Models
 
         public DateTime? PaidAt { get; set; }
 
+        public DateTime? CancelledAt { get; set; }
+        public int? DaysBeforeBatchStart { get; set; }
+        public int? RefundPercentage { get; set; }
+        [Column(TypeName = "decimal(15,2)")]
+        public decimal? RefundAmount { get; set; }
+        [MaxLength(200)]
+        public string? CancellationReason { get; set; }
+        public DateTime? RefundedAt { get; set; }
+        public long? RefundedByUserId { get; set; }
+        [MaxLength(100)]
+        public string? RefundReference { get; set; }
+
+
         public ICollection<InstallmentSchedule> InstallmentSchedules
         { get; set; } = new List<InstallmentSchedule>();
     }

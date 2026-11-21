@@ -61,7 +61,7 @@ namespace BackEnd.Services
             );
 
             if (courseBatch == null)
-                throw new BackEnd.Exceptions.AppException(
+                throw new BackEnd.Exceptions.NotFoundException(
                     "Batch tidak ditemukan."
                 );
 
@@ -70,7 +70,7 @@ namespace BackEnd.Services
             );
 
             if (!instructorExists)
-                throw new BackEnd.Exceptions.AppException(
+                throw new BackEnd.Exceptions.NotFoundException(
                     "Instruktur tidak ditemukan."
                 );
 
@@ -81,7 +81,8 @@ namespace BackEnd.Services
 
             if (alreadyAssigned)
                 throw new BackEnd.Exceptions.AppException(
-                    "Instruktur sudah ditugaskan ke batch ini."
+                    "Instruktur sudah ditugaskan ke batch ini.",
+                    StatusCodes.Status409Conflict
                 );
 
             var assignments = await _batchInstructorRepository.GetAllAsync(

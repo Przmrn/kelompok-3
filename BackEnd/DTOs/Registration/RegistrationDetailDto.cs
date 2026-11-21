@@ -7,6 +7,16 @@ namespace BackEnd.DTOs.Registration
         public long StudentId { get; set; }
         public DateTime? PaidAt { get; set; }
 
+        public DateTime? CancelledAt { get; set; }
+        public int? DaysBeforeBatchStart { get; set; }
+        public int? RefundPercentage { get; set; }
+        public decimal? RefundAmount { get; set; }
+        public string? CancellationReason { get; set; }
+        public DateTime? RefundedAt { get; set; }
+        public long? RefundedByUserId { get; set; }
+        public string? RefundReference { get; set; }
+
+
         public string CourseSyllabus { get; set; } = string.Empty;
 
         public int DurationHours { get; set; }

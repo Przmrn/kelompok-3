@@ -271,6 +271,16 @@ namespace BackEnd.Migrations
                     b.Property<long>("BatchId")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("CancellationReason")
+                        .HasMaxLength(200)
+                        .HasColumnType("character varying(200)");
+
+                    b.Property<DateTime?>("CancelledAt")
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<int?>("DaysBeforeBatchStart")
+                        .HasColumnType("integer");
+
                     b.Property<decimal>("EarlyBirdDiscount")
                         .HasColumnType("decimal(15,2)");
 
@@ -278,6 +288,7 @@ namespace BackEnd.Migrations
                         .HasColumnType("integer");
 
                     b.Property<decimal>("PaidAmount")
+                        .IsConcurrencyToken()
                         .HasColumnType("decimal(15,2)");
 
                     b.Property<DateTime?>("PaidAt")
@@ -295,6 +306,23 @@ namespace BackEnd.Migrations
                     b.Property<int>("QueueNumber")
                         .HasColumnType("integer");
 
+                    b.Property<decimal?>("RefundAmount")
+                        .HasColumnType("decimal(15,2)");
+
+                    b.Property<int?>("RefundPercentage")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("RefundReference")
+                        .HasMaxLength(100)
+                        .HasColumnType("character varying(100)");
+
+                    b.Property<DateTime?>("RefundedAt")
+                        .IsConcurrencyToken()
+                        .HasColumnType("timestamp with time zone");
+
+                    b.Property<long?>("RefundedByUserId")
+                        .HasColumnType("bigint");
+
                     b.Property<DateTime>("RegistrationDate")
                         .HasColumnType("timestamp with time zone");
 
@@ -304,6 +332,7 @@ namespace BackEnd.Migrations
                         .HasColumnType("character varying(50)");
 
                     b.Property<string>("RegistrationStatus")
+                        .IsConcurrencyToken()
                         .IsRequired()
                         .HasColumnType("text");
 

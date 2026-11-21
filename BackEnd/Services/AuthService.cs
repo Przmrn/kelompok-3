@@ -16,17 +16,20 @@ namespace BackEnd.Services
         private readonly IRepository<Student> _studentRepository;
         private readonly CourseDbContext _context;
         private readonly IConfiguration _configuration;
+        private readonly ILogger<AuthService> _logger;
 
         public AuthService(
             IRepository<User> userRepository,
             IRepository<Student> studentRepository,
             CourseDbContext context,
-            IConfiguration configuration)
+            IConfiguration configuration,
+            ILogger<AuthService> logger)
         {
             _userRepository = userRepository;
             _studentRepository = studentRepository;
             _context = context;
             _configuration = configuration;
+            _logger = logger;
         }
 
         public async Task<UserResponseDto> RegisterAsync(RegisterRequestDto dto)
@@ -43,12 +46,9 @@ namespace BackEnd.Services
                 Role = Role.STUDENT
             };
 
-            await _userRepository.AddAsync(user);
-            await _context.SaveChangesAsync();
-
             var student = new Student
             {
-                UserId = user.Id,
+                User = user,
                 FullName = dto.FullName.Trim(),
                 PhoneNumber = string.Empty
             };
@@ -56,6 +56,7 @@ namespace BackEnd.Services
             await _studentRepository.AddAsync(student);
             await _context.SaveChangesAsync();
 
+            _logger.LogInformation("User {UserId} ({Email}) berhasil mendaftar sebagai STUDENT", user.Id, user.Email);
             return ToUserResponse(user);
         }
 
@@ -65,11 +66,11 @@ namespace BackEnd.Services
             var users = await _userRepository.FindAsync(u => u.Email.ToLower() == email);
             var user = users.FirstOrDefault();
 
-            if (user == null)
+            if (user == null || user.Password != dto.Password)
+            {
+                _logger.LogWarning("Percobaan login gagal untuk email {Email}", email);
                 return null;
-
-            if (user.Password != dto.Password)
-                return null;
+            }
 
             var expiresAt = DateTime.UtcNow.AddMinutes(GetExpiresMinutes());
             var key = _configuration["Jwt:Key"]
@@ -100,6 +101,8 @@ namespace BackEnd.Services
                 notBefore: DateTime.UtcNow,
                 expires: expiresAt,
                 signingCredentials: credentials);
+
+            _logger.LogInformation("User {UserId} ({Role}) berhasil login", user.Id, user.Role);
 
             return new LoginResponseDto
             {

@@ -24,6 +24,12 @@ namespace BackEnd.Data
         {
             base.OnModelCreating(modelBuilder);
 
+            // Pembayaran, pembatalan, dan worker dapat berjalan bersamaan.
+            // Gagalkan penyimpanan usang agar saldo/refund tidak tertimpa.
+            modelBuilder.Entity<Registration>().Property(r => r.PaidAmount).IsConcurrencyToken();
+            modelBuilder.Entity<Registration>().Property(r => r.RegistrationStatus).IsConcurrencyToken();
+            modelBuilder.Entity<Registration>().Property(r => r.RefundedAt).IsConcurrencyToken();
+
             modelBuilder.Entity<BatchInstructor>()
                 .HasIndex(bi => new { bi.BatchId, bi.InstructorId })
                 .IsUnique();
