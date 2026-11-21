@@ -1,4 +1,5 @@
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { RefundCalculationResult } from '../models/course-system.models';
 import { Injectable, inject } from '@angular/core';
 import { catchError, forkJoin, map, of, throwError } from 'rxjs';
 import { BatchInstructor, Course, CourseBatch, CourseCategory, InstallmentSchedule, Instructor, Location, PaymentDetail, PaymentStatus, Registration, Student } from '../models/course-system.models';
@@ -143,6 +144,14 @@ export class BackendApiService {
     return this.http.delete('/api/Registration/' + id);
   }
 
+  cancellationPreview(id: number) {
+    return this.http.get<RefundCalculationResult>(`/api/Registration/${id}/cancellation-preview`);
+  }
+
+  confirmRefund(id: number, reference: string) {
+    return this.http.post(`/api/Registration/${id}/confirm-refund`, { reference: reference.trim() });
+  }
+
   paymentDetail(id: number) {
     return this.http.get<PaymentRow>(`/api/Registration/${id}/payment`).pipe(map((row): PaymentDetail => ({
       ...row,
@@ -167,7 +176,9 @@ export class BackendApiService {
   }
 
   assignment(batchId: number, instructorId: number, remove: boolean) {
-    return this.http.request(remove ? 'DELETE' : 'POST', '/api/BatchInstructor', { params: { batchId, instructorId } });
+    return remove
+      ? this.http.delete('/api/BatchInstructor', { params: { batchId, instructorId } })
+      : this.http.post('/api/BatchInstructor', { batchId, instructorId });
   }
 
   save(resource: Resource, id: number | undefined, body: object) {

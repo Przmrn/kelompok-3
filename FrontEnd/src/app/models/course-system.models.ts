@@ -106,6 +106,9 @@ export interface Registration {
   refundPercentage?: number;
   refundAmount?: number;
   cancellationReason?: string;
+  refundedAt?: string | null;
+  refundedByUserId?: number | null;
+  refundReference?: string | null;
 }
 
 export interface InstallmentSchedule {

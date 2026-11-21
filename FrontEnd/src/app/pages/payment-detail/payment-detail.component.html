@@ -76,6 +76,31 @@
         </div>
       </div>
 
+      @if (reg.registrationStatus === 'Cancelled') {
+        <div class="k-card p-4 mb-4">
+          <h2 class="h5 fw-bold">Pembatalan dan pengembalian dana</h2>
+          <p>{{ reg.cancellationReason || 'Pendaftaran dibatalkan.' }}</p>
+          @if (reg.cancelledAt) { <p class="small">Dibatalkan {{ reg.cancelledAt | date: 'd MMM yyyy, HH:mm' : '+0700' }} WIB</p> }
+          @if (reg.refundAmount != null) {
+            <p class="fw-bold">Refund tercatat: Rp{{ reg.refundAmount | number: '1.0-2' }}</p>
+            @if (reg.refundedAt) {
+              <p class="text-success">Dana sudah dikembalikan {{ reg.refundedAt | date: 'd MMM yyyy, HH:mm' : '+0700' }} WIB.</p>
+              <p>Referensi: {{ reg.refundReference }}</p>
+            } @else if (reg.refundAmount > 0) {
+              <p role="status">Menunggu pengembalian dana oleh admin.</p>
+              @if (svc.isAdmin()) {
+                <form (submit)="$event.preventDefault(); confirmRefund(reference)">
+                  <label for="refund-reference" class="k-label">Referensi transfer pengembalian dana</label>
+                  <input #reference id="refund-reference" name="reference" class="form-control k-input mb-3" required maxlength="100" pattern=".*\S.*" [disabled]="svc.saving()">
+                  <p class="small text-secondary">Konfirmasi setelah transfer sebesar nominal refund di atas telah dilakukan.</p>
+                  <button type="submit" class="btn-k-primary" [disabled]="svc.saving()">Konfirmasi dana sudah dikembalikan</button>
+                </form>
+              }
+            } @else { <p>Tidak ada dana yang perlu dikembalikan.</p> }
+          } @else { <p class="text-secondary">Nominal refund belum tercatat untuk pembatalan lama ini.</p> }
+        </div>
+      }
+
       <div class="k-card p-4">
         @if (reg.paymentMethod === 'Upfront') {
           <h2 class="h5 fw-bold mb-3">Pembayaran penuh</h2>

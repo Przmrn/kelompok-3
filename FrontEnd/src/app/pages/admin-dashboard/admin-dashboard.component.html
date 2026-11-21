@@ -13,6 +13,9 @@
       </div>
 
       <div class="page-actions">
+        <button type="button" class="btn-k-light" [disabled]="svc.saving() || checkingOverdue()" (click)="checkOverduePayments()">
+          {{ checkingOverdue() ? 'Memeriksa…' : 'Periksa keterlambatan' }}
+        </button>
         <a routerLink="/admin/courses" class="btn-k-light">Kelola kelas</a>
         <a routerLink="/admin/batches" class="btn-k-light">Kelola jadwal</a>
         <a routerLink="/admin/instructors" class="btn-k-primary">Kelola pengajar</a>
@@ -48,7 +51,94 @@
       </div>
     </div>
 
+    <!-- OVERDUE PAYMENTS -->
+    @if (showOverduePayments() && overduePayments().length > 0) {
+      <section class="panel mt-4 anim-fade-up" aria-label="Pembayaran terlambat">
+        <div class="panel-head">
+          <div>
+            <h2 class="panel-title">Pembayaran terlambat</h2>
+            <p class="panel-sub">
+              Daftar pendaftaran aktif yang memiliki tagihan atau cicilan melewati jatuh tempo.
+            </p>
+          </div>
+          <div class="d-flex align-items-center gap-2">
+            <span class="k-pill k-pill-red">
+              {{ overduePayments().length }} terlambat
+            </span>
+            <button type="button" class="btn-k-light btn-sm" (click)="closeOverduePayments()">
+              Tutup
+            </button>
+          </div>
+        </div>
+
+        <div>
+          @for (item of overduePayments(); track item.reg.id) {
+            <div class="ops-row">
+              <div class="ops-row-main">
+                <div class="ops-code">
+                  {{ item.reg.registrationNumber }} · Pendaftar ke-{{ item.reg.queueNumber }}
+                </div>
+
+                @if (svc.getBatchById(item.reg.batchId); as b) {
+                  <div class="ops-row-title">
+                    {{ svc.getStudentById(item.reg.studentId)?.fullName }}
+                    — {{ svc.getCourseById(b.courseId)?.title }}
+                  </div>
+                  <div class="text-secondary">
+                    {{ b.batchName }} · Cara bayar:
+                    {{ labels.method[item.reg.paymentMethod] }}
+                    {{ item.reg.installmentTenor ? ' (' + item.reg.installmentTenor + ' Bulan)' : '' }}
+                  </div>
+                }
+
+                <div class="text-secondary">
+                  Sudah dibayar:
+                  <strong>Rp{{ svc.getTotalPaidForRegistration(item.reg) | number:'1.0-0' }}</strong>
+                  / Rp{{ item.reg.totalAmount | number:'1.0-0' }}
+                  · Sisa tagihan:
+                  <strong class="text-danger">Rp{{ item.remainingAmount | number:'1.0-0' }}</strong>
+                </div>
+
+                @if (item.overdueSchedules.length > 0) {
+                  <div class="mt-2 d-flex flex-column gap-1">
+                    @for (sch of item.overdueSchedules; track sch.id) {
+                      <div class="small text-danger fw-semibold">
+                        Cicilan ke-{{ sch.installmentNumber }} · Jatuh tempo {{ sch.dueDate | date:'d MMM yyyy' }}
+                        · Sisa Rp{{ sch.remainingAmount | number:'1.0-0' }}
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+
+              <div class="d-flex flex-wrap align-items-center gap-2">
+                <a [routerLink]="['/payments', item.reg.id]" class="btn-k-light btn-sm">
+                  Rincian pembayaran
+                </a>
+                <span class="k-pill k-pill-red">
+                  {{ item.overdueSchedules.length > 0 ? item.overdueSchedules.length + ' cicilan terlambat' : labels.payment.Overdue }}
+                </span>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
     <!-- CATEGORY MANAGEMENT -->
+    @if (refunds().length) {
+      <section class="panel mt-4">
+        <h2 class="panel-title mb-3">Pengembalian dana peserta</h2>
+        @for (reg of refunds(); track reg.id) {
+          <div class="ops-row">
+            <div>{{ reg.registrationNumber }} · Rp{{ reg.refundAmount | number: '1.0-2' }}
+              <div>{{ reg.refundedAt ? 'Sudah dikembalikan' : 'Menunggu pengembalian dana' }}</div>
+            </div>
+            <a [routerLink]="['/payments', reg.id]" class="btn-k-light">Rincian refund</a>
+          </div>
+        }
+      </section>
+    }
     <div class="mt-5">
       <app-reference-editor kind="course-categories"></app-reference-editor>
     </div>

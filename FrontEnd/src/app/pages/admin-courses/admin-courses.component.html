@@ -93,6 +93,7 @@
 </section>
 
 <ng-template #courseForm>
+  @if (formError()) { <p class="alert alert-danger" role="alert">{{ formError() }}</p> }
   <div class="row g-3 mb-3">
     <div class="col-12">
       <label class="k-label">Kategori kelas</label>
@@ -104,11 +105,11 @@
     </div>
     <div class="col-6">
       <label class="k-label">Durasi (jam)</label>
-      <input type="number" class="form-control k-input" [(ngModel)]="form.durationHours" />
+      <input type="number" min="1" step="1" required class="form-control k-input" [(ngModel)]="form.durationHours" />
     </div>
     <div class="col-6">
       <label class="k-label">Harga kelas (Rp)</label>
-      <input type="number" step="50000" class="form-control k-input" [(ngModel)]="form.basePrice" />
+      <input type="number" min="0.01" step="0.01" required class="form-control k-input" [(ngModel)]="form.basePrice" />
     </div>
     <div class="col-12">
       <label class="k-label">Materi kelas (satu baris per topik)</label>

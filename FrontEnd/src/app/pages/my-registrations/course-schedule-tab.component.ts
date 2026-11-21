@@ -1,11 +1,11 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { Component, inject } from '@angular/core';
 import { CourseRegistrationCardComponent } from './course-registration-card.component';
 import { MyRegistrationsComponent } from './my-registrations.component';
 
 @Component({
   standalone: true,
-  imports: [DatePipe, DecimalPipe, CourseRegistrationCardComponent],
+  imports: [DatePipe, CourseRegistrationCardComponent],
   templateUrl: './course-schedule-tab.component.html',
 })
 export class CourseScheduleTabComponent {

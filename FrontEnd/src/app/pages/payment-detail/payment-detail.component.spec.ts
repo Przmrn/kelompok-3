@@ -67,4 +67,35 @@ describe('Rincian pembayaran', () => {
     expect(view.textContent).not.toContain('Konfirmasi cicilan');
     http.verify();
   });
+
+  it('mencatat konfirmasi refund admin dan menampilkan referensi pengembalian dana', async () => {
+    const { harness, http, view } = await open('Admin');
+    const cancelled = { ...payment, registrationStatus: 'CANCELLED', refundAmount: 75000, refundedAt: null };
+    http.expectOne(endpoint).flush(cancelled);
+    harness.detectChanges();
+    const reference = view.querySelector<HTMLInputElement>('#refund-reference')!;
+    reference.value = 'BANK-123';
+    reference.form!.requestSubmit();
+    const write = http.expectOne({ method: 'POST', url: '/api/Registration/3/confirm-refund' });
+    expect(write.request.body).toEqual({ reference: 'BANK-123' });
+    write.flush({});
+    await Promise.resolve();
+    flushCourseData('Admin');
+    harness.detectChanges();
+    http.expectOne(endpoint).flush({ ...cancelled, refundedAt: '2026-11-21T12:00:00Z', refundReference: 'BANK-123' });
+    harness.detectChanges();
+    expect(view.textContent).toContain('Dana sudah dikembalikan');
+    expect(view.textContent).toContain('BANK-123');
+    expect(view.querySelector('#refund-reference')).toBeNull();
+    http.verify();
+  });
+
+  it('peserta dapat membaca refund tetapi tidak dapat mengonfirmasi pengembaliannya', async () => {
+    const { harness, http, view } = await open('Student');
+    http.expectOne(endpoint).flush({ ...payment, registrationStatus: 'CANCELLED', refundAmount: 75000, refundedAt: null });
+    harness.detectChanges();
+    expect(view.textContent).toContain('Menunggu pengembalian dana');
+    expect(view.querySelector('form')).toBeNull();
+    http.verify();
+  });
 });

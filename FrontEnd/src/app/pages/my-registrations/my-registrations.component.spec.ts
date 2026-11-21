@@ -59,13 +59,19 @@ describe('My Courses child routes', () => {
     expect(card.textContent).toContain('Belum dibayar');
   });
 
-  it('opens the schedule from the legacy URL and returns there after a refund', async () => {
+  it('uses the server refund preview and opens the persisted cancellation detail', async () => {
     const harness = await RouterTestingHarness.create('/my-registrations');
     const router = TestBed.inject(Router);
     expect(router.url).toBe('/my-courses/jadwal');
     expect(harness.routeNativeElement!.textContent).toContain('Jadwal kelas');
     const refundLink = harness.routeNativeElement!.querySelector<HTMLAnchorElement>('a[href$="/refund"]')!;
     await harness.navigateByUrl(refundLink.pathname);
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/Registration/1/cancellation-preview').flush({
+      daysDifference: 16, totalPaid: 333000, refundPercentage: 100, floorAdminFee: 25000,
+      estimatedRefundAmount: 308000, canCancel: true, tierLabel: '100% dikurangi biaya administrasi Rp25.000',
+    });
+    harness.detectChanges();
     expect(harness.routeNativeElement!.textContent).toContain('16 hari sebelum kelas');
 
     const buttons = Array.from(harness.routeNativeElement!.querySelectorAll('button'));
@@ -78,11 +84,32 @@ describe('My Courses child routes', () => {
     flushCourseData('Student', { phone: '', expertise: '', cancelled: true });
     await navigation;
     harness.detectChanges();
-    expect(router.url).toBe('/my-courses/jadwal');
+    expect(router.url).toBe('/payments/1');
+    http.expectOne('/api/Registration/1/payment').flush({
+      registrationId: 1, registrationNumber: 'REG-1', paymentMethod: 'INSTALLMENT',
+      totalAmount: 999000, paidAmount: 333000, remainingAmount: 666000,
+      paymentStatus: 'PARTIALLY_PAID', registrationStatus: 'CANCELLED', installmentSchedules: [],
+      refundAmount: 308000, refundedAt: null,
+    });
     harness.detectChanges();
-    expect(harness.routeNativeElement!.querySelector('h1')?.textContent).toContain('Kelas saya (2)');
-    expect(harness.routeNativeElement!.textContent).not.toContain('Pendaftaran kelas ini sudah dibatalkan.');
-    expect(harness.routeNativeElement!.querySelector('a[href="/payments/1"]')).toBeNull();
+    expect(harness.routeNativeElement!.textContent).toContain('Refund tercatat');
+    expect(harness.routeNativeElement!.textContent).toContain('Menunggu pengembalian dana');
+    http.verify();
+  });
+
+  it('does not allow cancellation before the server preview loads and allows retry after a failure', async () => {
+    const harness = await RouterTestingHarness.create('/my-courses/1/refund');
+    const http = TestBed.inject(HttpTestingController);
+    http.expectOne('/api/Registration/1/cancellation-preview').flush({}, { status: 503, statusText: 'Unavailable' });
+    harness.detectChanges();
+    expect(harness.routeNativeElement!.textContent).not.toContain('Konfirmasi Pembatalan');
+    harness.routeNativeElement!.querySelector<HTMLButtonElement>('button')!.click();
+    harness.detectChanges();
+    http.expectOne('/api/Registration/1/cancellation-preview').flush({ daysDifference: 0, estimatedRefundAmount: 0, canCancel: false, reasonIfBlocked: 'Kelas sudah dimulai' });
+    harness.detectChanges();
+    expect(harness.routeNativeElement!.querySelector<HTMLButtonElement>('button')!.disabled).toBeTrue();
+    http.expectNone({ method: 'DELETE', url: '/api/Registration/1' });
+    http.verify();
   });
 
   it('excludes unpaid registrations from direct refund links', async () => {

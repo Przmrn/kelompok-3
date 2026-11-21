@@ -20,7 +20,7 @@ export class AppComponent {
     effect(() => {
       this.auth.user();
       untracked(() => void this.svc.reload());
-    }, { allowSignalWrites: true });
+    });
     let signedIn = false;
     effect(() => {
       const user = this.svc.currentUser();
@@ -38,7 +38,7 @@ export class AppComponent {
   readonly mobileMenuOpen = signal(false);
 
   private get isProfilePage(): boolean {
-    return this.router.isActive('/profile', { paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' });
+    return ['/profile', '/login'].some(path => this.router.isActive(path, { paths: 'exact', queryParams: 'ignored', fragment: 'ignored', matrixParams: 'ignored' }));
   }
 
   private get needsAccountData(): boolean {
@@ -67,7 +67,7 @@ export class AppComponent {
   readonly unpaidCartCount = computed(() => this.svc.unpaidCartRegistrations().length);
 
   openSignInModal(): void {
-    this.switchModalMode('LOGIN');
+    void this.router.navigate(['/login']);
     this.closeMobileMenu();
   }
 

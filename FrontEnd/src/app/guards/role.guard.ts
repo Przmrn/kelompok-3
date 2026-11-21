@@ -2,9 +2,16 @@ import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { CourseSystemService } from '../services/course-system.service';
 
-export const adminOnlyGuard: CanActivateFn = () => {
+export const authenticatedGuard: CanActivateFn = (_route, state) => {
+  const svc = inject(CourseSystemService);
+  return svc.currentUser() ? true : inject(Router).createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
+};
+
+export const adminOnlyGuard: CanActivateFn = (_route, state) => {
   const svc = inject(CourseSystemService);
   const router = inject(Router);
+
+  if (!svc.currentUser()) return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 
   if (svc.isAdmin()) {
     return true;
@@ -22,9 +29,11 @@ export const adminOnlyGuard: CanActivateFn = () => {
   return router.createUrlTree(['/courses']);
 };
 
-export const instructorScheduleGuard: CanActivateFn = () => {
+export const instructorScheduleGuard: CanActivateFn = (_route, state) => {
   const svc = inject(CourseSystemService);
   const router = inject(Router);
+
+  if (!svc.currentUser()) return router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } });
 
   if (svc.isInstructor()) {
     return true;

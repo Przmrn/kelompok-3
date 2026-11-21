@@ -39,6 +39,18 @@
         </div>
       </header>
 
+      @if (refunds().length) {
+        <section class="panel mb-4">
+          <h2 class="panel-title mb-3">Riwayat pembatalan dan refund</h2>
+          @for (reg of refunds(); track reg.id) {
+            <div class="ops-row">
+              <span>{{ reg.registrationNumber }} · {{ reg.refundedAt ? 'Dana sudah dikembalikan' : (reg.refundAmount ? 'Menunggu pengembalian dana' : 'Tanpa pengembalian dana') }}</span>
+              <a [routerLink]="['/payments', reg.id]" class="btn-k-light">Rincian pembatalan</a>
+            </div>
+          }
+        </section>
+      }
+
       @if (registrations().length) {
         <router-outlet></router-outlet>
       } @else {

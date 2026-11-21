@@ -13,6 +13,8 @@ export class MyRegistrationsComponent {
   readonly svc = inject(CourseSystemService);
 
   readonly registrations = this.svc.paymentActivities;
+  readonly refunds = computed(() => this.svc.myRegistrations().filter(reg =>
+    reg.registrationStatus === 'Cancelled' && reg.refundAmount != null));
 
   readonly unpaidCount = computed(() => this.svc.unpaidCartRegistrations().length);
 }

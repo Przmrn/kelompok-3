@@ -23,6 +23,7 @@ describe('Student profile form', () => {
   it('memuat profil tersimpan dan memperbaruinya setelah nomor telepon valid', async () => {
     const fixture = TestBed.createComponent(ProfileAuthPageComponent);
     const svc = fixture.componentInstance.svc;
+    const save = spyOn(svc, 'updateStudentProfile').and.callThrough();
     fixture.detectChanges();
     const read = http.expectOne({ method: 'GET', url: '/api/students/me' });
     expect(fixture.nativeElement.querySelector('form')).toBeNull();
@@ -52,7 +53,7 @@ describe('Student profile form', () => {
     expect(write.request.body.educationalLevel).toBe(stored.educationalLevel);
     expect(write.request.body.phoneNumber).toBe('+62 812-3456-7890');
     write.flush({ ...stored, phoneNumber: write.request.body.phoneNumber });
-    await fixture.whenStable();
+    await save.calls.mostRecent().returnValue;
     expect(svc.currentStudentProfile()!.phoneNumber).toBe('+62 812-3456-7890');
     expect(svc.isStudentProfileComplete(user.id)).toBeFalse();
   });
@@ -69,9 +70,10 @@ describe('Student profile form', () => {
     fixture.detectChanges();
     expect(fixture.componentInstance.profileForm.controls.fullName.value).toBe(user.fullName);
     fixture.componentInstance.profileForm.controls.phoneNumber.setValue(stored.phoneNumber);
+    const save = spyOn(fixture.componentInstance.svc, 'updateStudentProfile').and.callThrough();
     fixture.componentInstance.saveProfile();
     http.expectOne({ method: 'POST', url: '/api/students/me' }).flush(stored);
-    await fixture.whenStable();
+    await save.calls.mostRecent().returnValue;
     expect(fixture.componentInstance.svc.currentStudentProfile()?.id).toBe(stored.id);
   });
 });

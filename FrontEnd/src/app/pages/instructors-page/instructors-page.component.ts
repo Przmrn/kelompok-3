@@ -113,7 +113,13 @@ export class InstructorsPageComponent {
   }
 
   async saveInstructor() {
-    if (!this.form.fullName.trim() || !this.form.email.trim()) return;
+    const invalid = !this.form.fullName.trim() || this.form.fullName.length > 150 ? 'Isi nama lengkap, maksimal 150 karakter.'
+      : !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.form.email.trim()) || this.form.email.length > 255 ? 'Masukkan alamat email yang valid.'
+      : this.form.phoneNumber.length > 20 ? 'Nomor telepon maksimal 20 karakter.' : '';
+    if (invalid) {
+      this.svc.showNotification('warning', 'Periksa data pengajar', invalid);
+      return;
+    }
     this.addSkills();
     const payload = { ...this.form, expertise: this.form.expertise.join(', ') };
     const editId = this.editingInstructorId();

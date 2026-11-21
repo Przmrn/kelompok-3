@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
-import { adminOnlyGuard, instructorScheduleGuard } from './guards/role.guard';
+import { adminOnlyGuard, authenticatedGuard, instructorScheduleGuard } from './guards/role.guard';
+import { LoginPageComponent } from './pages/login-page/login-page.component';
 import { AdminBatchesComponent } from './pages/admin-batches/admin-batches.component';
 import { AdminCoursesComponent } from './pages/admin-courses/admin-courses.component';
 import { AdminDashboardComponent } from './pages/admin-dashboard/admin-dashboard.component';
@@ -46,10 +47,11 @@ export const routes: Routes = [
 
   { path: 'courses', component: CatalogPageComponent },
   { path: 'courses/:id', component: CourseDetailCheckoutComponent },
-  { path: 'checkout/:batchId', component: CheckoutPaymentPageComponent },
-  { path: 'cart', component: CartPageComponent },
+  { path: 'checkout/:batchId', component: CheckoutPaymentPageComponent, canActivate: [authenticatedGuard] },
+  { path: 'cart', component: CartPageComponent, canActivate: [authenticatedGuard] },
   {
     path: 'my-courses',
+    canActivate: [authenticatedGuard],
     component: MyRegistrationsComponent,
     children: [
       { path: '', pathMatch: 'full', redirectTo: 'jadwal' },
@@ -58,9 +60,10 @@ export const routes: Routes = [
     ],
   },
   { path: 'my-registrations', redirectTo: 'my-courses', pathMatch: 'full' },
-  { path: 'payments/:registrationId', component: PaymentDetailPageComponent },
+  { path: 'payments/:registrationId', component: PaymentDetailPageComponent, canActivate: [authenticatedGuard] },
+  { path: 'login', component: LoginPageComponent },
   { path: 'profile', component: ProfileAuthPageComponent },
-  { path: 'auth', redirectTo: 'profile', pathMatch: 'full' },
+  { path: 'auth', redirectTo: 'login', pathMatch: 'full' },
   { path: 'student/dashboard', redirectTo: 'profile', pathMatch: 'full' },
 
   {

@@ -54,6 +54,7 @@ describe('AppComponent', () => {
     await Promise.resolve();
     expect(navigate).toHaveBeenCalledWith(['/admin/dashboard']);
     expect(app.svc.authModalOpen()).toBeFalse();
+    fixture.detectChanges();
     flushCourseData('Admin');
     auth.logout();
     http.verify();

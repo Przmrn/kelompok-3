@@ -55,7 +55,7 @@ export class PaymentDetailPageComponent {
           'Rincian pembayaran belum berhasil dimuat.' }),
       });
       onCleanup(() => request.unsubscribe());
-    }, { allowSignalWrites: true });
+    });
   }
 
   retry(): void {
@@ -66,6 +66,14 @@ export class PaymentDetailPageComponent {
     const schedule = this.nextInstallment();
     if (!schedule || !this.svc.isAdmin() || this.svc.saving() || !amount.reportValidity()) return;
     const result = await this.svc.payInstallmentSchedule(schedule.id, amount.valueAsNumber);
+    if (!result.success) this.retry();
+  }
+
+  async confirmRefund(reference: HTMLInputElement): Promise<void> {
+    const reg = this.registration();
+    if (!reg || !this.svc.isAdmin() || this.svc.saving() || !reference.reportValidity()) return;
+    if (!reference.value.trim()) return;
+    const result = await this.svc.confirmRefund(reg.id, reference.value);
     if (!result.success) this.retry();
   }
 }

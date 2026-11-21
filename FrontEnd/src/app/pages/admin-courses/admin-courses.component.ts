@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Course } from '../../models/course-system.models';
 import { CourseSystemService } from '../../services/course-system.service';
 import { InlineEdit } from '../../inline-edit';
+import { courseError } from '../../admin-validation';
 
 @Component({
   selector: 'app-admin-courses',
@@ -19,6 +20,7 @@ export class AdminCoursesComponent {
   readonly editingCourseId = signal<number | undefined>(undefined);
 
   form = this.newCourse();
+  readonly formError = signal('');
 
   private newCourse() {
     return { categoryId: this.svc.categories()[0]?.id ?? 0, syllabus: '', durationHours: 0, basePrice: 0 };
@@ -52,10 +54,13 @@ export class AdminCoursesComponent {
   }
 
   async saveCourse() {
+    this.formError.set(courseError(this.form, this.svc.categories().map(category => category.id)));
+    if (this.formError()) return;
     const result = await this.svc.saveCourseByAdmin({
       id: this.editingCourseId(),
       ...this.form,
     });
     if (result.success) this.edit.hide();
+    else this.formError.set(result.message);
   }
 }

@@ -64,6 +64,8 @@ describe('Peringatan jadwal pengajar', () => {
     expect(submit.disabled).toBeFalse();
     const saving = page.submitAssignment();
     const request = http.expectOne(req => req.method === 'POST' && req.url === '/api/BatchInstructor');
+    expect(request.request.body).toEqual({ batchId: adjacent.id, instructorId });
+    expect(request.request.params.keys()).toEqual([]);
     const message = 'Instruktur sudah memiliki jadwal mengajar yang bentrok.';
     request.flush({ message }, { status: 400, statusText: 'Bad Request' });
     await saving;

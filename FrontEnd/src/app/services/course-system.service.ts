@@ -14,7 +14,6 @@ import {
   Location,
   PaymentMethodType,
   PriceCalculationBreakdown,
-  RefundCalculationResult,
   Registration,
   Student,
   User,
@@ -81,6 +80,17 @@ export class CourseSystemService {
     this.registrations().filter(isActivePaymentActivity)
   );
   readonly installmentSchedules = computed(() => this.account()?.schedules ?? []);
+  /** Daftar pendaftaran aktif yang memiliki pembayaran atau cicilan terlambat. */
+  readonly overdueRegistrations = computed(() => {
+    const overdueIds = new Set(
+      this.installmentSchedules()
+        .filter((s) => s.status === 'Overdue')
+        .map((s) => s.registrationId)
+    );
+    return this.adminRegistrations().filter(
+      (reg) => reg.paymentStatus === 'Overdue' || overdueIds.has(reg.id)
+    );
+  });
   readonly instructors = computed(() => this.account()?.instructors ?? []);
   readonly loading = signal(true);
   readonly loadError = signal('');
@@ -143,7 +153,14 @@ export class CourseSystemService {
       if (error.status === 403) return 'Akun Anda tidak memiliki akses untuk tindakan ini.';
       if (error.status === 401) return 'Server belum dapat memverifikasi akun Anda.';
       if (typeof error.error?.message === 'string') return error.error.message;
-      if (error.status === 400) return 'Periksa kembali isian formulir.';
+      if (error.status === 400) {
+        const errors = error.error?.errors;
+        if (errors && typeof errors === 'object') {
+          const messages = Object.values(errors).flat().filter((value): value is string => typeof value === 'string');
+          if (messages.length) return messages.join(' ');
+        }
+        return 'Periksa kembali isian formulir.';
+      }
     }
     return 'Permintaan belum berhasil. Silakan coba lagi.';
   }
@@ -207,7 +224,7 @@ export class CourseSystemService {
         }),
       });
       onCleanup(() => request.unsubscribe());
-    }, { allowSignalWrites: true });
+    });
   }
 
   retryProfile(): void {
@@ -415,22 +432,23 @@ export class CourseSystemService {
     const tenors: (3 | 6 | 12)[] = [3, 6, 12];
     const installmentPreviews = tenors.map((tenorMonths) => {
       const regularMonthlyAmount = Math.ceil(totalAmount / tenorMonths / 1000) * 1000;
-      const finalMonthAmount = totalAmount - regularMonthlyAmount * (tenorMonths - 1);
-
+      let remainingAmount = totalAmount;
       const schedules = Array.from({ length: tenorMonths }, (_, idx) => {
         const installmentNumber = idx + 1;
         const isLast = installmentNumber === tenorMonths;
+        const amount = isLast ? remainingAmount : Math.min(regularMonthlyAmount, remainingAmount);
+        remainingAmount = Math.round((remainingAmount - amount) * 100) / 100;
         return {
           installmentNumber,
-          dueDate: this.getArrearDueDateString(installmentNumber),
-          amount: isLast ? finalMonthAmount : regularMonthlyAmount,
+          dueDate: this.getArrearDueDateString(idx),
+          amount,
         };
       });
 
       return {
         tenorMonths,
         regularMonthlyAmount,
-        finalMonthAmount,
+        finalMonthAmount: schedules[tenorMonths - 1].amount,
         schedules,
       };
     });
@@ -467,91 +485,6 @@ export class CourseSystemService {
     );
   }
 
-  calculateRefundPreview(
-    registration: Registration,
-    simulatedCancellationDateStr?: string
-  ): RefundCalculationResult {
-    const batch = this.getBatchById(registration.batchId);
-    const batchStartStr = batch?.startDate ?? '2026-12-12';
-    const cancelDateStr =
-      simulatedCancellationDateStr ?? new Date().toISOString().slice(0, 10);
-
-    const startMs = new Date(`${batchStartStr}T00:00:00`).getTime();
-    const cancelMs = new Date(`${cancelDateStr}T00:00:00`).getTime();
-    const daysDifference = Math.floor((startMs - cancelMs) / (1000 * 60 * 60 * 24));
-    const totalPaid = this.getTotalPaidForRegistration(registration);
-
-    if (registration.registrationStatus === 'Cancelled') {
-      return {
-        batchStartDate: batchStartStr,
-        cancellationDate: cancelDateStr,
-        daysDifference,
-        totalPaid,
-        tierLabel: 'Sudah Dibatalkan',
-        refundPercentage: 0,
-        floorAdminFee: 0,
-        estimatedRefundAmount: 0,
-        canCancel: false,
-        reasonIfBlocked: 'Pendaftaran ini sudah dibatalkan.',
-      };
-    }
-
-    if (daysDifference <= 0) {
-      return {
-        batchStartDate: batchStartStr,
-        cancellationDate: cancelDateStr,
-        daysDifference,
-        totalPaid,
-        tierLabel: 'Kelas Sudah Dimulai',
-        refundPercentage: 0,
-        floorAdminFee: 0,
-        estimatedRefundAmount: 0,
-        canCancel: false,
-        reasonIfBlocked: 'Pembatalan hanya dapat diajukan selama kelas belum dimulai.',
-      };
-    }
-
-    let tierLabel = '';
-    let refundPercentage = 0;
-    let floorAdminFee = 0;
-    let estimatedRefundAmount = 0;
-
-    if (daysDifference >= 14) {
-      tierLabel = '14 hari atau lebih (seluruh pembayaran dikurangi biaya administrasi Rp25.000)';
-      refundPercentage = 100;
-      floorAdminFee = 25000;
-      estimatedRefundAmount = Math.max(0, totalPaid - floorAdminFee);
-    } else if (daysDifference >= 7 && daysDifference <= 13) {
-      tierLabel = '7–13 hari (50% dari jumlah yang sudah dibayar)';
-      refundPercentage = 50;
-      floorAdminFee = 0;
-      estimatedRefundAmount = Math.round(totalPaid * 0.5);
-    } else if (daysDifference >= 3 && daysDifference <= 6) {
-      tierLabel = '3–6 hari (25% dari jumlah yang sudah dibayar)';
-      refundPercentage = 25;
-      floorAdminFee = 0;
-      estimatedRefundAmount = Math.round(totalPaid * 0.25);
-    } else {
-      tierLabel = 'Kurang dari 3 hari (0% / dana hangus)';
-      refundPercentage = 0;
-      floorAdminFee = 0;
-      estimatedRefundAmount = 0;
-    }
-
-    return {
-      batchStartDate: batchStartStr,
-      cancellationDate: cancelDateStr,
-      daysDifference,
-      totalPaid,
-      tierLabel,
-      refundPercentage,
-      floorAdminFee,
-      estimatedRefundAmount,
-      canCancel: true,
-    };
-  }
-
-
   async updateStudentProfile(profile: StudentProfileFields): Promise<void> {
     const user = this.auth.user();
     const status = this.profileStatus();
@@ -587,6 +520,10 @@ export class CourseSystemService {
     return this.change(this.api.cancelRegistration(id), 'Pendaftaran dibatalkan.');
   }
 
+  confirmRefund(id: number, reference: string) {
+    return this.change(this.api.confirmRefund(id, reference), 'Pengembalian dana dikonfirmasi.');
+  }
+
   confirmUpfrontPayment(id: number) {
     return this.change(this.api.confirmUpfront(id), 'Pembayaran dikonfirmasi.');
   }
@@ -595,8 +532,36 @@ export class CourseSystemService {
     return this.change(this.api.confirmInstallment(id, paidAmount), 'Pembayaran cicilan dikonfirmasi.');
   }
 
-  processOverdue() {
-    return this.change(this.api.processOverdue(), 'Status tagihan telah diperiksa.');
+  async processOverdue() {
+    if (this.saving()) return { success: false, message: 'Permintaan masih diproses.' };
+    const userId = this.auth.user()?.id;
+    this.saving.set(true);
+    try {
+      await firstValueFrom(this.api.processOverdue());
+      if (userId !== this.auth.user()?.id) return { success: false, message: 'Akun sudah berganti.' };
+      await this.reload();
+      if (userId !== this.auth.user()?.id) return { success: false, message: 'Akun sudah berganti.' };
+      if (this.accountError()) {
+        const message = this.accountError();
+        this.showNotification('warning', 'Gagal memuat status tagihan', message);
+        return { success: false, message };
+      }
+      const overdueCount = this.overdueRegistrations().length;
+      if (overdueCount === 0) {
+        const message = 'Tidak ada pembayaran yang terlambat.';
+        this.showNotification('info', 'Tidak ada keterlambatan', message);
+        return { success: true, message };
+      }
+      const message = `Ditemukan ${overdueCount} pembayaran yang terlambat.`;
+      this.showNotification('warning', 'Pembayaran terlambat ditemukan', message);
+      return { success: true, message };
+    } catch (error) {
+      const message = this.errorMessage(error);
+      this.showNotification('warning', 'Permintaan belum berhasil', message);
+      return { success: false, message };
+    } finally {
+      this.saving.set(false);
+    }
   }
 
   assignInstructorToBatch(payload: { batchId: number; instructorId: number }) {

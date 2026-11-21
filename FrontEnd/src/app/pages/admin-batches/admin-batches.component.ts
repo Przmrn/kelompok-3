@@ -6,6 +6,7 @@ import { FormsModule } from '@angular/forms';
 import { CourseBatch } from '../../models/course-system.models';
 import { CourseSystemService } from '../../services/course-system.service';
 import { InlineEdit } from '../../inline-edit';
+import { batchError } from '../../admin-validation';
 
 @Component({
   selector: 'app-admin-batches',
@@ -20,16 +21,18 @@ export class AdminBatchesComponent {
   readonly edit = new InlineEdit('batch-card');
   readonly editingBatchId = signal<number | undefined>(undefined);
 
-  form = {
-    courseId: 1,
-    locationId: 1,
-    batchName: 'BCH-BE-04 — Batch 4 Reguler Januari',
-    startDate: '2027-01-16',
-    endDate: '2027-02-14',
-    startTime: '09:00',
-    endTime: '16:00',
-    maxSeats: 30,
-  };
+  readonly formError = signal('');
+  form = this.newBatch();
+
+  private newBatch() {
+    const today = new Date().toISOString().slice(0, 10);
+    return {
+      courseId: this.svc.courses()[0]?.id ?? 0,
+      locationId: this.svc.locations()[0]?.id ?? 0,
+      batchName: '', startDate: today, endDate: today,
+      startTime: '09:00', endTime: '16:00', maxSeats: 30,
+    };
+  }
 
   openNewBatchForm(): void {
     if (this.edit.open() === 'new') {
@@ -38,16 +41,8 @@ export class AdminBatchesComponent {
     }
     this.edit.show('new', () => {
       this.editingBatchId.set(undefined);
-      this.form = {
-        courseId: 1,
-        locationId: 1,
-        batchName: `BCH-NEW-0${this.svc.batches().length + 1} — Batch Reguler`,
-        startDate: '2027-01-16',
-        endDate: '2027-02-14',
-        startTime: '09:00',
-        endTime: '16:00',
-        maxSeats: 30,
-      };
+      this.formError.set('');
+      this.form = this.newBatch();
     });
   }
 
@@ -72,11 +67,15 @@ export class AdminBatchesComponent {
   }
 
   async saveBatch() {
+    const usedSeats = this.svc.getUsedSeatsForBatch(this.editingBatchId() ?? 0);
+    this.formError.set(batchError(this.form, this.svc.courses().map(course => course.id), this.svc.locations().map(location => location.id), usedSeats));
+    if (this.formError()) return;
     const result = await this.svc.saveBatchByAdmin({
       id: this.editingBatchId(),
       ...this.form,
     });
     if (result.success) this.edit.hide();
+    else this.formError.set(result.message);
   }
 
   async deleteBatch(batch: CourseBatch) {

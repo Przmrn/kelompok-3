@@ -9,18 +9,25 @@
 
         <div class="cost-row cost-row--total">
           <span>Perkiraan dana yang dikembalikan</span>
-          <span class="text-success">Rp{{ refPrev.estimatedRefundAmount | number: '1.0-0' }}</span>
+          <span class="text-success">Rp{{ refPrev.estimatedRefundAmount | number: '1.0-2' }}</span>
         </div>
 
         <button
           type="button"
           class="btn-k-coral btn-sm mt-3"
-          [disabled]="!refPrev.canCancel"
+          [disabled]="!refPrev.canCancel || svc.saving()"
           (click)="confirmCancel()"
         >
           Konfirmasi Pembatalan Kursus
         </button>
       </div>
+      @if (refPrev.reasonIfBlocked) { <p role="alert" class="mt-3">{{ refPrev.reasonIfBlocked }}</p> }
+      <p class="small text-secondary mt-3">Nominal dihitung server saat pembatalan. Pengembalian dana dicatat terpisah setelah dikonfirmasi admin.</p>
+    } @else if (error()) {
+      <p role="alert">{{ error() }}</p>
+      <button type="button" class="btn-k-light" (click)="retry()">Coba lagi</button>
+    } @else {
+      <p role="status">Memuat ketentuan pembatalan…</p>
     }
   </app-course-registration-card>
 } @else {
