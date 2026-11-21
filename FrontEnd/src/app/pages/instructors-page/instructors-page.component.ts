@@ -3,6 +3,7 @@ import { Component, computed, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Instructor } from '../../models/course-system.models';
 import { CourseSystemService } from '../../services/course-system.service';
+import { InlineEdit } from '../../inline-edit';
 
 @Component({
   selector: 'app-instructors-page',
@@ -31,7 +32,7 @@ export class InstructorsPageComponent {
   });
   readonly feedbackMessage = signal<{ success: boolean; message: string } | null>(null);
 
-  readonly showForm = signal(false);
+  readonly edit = new InlineEdit('instructor-card');
   readonly editingInstructorId = signal<number | undefined>(undefined);
   pendingSkill = '';
   password = '';
@@ -54,35 +55,41 @@ export class InstructorsPageComponent {
   }
 
   openNewInstructorForm(): void {
-    if (this.showForm()) {
-      this.showForm.set(false);
+    if (this.edit.open() === 'new') {
+      this.edit.hide();
       return;
     }
-    this.editingInstructorId.set(undefined);
-    this.pendingSkill = '';
-    this.password = '';
-    this.form = {
-      fullName: '',
-      email: '',
-      phoneNumber: '',
-      expertise: [],
-      bio: '',
-    };
-    this.showForm.set(true);
+    this.edit.show('new', () => {
+      this.editingInstructorId.set(undefined);
+      this.pendingSkill = '';
+      this.password = '';
+      this.form = {
+        fullName: '',
+        email: '',
+        phoneNumber: '',
+        expertise: [],
+        bio: '',
+      };
+    });
   }
 
   editInstructor(ins: Instructor): void {
-    this.editingInstructorId.set(ins.id);
-    this.pendingSkill = '';
-    this.password = '';
-    this.form = {
-      fullName: ins.fullName,
-      email: ins.email,
-      phoneNumber: ins.phoneNumber,
-      expertise: [...new Set(this.splitSkills(ins.expertise))],
-      bio: ins.bio,
-    };
-    this.showForm.set(true);
+    if (this.edit.open() === ins.id) {
+      this.edit.hide();
+      return;
+    }
+    this.edit.show(ins.id, () => {
+      this.editingInstructorId.set(ins.id);
+      this.pendingSkill = '';
+      this.password = '';
+      this.form = {
+        fullName: ins.fullName,
+        email: ins.email,
+        phoneNumber: ins.phoneNumber,
+        expertise: [...new Set(this.splitSkills(ins.expertise))],
+        bio: ins.bio,
+      };
+    });
   }
 
   splitSkills(expertise: string): string[] {
@@ -117,7 +124,7 @@ export class InstructorsPageComponent {
     const result = await this.svc.saveInstructor(editId, editId ? payload : { ...payload, password: this.password });
     if (result.success) {
       this.password = '';
-      this.showForm.set(false);
+      this.edit.hide();
     }
   }
 }

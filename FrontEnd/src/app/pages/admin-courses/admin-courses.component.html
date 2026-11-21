@@ -15,58 +15,30 @@
           class="btn-k-primary"
           (click)="openNewCourseForm()"
         >
-          {{ showForm() ? 'Tutup formulir' : '+ Tambah kelas' }}
+          {{ edit.open() == 'new' ? 'Tutup form' : '+ Tambah kelas' }}
         </button>
       </div>
     </header>
 
     <app-reference-editor kind="course-categories"></app-reference-editor>
 
-    @if (showForm()) {
-      <div class="panel panel--bone mb-4 anim-pop">
-        <h2 class="panel-title mb-3">
-          {{ editingCourseId() ? 'Ubah kelas' : 'Tambah kelas' }}
-        </h2>
-
-        <div class="row g-3 mb-3">
-          <div class="col-md-3">
-            <label class="k-label">Kategori kelas</label>
-            <select class="form-select k-select" [(ngModel)]="form.categoryId">
-              @for (cat of svc.categories(); track cat.id) {
-                <option [ngValue]="cat.id">{{ cat.name }}</option>
-              }
-            </select>
+    <div class="expand edit-anchor" [id]="edit.anchorId('new')" [class.open]="edit.open() === 'new'">
+      <div class="expand-inner">
+        @if (edit.mounted() === 'new') {
+          <div class="panel panel--bone mb-4">
+            <h2 class="panel-title mb-3">Tambah kelas</h2>
+            <ng-container *ngTemplateOutlet="courseForm"></ng-container>
           </div>
-          <div class="col-md-2">
-            <label class="k-label">Durasi (jam)</label>
-            <input type="number" class="form-control k-input" [(ngModel)]="form.durationHours" />
-          </div>
-          <div class="col-md-2">
-            <label class="k-label">Harga kelas (Rp)</label>
-            <input type="number" step="50000" class="form-control k-input" [(ngModel)]="form.basePrice" />
-          </div>
-
-          <div class="col-md-6">
-            <label class="k-label">Materi kelas (satu baris per topik)</label>
-            <textarea rows="3" class="form-control k-input" [(ngModel)]="form.syllabus" placeholder="1. Konsep Inti&#10;2. Praktikum Studio"></textarea>
-          </div>
-        </div>
-
-        <div class="d-flex gap-2">
-          <button type="button" class="btn-k-primary btn-sm" (click)="saveCourse()">
-            {{ editingCourseId() ? 'Simpan perubahan' : 'Simpan kelas' }}
-          </button>
-          <button type="button" class="btn-k-light btn-sm" (click)="showForm.set(false)">
-            Batal
-          </button>
-        </div>
+        }
       </div>
-    }
+    </div>
 
     <div class="admin-grid">
       @for (course of svc.courses(); track course.id; let idx = $index) {
         <article
-          class="admin-card"
+          class="admin-card edit-anchor"
+          [id]="edit.anchorId(course.id)"
+          [class.is-editing]="edit.open() === course.id"
           [class.tone-mist]="idx % 2 === 0"
           [class.tone-ice]="idx % 2 === 1"
         >
@@ -89,9 +61,10 @@
               <button
                 type="button"
                 class="btn-k-light btn-sm"
+                [attr.aria-expanded]="edit.open() === course.id"
                 (click)="editCourse(course)"
               >
-                Ubah
+                {{ edit.open() === course.id ? 'Tutup' : 'Ubah' }}
               </button>
               <button
                 type="button"
@@ -102,8 +75,54 @@
               </button>
             </div>
           </div>
+
+          <div class="expand" [class.open]="edit.open() === course.id">
+            <div class="expand-inner">
+              @if (edit.mounted() === course.id) {
+                <div class="edit-body">
+                  <h4 class="panel-title mb-3">Ubah kelas</h4>
+                  <ng-container *ngTemplateOutlet="courseForm"></ng-container>
+                </div>
+              }
+            </div>
+          </div>
         </article>
       }
     </div>
   </div>
 </section>
+
+<ng-template #courseForm>
+  <div class="row g-3 mb-3">
+    <div class="col-12">
+      <label class="k-label">Kategori kelas</label>
+      <select data-autofocus class="form-select k-select" [(ngModel)]="form.categoryId">
+        @for (cat of svc.categories(); track cat.id) {
+          <option [ngValue]="cat.id">{{ cat.name }}</option>
+        }
+      </select>
+    </div>
+    <div class="col-6">
+      <label class="k-label">Durasi (jam)</label>
+      <input type="number" class="form-control k-input" [(ngModel)]="form.durationHours" />
+    </div>
+    <div class="col-6">
+      <label class="k-label">Harga kelas (Rp)</label>
+      <input type="number" step="50000" class="form-control k-input" [(ngModel)]="form.basePrice" />
+    </div>
+    <div class="col-12">
+      <label class="k-label">Materi kelas (satu baris per topik)</label>
+      <textarea rows="3" class="form-control k-input" [(ngModel)]="form.syllabus" placeholder="1. Konsep Inti&#10;2. Praktikum Studio"></textarea>
+    </div>
+  </div>
+
+  <div class="d-flex gap-2">
+    <button type="button" class="btn-k-primary btn-sm" [disabled]="svc.saving()" (click)="saveCourse()">
+      {{ editingCourseId() ? 'Simpan perubahan' : 'Simpan kelas' }}
+    </button>
+    <button type="button" class="btn-k-light btn-sm" (click)="edit.hide()">
+      Batal
+    </button>
+  </div>
+</ng-template>
+

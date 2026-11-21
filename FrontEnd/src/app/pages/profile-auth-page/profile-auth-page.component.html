@@ -21,7 +21,7 @@
         <div class="stat-grid stat-grid--3 anim-fade-up">
           <div class="stat-tile stat-tile--mist">
             <span class="stat-label">Kelas terdaftar</span>
-            <span class="stat-value">{{ myRegistrations().length }}</span>
+            <span class="stat-value">{{ paymentActivities().length }}</span>
             <span class="stat-note">{{ confirmedCount() }} dikonfirmasi</span>
           </div>
           <div class="stat-tile stat-tile--ink">
@@ -36,12 +36,12 @@
           </div>
         </div>
 
-        @if (myRegistrations().length > 0) {
+        @if (paymentActivities().length > 0) {
           <div class="panel mt-4 anim-fade-up delay-1">
             <div class="panel-head">
               <div>
                 <h2 class="panel-title">Aktivitas pendaftaran kelas saya</h2>
-                <p class="panel-sub">Riwayat pendaftaran dan tautan ke rincian pembayaran.</p>
+                <p class="panel-sub">Aktivitas yang masih berjalan dan tautan ke rincian pembayaran.</p>
               </div>
               <a routerLink="/my-registrations" class="btn-k-light btn-sm">
                 Kelola semua <i class="bi bi-arrow-right" aria-hidden="true"></i>
@@ -49,7 +49,7 @@
             </div>
 
             <div>
-              @for (reg of myRegistrations(); track reg.id) {
+              @for (reg of paymentActivities(); track reg.id) {
                 <div class="activity-row">
                   <div>
                     <div class="ops-code">{{ reg.registrationNumber }} · Pendaftar ke-{{ reg.queueNumber }}</div>

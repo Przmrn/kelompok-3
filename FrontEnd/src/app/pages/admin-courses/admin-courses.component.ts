@@ -4,6 +4,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Course } from '../../models/course-system.models';
 import { CourseSystemService } from '../../services/course-system.service';
+import { InlineEdit } from '../../inline-edit';
 
 @Component({
   selector: 'app-admin-courses',
@@ -14,7 +15,7 @@ import { CourseSystemService } from '../../services/course-system.service';
 export class AdminCoursesComponent {
   readonly svc = inject(CourseSystemService);
 
-  readonly showForm = signal(false);
+  readonly edit = new InlineEdit('course-card');
   readonly editingCourseId = signal<number | undefined>(undefined);
 
   form = this.newCourse();
@@ -24,24 +25,30 @@ export class AdminCoursesComponent {
   }
 
   openNewCourseForm(): void {
-    if (this.showForm()) {
-      this.showForm.set(false);
+    if (this.edit.open() == 'new') {
+      this.edit.hide();
       return;
     }
-    this.editingCourseId.set(undefined);
-    this.form = this.newCourse();
-    this.showForm.set(true);
+    this.edit.show('new', () => {
+      this.editingCourseId.set(undefined);
+      this.form = this.newCourse();
+    })
   }
 
   editCourse(course: Course): void {
-    this.editingCourseId.set(course.id);
-    this.form = {
-      categoryId: course.categoryId,
-      syllabus: course.syllabus,
-      durationHours: course.durationHours,
-      basePrice: course.basePrice,
-    };
-    this.showForm.set(true);
+    if (this.edit.open() == course.id) {
+      this.edit.hide();
+      return;
+    }
+    this.edit.show(course.id, () => {
+      this.editingCourseId.set(course.id);
+      this.form = {
+        categoryId: course.categoryId,
+        syllabus: course.syllabus,
+        durationHours: course.durationHours,
+        basePrice: course.basePrice,
+      };
+    });
   }
 
   async saveCourse() {
@@ -49,6 +56,6 @@ export class AdminCoursesComponent {
       id: this.editingCourseId(),
       ...this.form,
     });
-    if (result.success) this.showForm.set(false);
+    if (result.success) this.edit.hide();
   }
 }

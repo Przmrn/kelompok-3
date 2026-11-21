@@ -33,3 +33,6 @@ testem.log
 
 .DS_Store
 Thumbs.db
+
+# Dokumen teknis lokal (tidak untuk di-commit)
+/PAYMENT-ACTIVITY-FILTER.md

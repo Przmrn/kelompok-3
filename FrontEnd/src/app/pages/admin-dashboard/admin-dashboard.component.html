@@ -37,7 +37,7 @@
 
       <div class="stat-tile">
         <span class="stat-label">Total pendaftaran</span>
-        <span class="stat-value">{{ svc.registrations().length }}</span>
+        <span class="stat-value">{{ adminRegistrations().length }}</span>
         <span class="stat-note">{{ confirmedRegCount() }} dikonfirmasi</span>
       </div>
 
@@ -58,13 +58,13 @@
       <div class="panel-head">
         <h2 class="panel-title">Pendaftaran peserta</h2>
         <span class="k-pill k-pill-neutral">
-          {{ svc.registrations().length }} pendaftaran
+          {{ adminRegistrations().length }} pendaftaran
         </span>
       </div>
 
       <div>
-        @if (svc.registrations().length > 0) {
-          @for (reg of svc.registrations(); track reg.id) {
+        @if (adminRegistrations().length > 0) {
+          @for (reg of adminRegistrations(); track reg.id) {
             <div class="ops-row">
               <div class="ops-row-main">
                 <div class="ops-code">
@@ -115,9 +115,9 @@
           }
         } @else {
           <div class="text-center py-5">
-            <h3 class="h5">Belum ada pendaftaran</h3>
+            <h3 class="h5">Belum ada pendaftaran aktif</h3>
             <p class="text-secondary mb-0">
-              Data pendaftaran peserta akan muncul di sini.
+              Pendaftaran baru atau yang masih berjalan akan muncul di sini.
             </p>
           </div>
         }

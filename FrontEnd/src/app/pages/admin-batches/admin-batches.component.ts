@@ -5,6 +5,7 @@ import { Component, inject, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CourseBatch } from '../../models/course-system.models';
 import { CourseSystemService } from '../../services/course-system.service';
+import { InlineEdit } from '../../inline-edit';
 
 @Component({
   selector: 'app-admin-batches',
@@ -16,7 +17,7 @@ export class AdminBatchesComponent {
   readonly labels = courseLabels;
   readonly svc = inject(CourseSystemService);
 
-  readonly showForm = signal(false);
+  readonly edit = new InlineEdit('batch-card');
   readonly editingBatchId = signal<number | undefined>(undefined);
 
   form = {
@@ -31,37 +32,43 @@ export class AdminBatchesComponent {
   };
 
   openNewBatchForm(): void {
-    if (this.showForm()) {
-      this.showForm.set(false);
+    if (this.edit.open() === 'new') {
+      this.edit.hide();
       return;
     }
-    this.editingBatchId.set(undefined);
-    this.form = {
-      courseId: 1,
-      locationId: 1,
-      batchName: `BCH-NEW-0${this.svc.batches().length + 1} — Batch Reguler`,
-      startDate: '2027-01-16',
-      endDate: '2027-02-14',
-      startTime: '09:00',
-      endTime: '16:00',
-      maxSeats: 30,
-    };
-    this.showForm.set(true);
+    this.edit.show('new', () => {
+      this.editingBatchId.set(undefined);
+      this.form = {
+        courseId: 1,
+        locationId: 1,
+        batchName: `BCH-NEW-0${this.svc.batches().length + 1} — Batch Reguler`,
+        startDate: '2027-01-16',
+        endDate: '2027-02-14',
+        startTime: '09:00',
+        endTime: '16:00',
+        maxSeats: 30,
+      };
+    });
   }
 
   editBatch(b: CourseBatch): void {
-    this.editingBatchId.set(b.id);
-    this.form = {
-      courseId: b.courseId,
-      locationId: b.locationId,
-      batchName: b.batchName,
-      startDate: b.startDate,
-      endDate: b.endDate,
-      startTime: b.startTime,
-      endTime: b.endTime,
-      maxSeats: b.maxSeats,
-    };
-    this.showForm.set(true);
+    if (this.edit.open() === b.id) {
+      this.edit.hide();
+      return;
+    }
+    this.edit.show(b.id, () => {
+      this.editingBatchId.set(b.id);
+      this.form = {
+        courseId: b.courseId,
+        locationId: b.locationId,
+        batchName: b.batchName,
+        startDate: b.startDate,
+        endDate: b.endDate,
+        startTime: b.startTime,
+        endTime: b.endTime,
+        maxSeats: b.maxSeats,
+      };
+    });
   }
 
   async saveBatch() {
@@ -69,14 +76,14 @@ export class AdminBatchesComponent {
       id: this.editingBatchId(),
       ...this.form,
     });
-    if (result.success) this.showForm.set(false);
+    if (result.success) this.edit.hide();
   }
 
   async deleteBatch(batch: CourseBatch) {
     const result = await this.svc.deleteBatchByAdmin(batch);
     if (result.success && this.editingBatchId() === batch.id) {
       this.editingBatchId.set(undefined);
-      this.showForm.set(false);
+      this.edit.hide();
     }
   }
 }
